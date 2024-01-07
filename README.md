@@ -1,0 +1,2 @@
+# kobra
+UCI chess engine

@@ -1,0 +1,9 @@
+board.o: board.cpp board.h bitboard.h random.h attacks.h eval.h
+hash.o: hash.cpp hash.h bitboard.h
+main.o: main.cpp attacks.h bitboard.h eval.h uci.h search.h board.h \
+ random.h hash.h
+movegen.o: movegen.cpp movegen.h bitboard.h board.h random.h attacks.h
+search.o: search.cpp search.h board.h bitboard.h random.h hash.h \
+ movegen.h
+uci.o: uci.cpp uci.h search.h board.h bitboard.h random.h hash.h \
+ movegen.h

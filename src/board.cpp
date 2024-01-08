@@ -644,3 +644,16 @@ bool Board::IsUnderAttack(Color us, Square sq) {
 bool Board::IsInCheck() {
   return IsUnderAttack(side_to_move, ksq(side_to_move));
 }
+
+Bitboard Board::LeastValuablePiece(Bitboard attacking, Color attacker,
+                                   Piece& pc) {
+  for (int32_t pt = PAWN; pt <= KING; ++pt) {
+    Bitboard subset = attacking & pieces(pt);
+    if (subset) {
+      pc = piece::make(attacker, pt);
+      return Bitboard::FromSquare(subset.LSB());
+    }
+  }
+  return {};
+}
+

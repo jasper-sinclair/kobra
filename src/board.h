@@ -109,6 +109,8 @@ struct Board {
   bool IsInCheck();
   void GenerateKingAttackInfo(KingAttackInfo& k);
 
+  Bitboard LeastValuablePiece(Bitboard attacking, Color attacker, Piece& pc);
+
   bool NonPawnMaterial(Color c);
 };
 

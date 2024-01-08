@@ -4,7 +4,6 @@ UCI chess engine
 
   [![Release][release-badge]][release-link]
   [![Commits][commits-badge]][commits-link]
-
   ![Downloads][downloads-badge]
   [![License][license-badge]][license-link]
   

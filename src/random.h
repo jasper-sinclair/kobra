@@ -14,23 +14,14 @@ inline TimeMs curr_time() {
           .count());
 }
 inline std::uint32_t rand_u32(std::uint32_t low, std::uint32_t high) {
-  std::mt19937 rng(curr_time());
-  std::uniform_int_distribution<std::uint32_t> uni(low, high);
-  return uni(rng);
+  std::mt19937 gen(curr_time());
+  std::uniform_int_distribution<std::uint32_t> dis(low, high);
+  return dis(gen);
 }
 
-namespace rng {
-inline int seed = 0;
-inline std::mt19937_64 rng(seed);
-inline std::normal_distribution<float> normal(0, static_cast<float>(0.2));
-
-inline float GetFloat() { return normal(rng); }
-
-inline float GetFloat(uint64_t seed) {
-  std::mt19937_64 gen(seed);
-  std::normal_distribution<float> dist(0, static_cast<float>(0.2));
-  return dist(gen);
+inline uint64_t rand64() {
+  std::random_device rd;
+  std::mt19937_64 gen(rd());
+  std::uniform_int_distribution<uint64_t> dis;
+  return dis(gen);
 }
-
-inline uint64_t GetUll() { return rng(); }
-}  // namespace rng

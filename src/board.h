@@ -164,10 +164,10 @@ inline Key en_passant[N_FILES];
 
 inline void init() {
   for (int i = 0; i < 16; ++i) {
-    for (int j = 0; j < N_SQUARES; ++j) psq[i][j] = rng::GetUll();
+    for (int j = 0; j < N_SQUARES; ++j) psq[i][j] = rand64();
   }
-  side = rng::GetUll();
-  for (int i = 0; i < 16; ++i) castling[i] = rng::GetUll();
-  for (int i = 0; i < N_FILES; ++i) en_passant[i] = rng::GetUll();
+  side = rand64();
+  for (int i = 0; i < 16; ++i) castling[i] = rand64();
+  for (int i = 0; i < N_FILES; ++i) en_passant[i] = rand64();
 }
 }  // namespace zobrist

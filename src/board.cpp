@@ -23,7 +23,7 @@ Board::Board(const std::string& fen) {
   for (char c : token) {
     if (c == ' ') continue;
 
-    if ((pc = piece::kPieceToChar.find(c)) != std::string::npos) {
+    if ((pc = static_cast<int>(piece::kPieceToChar.find(c))) != static_cast<int>(std::string::npos)) {
       SetPiece<false>(pc, sq);
       sq += EAST;
     }

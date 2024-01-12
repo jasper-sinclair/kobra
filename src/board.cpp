@@ -645,6 +645,16 @@ bool Board::IsInCheck() {
   return IsUnderAttack(side_to_move, ksq(side_to_move));
 }
 
+Bitboard Board::AttackersTo(Square sq, Bitboard occupied) {
+  return attacks::pawn_attacks[WHITE][sq] & pieces(BLACK, PAWN) |
+         attacks::pawn_attacks[BLACK][sq] & pieces(WHITE, PAWN) |
+         attacks::knight_attacks[sq] & pieces(KNIGHT) |
+         attacks::attacks<BISHOP>(sq, occupied) &
+             (pieces(BISHOP) | pieces(QUEEN)) |
+         attacks::attacks<ROOK>(sq, occupied) & (pieces(ROOK) | pieces(QUEEN)) |
+         attacks::king_attacks[sq] & pieces(KING);
+}
+
 Bitboard Board::LeastValuablePiece(Bitboard attacking, Color attacker,
                                    Piece& pc) {
   for (int32_t pt = PAWN; pt <= KING; ++pt) {

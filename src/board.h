@@ -109,6 +109,7 @@ struct Board {
   bool IsInCheck();
   void GenerateKingAttackInfo(KingAttackInfo& k);
 
+  Bitboard AttackersTo(Square sq, Bitboard occupied);
   Bitboard LeastValuablePiece(Bitboard attacking, Color attacker, Piece& pc);
 
   bool NonPawnMaterial(Color c);

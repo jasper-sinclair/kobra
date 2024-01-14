@@ -130,6 +130,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="movegen.cpp" />
     <ClCompile Include="search.cpp" />
+    <ClCompile Include="chrono.cpp" />
     <ClCompile Include="hash.cpp" />
     <ClCompile Include="uci.cpp" />
   </ItemGroup>
@@ -141,6 +142,7 @@
     <ClInclude Include="movegen.h" />
     <ClInclude Include="random.h" />
     <ClInclude Include="search.h" />
+    <ClInclude Include="chrono.h" />
     <ClInclude Include="hash.h" />
     <ClInclude Include="uci.h" />
   </ItemGroup>

@@ -5,14 +5,16 @@
 
 using NodeType = uint8_t;
 
+enum NodeTypes { NONE_NODE, PV_NODE, CUT_NODE, ALL_NODE };
+
 struct HashEntry {
   Key key;
 
   union {
     struct {
       Score score;
-      Score eval;
-      uint16_t move;
+      Score static_eval;
+      Move move;
       uint8_t depth;
       NodeType node_type;
     };
@@ -23,10 +25,22 @@ struct HashEntry {
 constexpr size_t kMaxHashSize = 1 << 20;
 
 struct HashTable {
-  std::unique_ptr<HashEntry[]> entries;
-  uint64_t size;
-  uint64_t mask;
+  [[nodiscard]] double usage() const;
+  bool probe(Key key, HashEntry& hash_entry);
 
+  static Score ScoreFromHash(Score score, Depth ply);
+  static Score ScoreToHash(Score score, Depth ply);
+
+  std::unique_ptr<HashEntry[]> entries;
+
+  HashEntry* get(const Key key) { return &entries[key & mask]; }
+
+  uint64_t mask = 0;
+  uint64_t size = 0;
+
+  void clear() const;
+  void save(Key key, Score score, Score static_eval, Move move, Depth depth,
+            NodeType node_type);
   void SetSize(uint64_t mb);
   void clear();
   HashEntry* get(Key key) { return &entries[key & mask]; }

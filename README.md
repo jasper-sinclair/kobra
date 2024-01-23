@@ -9,7 +9,7 @@ UCI chess engine
   
 kobra is a work in progress...
 
-it has no search or eval and is limited to random moves, but can play a complete game.
+currently limited to random moves
 
 - windows
 - 64 bit

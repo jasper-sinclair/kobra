@@ -3,6 +3,11 @@
 
 #include "bitboard.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable : 4201)
+#else
+#endif
+
 using NodeType = uint8_t;
 
 enum NodeTypes { NONE_NODE, PV_NODE, CUT_NODE, ALL_NODE };

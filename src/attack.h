@@ -2,6 +2,10 @@
 
 #include "bitboard.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable : 4244)
+#else
+#endif
 namespace attacks {
 inline Bitboard pawn_attacks[N_COLORS][N_SQUARES];
 inline Bitboard knight_attacks[N_SQUARES];

@@ -3,7 +3,10 @@
 #include <iostream>
 
 #include "bitboard.h"
-#include "board.h"
+#ifdef _MSC_VER
+#pragma warning(disable : 4127)
+#else
+#endif
 
 struct Move {
   uint16_t move;

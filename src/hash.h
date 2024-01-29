@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "bitboard.h"
+#include "main.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4201)
@@ -14,7 +15,6 @@ enum NodeTypes { NONE_NODE, PV_NODE, CUT_NODE, ALL_NODE };
 
 struct HashEntry {
   Key key;
-
   union {
     struct {
       Score score;
@@ -47,9 +47,4 @@ struct HashTable {
   void save(Key key, Score score, Score static_eval, Move move, Depth depth,
             NodeType node_type);
   void SetSize(uint64_t mb);
-  void clear();
-  HashEntry* get(Key key) { return &entries[key & mask]; }
-  bool probe(Key key, HashEntry& tte);
-  void save(Key key, Score score, Score eval, uint16_t move, Depth depth);
-  double usage();
 };

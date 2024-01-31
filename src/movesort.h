@@ -7,8 +7,8 @@ struct MoveSorter {
 	Stack* ss;
 	Histories& histories;
 	MoveList moves;
-	uint16_t hash_move;
-	bool is_in_check;
+	Move hashMove;
+	bool isInCheck;
 	int idx;
 	int stage;
 
@@ -23,10 +23,10 @@ struct MoveSorter {
 		Board& board, 
 		Stack* ss, 
 		Histories& histories, 
-		uint16_t hash_move, 
-		bool is_in_check
+		Move hashMove, 
+		bool isInCheck
 	);
 
-	uint16_t next();
-	Score ComputeScore(uint16_t m);
+	Move next();
+	Score computeScore(Move m);
 };

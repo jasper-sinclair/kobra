@@ -7,7 +7,6 @@ UCI chess engine
   ![Downloads][downloads-badge]
   [![License][license-badge]][license-link]
   
-  [![Buid][build-badge]][build-link]
   [![Makefile CI](https://github.com/jasper-sinclair/kobra/actions/workflows/makefile.yml/badge.svg)](https://github.com/jasper-sinclair/kobra/actions/workflows/makefile.yml)
   
 kobra is a work in progress...
@@ -31,5 +30,3 @@ currently limited to random moves
 [commits-badge]:https://img.shields.io/github/commits-since/jasper-sinclair/kobra/latest?style=for-the-badge
 [commits-link]:https://github.com/jasper-sinclair/kobra/commits/main
 [downloads-badge]:https://img.shields.io/github/downloads/jasper-sinclair/kobra/total?color=success&style=for-the-badge
-[build-badge]:https://img.shields.io/github/actions/workflow/status/jasper-sinclair/kobra/tests.yml?style=for-the-badge
-[build-link]:https://github.com/jasper-sinclair/kobra/actions/workflows/tests.yml

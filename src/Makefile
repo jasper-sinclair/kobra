@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 endif
 
 # Source files
-SRC = board.cpp hash.cpp main.cpp movegen.cpp search.cpp uci.cpp
+SRC = attack.cpp bitboard.cpp chrono.cpp hash.cpp main.cpp movegen.cpp movesort.cpp uci.cpp
 
 # Object files
 OBJS = $(subst .cpp,.o,$(SRC))

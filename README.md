@@ -7,6 +7,7 @@ UCI chess engine
   ![Downloads][downloads-badge]
   [![License][license-badge]][license-link]
   [![Buid][build-badge]][build-link]
+  [![Makefile CI](https://github.com/jasper-sinclair/kobra/actions/workflows/makefile.yml/badge.svg)](https://github.com/jasper-sinclair/kobra/actions/workflows/makefile.yml)
   
 kobra is a work in progress...
 

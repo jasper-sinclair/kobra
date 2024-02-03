@@ -111,7 +111,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -126,20 +126,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="board.cpp" />
+    <ClCompile Include="bitboard.cpp" />
+    <ClCompile Include="history.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="movegen.cpp" />
+    <ClCompile Include="movesort.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="chrono.cpp" />
     <ClCompile Include="hash.cpp" />
     <ClCompile Include="uci.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="attacks.h" />
+    <ClInclude Include="attack.h" />
     <ClInclude Include="bitboard.h" />
     <ClInclude Include="board.h" />
     <ClInclude Include="eval.h" />
+    <ClInclude Include="history.h" />
     <ClInclude Include="movegen.h" />
+    <ClInclude Include="movesort.h" />
     <ClInclude Include="random.h" />
     <ClInclude Include="search.h" />
     <ClInclude Include="chrono.h" />

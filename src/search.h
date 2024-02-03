@@ -1,35 +1,74 @@
 #pragma once
 
-#include <thread>
-#include <vector>
-#include "board.h"
-#include "hash.h"
+#include<thread>
 
-using ThreadId = uint32_t;
-constexpr int kMaxThreads = 256;
+#include"movesort.h"
+#include"chrono.h"
+#include"hash.h"
+
+using ThreadID = uint32_t;
+
+constexpr int MIN_DISPLAY_TIME = 5000;
+constexpr int MAX_THREADS = 256;
+
+enum SearchType {
+	NonPV, PV, Root
+};
 
 struct Stack {
-  uint16_t pv[kMaxDepth];
-  int pv_size;
-  int ply;
-  Piece moved;
-  uint16_t move;
-  uint16_t hash_move;
+	Move pv[MAX_DEPTH];
+	int pvSize;
+	int ply;
+	Piece moved;
+	Move move;
+	Move hashMove;
 };
 
 struct ThreadData {
-  ThreadId id;
-  Stack stack[kMaxPly];
-  std::vector<uint16_t> pv;
-  uint64_t node_count;
-  Depth root_depth;
-  ThreadData(ThreadId id) : id(id) {}
+	ThreadID id;
+	Histories histories;
+	Stack stack[MAX_PLY + CONTINUATION_PLY];
+	std::vector<Move>pv;
+	uint64_t nodeCount;
+	Depth rootDepth;
+	Depth selDepth;
+	Depth nmpMinPly;
+	Color nmpColor;
+
+	ThreadData() :histories() {}
+	ThreadData(ThreadID id) :id(id), histories() {}
 };
 
 struct Search {
-  HashTable tt;
-  std::vector<std::thread> threads;
-  std::vector<ThreadData*> thread_data;
-  ThreadId num_threads = 1;
-  uint16_t RandMove(Board& board, ThreadId id = 0);
+	TranspositionTable tt;
+	TimeManagement time;
+
+	std::vector<std::thread>threads;
+	std::vector<ThreadData*>threadData;
+	ThreadID numThreads;
+
+	static constexpr int16_t LMR_FACTOR = 1000;
+	inline static Depth lateMoveReductions[MAX_DEPTH][MAX_MOVE];
+	
+	// Initialize LMR table
+	static void init();
+
+	template<bool mainThread=true> 
+	Move bestMove(Board& board, ThreadID id=0);
+
+	template<SearchType searchType, bool skipHashMove=false>
+	Score alphaBeta(Board& board, Score alpha, Score beta, Depth depth, ThreadData& td, Stack* ss);
+
+	template<SearchType searchType>
+	Score quiescence(Board& board, Score alpha, Score beta, ThreadData& td, Stack* ss);
+
+	void stop();
+	void clear();
+	void setTTSize(size_t MiB);
+	void setNumThreads(ThreadID numThreads);
+
+	// UCI command
+	std::string info(ThreadData& td, Depth depth, Score score);
+
+	uint64_t nodeCount();
 };

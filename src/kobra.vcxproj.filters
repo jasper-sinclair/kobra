@@ -15,13 +15,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="board.cpp">
+    <ClCompile Include="bitboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="history.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="movegen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="movesort.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="search.cpp">
@@ -38,7 +44,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="attacks.h">
+    <ClInclude Include="attack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bitboard.h">
@@ -50,7 +56,13 @@
     <ClInclude Include="eval.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="history.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="movegen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="movesort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="random.h">

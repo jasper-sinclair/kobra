@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
+#include<array>
 
-//#include "movegen.h"
+#include"movegen.h"
 
 namespace eval {
 
@@ -13,25 +13,10 @@ namespace eval {
 
 	inline std::array<std::array<std::array<std::array<Score, N_SQUARES>, N_GAME_PHASES>, N_PIECE_TYPES>, N_COLORS>psqTable;
 
-constexpr std::array<Score, 7> kPValues = {0, 100, 325, 350, 550, 1000, 10000};
-constexpr std::array<Score, 16> kPieceValues = {
-    0,
-    kPValues[1],
-    kPValues[2],
-    kPValues[3],
-    kPValues[4],
-    kPValues[5],
-    kPValues[6],
-    0,
-    0,
-    kPValues[1],
-    kPValues[2],
-    kPValues[3],
-    kPValues[4],
-    kPValues[5],
-    kPValues[6],
-    0,
-};
+	constexpr std::array<Score, 7>PT_VALUES = { 0, 100, 330, 350, 525, 1100, 8000 };
+	constexpr std::array<Score, 16>PIECE_VALUES = { 0, PT_VALUES[1], PT_VALUES[2], PT_VALUES[3], PT_VALUES[4], PT_VALUES[5], PT_VALUES[6], 0,
+												   0, PT_VALUES[1], PT_VALUES[2], PT_VALUES[3], PT_VALUES[4], PT_VALUES[5], PT_VALUES[6], 0, };
+
 	inline void init() {
 		psqTable[WHITE][PAWN][MID_GAME] = {
 			0, 0, 0, 0, 0, 0, 0, 0,
@@ -336,4 +321,3 @@ inline Score evaluate(Board& board) {
 	result += psqScore;
 	return result;
 }
-}  // namespace eval

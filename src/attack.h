@@ -85,7 +85,7 @@ namespace attacks {
 
 		// bishop attacks on empty board
 		for (Square sq = A1; sq < N_SQUARES; ++sq) {
-			Bitboard attacks;
+			Bitboard attacks = {};
 			for (auto& b : diagonals) {
 				if (b.isSet(sq)) {
 					attacks = b;
@@ -103,7 +103,7 @@ namespace attacks {
 
 		// rook attacks on empty board
 		for (Square sq = A1; sq < N_SQUARES; ++sq) {
-			Bitboard attacks;
+			Bitboard attacks = {};
 			for (auto& b : files) {
 				if (b.isSet(sq)) {
 					attacks = b;
@@ -265,7 +265,8 @@ namespace attacks {
 		case QUEEN:
 			return diagonalAttacks(sq, occupied) | antiDiagonalAttacks(sq, occupied) |
 				fileAttacks(sq, occupied) | rankAttacks(sq, occupied);
-		}
+    default: ;
+    }
 		return {};
 	}
 

@@ -462,8 +462,9 @@ namespace move {
 				return s + 'r';
 			case QUEEN:
 				return s + 'q';
-			};
-		}
+      default: ;
+      }
+    }
 		return s;
 	}
 };

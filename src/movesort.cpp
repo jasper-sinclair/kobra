@@ -12,7 +12,6 @@ MoveSorter::MoveSorter(
 	board(board), 
 	ss(ss), 
 	histories(histories), 
-	moves{}, 
 	hashMove(hashMove), 
 	isInCheck(isInCheck), 
 	idx{},

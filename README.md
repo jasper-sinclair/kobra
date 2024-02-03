@@ -11,8 +11,6 @@ UCI chess engine
   
 kobra is a work in progress...
 
-currently limited to random moves
-
 - windows
 - 64 bit
 - c++17

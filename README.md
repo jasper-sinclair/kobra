@@ -25,3 +25,4 @@ kobra is a work in progress...
 [release-link]:https://github.com/jasper-sinclair/kobra/releases/latest
 [commits-badge]:https://img.shields.io/github/commits-since/jasper-sinclair/kobra/latest?style=for-the-badge
 [commits-link]:https://github.com/jasper-sinclair/kobra/commits/main
+[downloads-badge]:https://img.shields.io/github/downloads/jasper-sinclair/kobra/total?color=success&style=for-the-badge

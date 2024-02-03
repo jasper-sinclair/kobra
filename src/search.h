@@ -35,8 +35,14 @@ struct ThreadData {
 	Depth nmpMinPly;
 	Color nmpColor;
 
-	ThreadData() :histories() {}
-	ThreadData(ThreadID id) :id(id), histories() {}
+	ThreadData() : id(0), stack{}, nodeCount(0), rootDepth(0), selDepth(0), nmpMinPly(0), nmpColor(false)
+  {
+  }
+
+	ThreadData(ThreadID id) : id(id), stack{}, nodeCount(0), rootDepth(0), selDepth(0), nmpMinPly(0),
+                            nmpColor(false)
+  {
+  }
 };
 
 struct Search {

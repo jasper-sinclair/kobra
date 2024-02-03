@@ -14,10 +14,12 @@ struct ExtMove {
 
 constexpr int MAX_MOVE = 256;
 
-struct MoveList {;
-	ExtMove data[MAX_MOVE], *last;
+struct MoveList {
+  ExtMove data[MAX_MOVE], *last;
 
-	MoveList() :last(data) {}
+	MoveList() : data{}, last(data)
+  {
+  }
 
 	ExtMove* begin()        { return data; }
 	ExtMove* end()          { return last; }

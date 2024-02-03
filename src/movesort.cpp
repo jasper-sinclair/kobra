@@ -52,7 +52,9 @@ Move MoveSorter::next() {
 	case NORMAL:
 		if (idx == moves.size()) return Move();
 		return moves.move(idx++);
-	}
+  default: ;
+  }
+  return 0;
 }
 
 Score MoveSorter::computeScore(Move m) {

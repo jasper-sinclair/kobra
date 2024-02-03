@@ -1,50 +1,43 @@
 #pragma once
-#include <memory>
 
-#include "bitboard.h"
-#include "main.h"
-
-#ifdef _MSC_VER
-#pragma warning(disable : 4201)
-#else
-#endif
+#include"bitboard.h"
 
 using NodeType = uint8_t;
 
-enum NodeTypes { NONE_NODE, PV_NODE, CUT_NODE, ALL_NODE };
-
-struct HashEntry {
-  Key key;
-  union {
-    struct {
-      Score score;
-      Score static_eval;
-      Move move;
-      uint8_t depth;
-      NodeType node_type;
-    };
-    uint64_t data;
-  };
+enum NodeTypes {
+	NONE_NODE, PV_NODE, CUT_NODE, ALL_NODE
 };
 
-constexpr size_t kMaxHashSize = 1 << 20;
+struct TTEntry {
+	Key key;
 
-struct HashTable {
-  [[nodiscard]] double usage() const;
-  bool probe(Key key, HashEntry& hash_entry);
+	union {
+		struct {
+			Score score;
+			Score eval;
+			Move move;
+			uint8_t depth;
+			NodeType nodeType;
+		};
+		uint64_t data;
+	};
+};
 
-  static Score ScoreFromHash(Score score, Depth ply);
-  static Score ScoreToHash(Score score, Depth ply);
+constexpr size_t MAX_TT_SIZE = 1 << 20;
 
-  std::unique_ptr<HashEntry[]> entries;
+struct TranspositionTable {
+	std::unique_ptr<TTEntry[]>entries;
+	uint64_t size;
+	uint64_t mask;
 
-  HashEntry* get(const Key key) { return &entries[key & mask]; }
-
-  uint64_t mask = 0;
-  uint64_t size = 0;
-
-  void clear() const;
-  void save(Key key, Score score, Score static_eval, Move move, Depth depth,
-            NodeType node_type);
-  void SetSize(uint64_t mb);
+	void setSize(uint64_t MiB);
+	void clear();
+	TTEntry* get(Key key) {
+		return &entries[key & mask];
+	}
+	bool probe(Key key, TTEntry& tte);
+	void save(Key key, Score score, Score eval, Move move, Depth depth, NodeType nodeType);
+	double usage();
+	static Score scoreToTT(Score score, Depth ply);
+	static Score scoreFromTT(Score score, Depth ply);
 };

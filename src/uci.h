@@ -1,26 +1,26 @@
 #pragma once
 
-#include <thread>
+#include<thread>
 
-#include "search.h"
+#include"search.h"
 
 namespace uci {
-constexpr size_t kDefaultHashSize = 256;
-constexpr ThreadId kDefaultThreads = 1;
+	constexpr size_t DEFAULT_TT_SIZE = 256;
+	constexpr ThreadID DEFAULT_THREADS = 1;
 
-inline Board board;
-inline Search search;
-inline std::thread search_thread;
+	inline Board board;
+	inline Search search;
+	inline std::thread searchThread;
 
-void loop();
+	void loop();
 
-void position(std::istringstream& ss);
-void go(const std::string& str);
-void ucinewgame();
-void uci();
-void setoption(std::istringstream& ss);
-void stop();
+	void position(std::istringstream& ss);
+	void go(const std::string& str);
+	void ucinewgame();
+	void uci();
+	void setoption(std::istringstream& ss);
+	void stop();
 
-uint16_t StrToMove(const std::string& str, Board& board);
-void GetBestMove();
-};  // namespace uci
+	Move toMove(const std::string& str, Board& board);
+	void searchAndPrint();
+};

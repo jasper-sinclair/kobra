@@ -1,39 +1,42 @@
-#include "chrono.h"
-#include <algorithm>
-#include <cstring>
-#include "main.h"
+#include<iostream>
 
-Chrono::Chrono() { std::memset(this, 0, sizeof(Chrono)); }
+#include"chrono.h"
 
-Chrono::TimePoint Chrono::now() {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(
-             std::chrono::steady_clock::now().time_since_epoch())
-      .count();
+TimeManagement::TimeManagement() {
+	std::memset(this, 0, sizeof(TimeManagement));
 }
 
-void Chrono::start() { begin = now(); }
-Chrono::TimePoint Chrono::elapsed() const { return now() - begin; }
-
-void Chrono::InitTimeToUse(const Color side_to_move) {
-  match_time_limit = time[side_to_move];
-  if (match_time_limit) {
-    use_match_time_limit = true;
-    constexpr TimePoint overhead = 50;
-    time_to_use =
-        (match_time_limit < inc[side_to_move]
-             ? match_time_limit
-             : static_cast<TimePoint>(0.05) * (match_time_limit - inc[side_to_move]) +
-                   inc[side_to_move]) -
-        overhead;
-    time_to_use = std::max(time_to_use, static_cast<TimePoint>(10));
-  } else
-    time_to_use = std::numeric_limits<long long>::max();
+TimeManagement::TimePoint TimeManagement::now() {
+	return std::chrono::duration_cast<std::chrono::milliseconds>
+		(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-void Chrono::update(const uint64_t node_cnt) {
-  if (use_match_time_limit && elapsed() > time_to_use ||
-      use_node_limit && node_cnt > node_limit ||
-      use_move_time_limit && elapsed() > move_time_limit) {
-    stop = true;
-  }
+void TimeManagement::start() {
+	begin = now();
+}
+
+TimeManagement::TimePoint TimeManagement::elapsed() const
+{
+	return now() - begin;
+}
+
+void TimeManagement::initializeTimeToUse(Color sideToMove) {
+	matchTimeLimit = time[sideToMove];
+	if (matchTimeLimit) {
+		useMatchTimeLimit = true;
+		constexpr TimePoint overhead = 50;
+		timeToUse = (matchTimeLimit < inc[sideToMove] ? matchTimeLimit : 0.05 * (matchTimeLimit - inc[sideToMove]) + inc[sideToMove]) - overhead;
+		timeToUse = std::max(timeToUse, static_cast<TimePoint>(10));
+	}
+	else
+		timeToUse = std::numeric_limits<long long>::max();
+}
+
+void TimeManagement::update(uint64_t nodeCnt) {
+	if (useMatchTimeLimit && elapsed() > timeToUse ||
+		useNodeLimit && nodeCnt > nodeLimit ||
+		useMoveTimeLimit && elapsed() > moveTimeLimit) 
+	{
+		stop = true;
+	}
 }

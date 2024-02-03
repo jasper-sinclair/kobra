@@ -106,7 +106,6 @@ struct Board {
 	bool isInCheck();
 	void generateKingAttackInfo(KingAttackInfo& k);
 	
-	Score evaluate();
 	// Static Exchange Evaluation
 	Score see(Move m);
 	Bitboard attackersTo(Square sq, Bitboard occupied);
@@ -174,10 +173,6 @@ inline bool Board::isPromotion(Move m) {
 
 inline bool Board::nonPawnMaterial(Color c) {
 	return bool(color(c) - pieces(PAWN) - pieces(KING));
-}
-
-inline Score Board::evaluate() {
-	return evaluate();
 }
 
 namespace zobrist {

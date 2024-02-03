@@ -24,8 +24,8 @@ Move Search::bestMove(Board& board, ThreadID id) {
 	Score alpha = -INFINITY_SCORE;
 	Score beta = INFINITY_SCORE;
 	Score delta;
-	Score score;
-	Score prevScore;
+	Score score = 0;
+	Score prevScore = 0;
 	Depth maxDepth = MAX_DEPTH;
 
 	for (int i = 0; i < MAX_PLY + CONTINUATION_PLY; ++i) {
@@ -224,7 +224,7 @@ Score Search::alphaBeta(Board& board, Score alpha, Score beta, Depth depth, Thre
 	
 	MoveSorter moveSorter(board, ss, td.histories, hashMove, isInCheck);
 	Score bestScore = -INFINITY_SCORE;
-	Score score;
+	Score score = 0;
 	Move bestMove = Move();
 	int moveCount = 0;
 	

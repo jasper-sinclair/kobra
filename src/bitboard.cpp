@@ -1,5 +1,4 @@
 #include<algorithm>
-#include<iostream>
 #include<sstream>
 #include<string>
 
@@ -53,7 +52,8 @@ Board::Board(const std::string& FEN) {
 		case 'q':
 			st->castlings.set(BLACK_QUEEN_SIDE);
 			break;
-		}
+    default: ;
+    }
 	}
 
 	ss >> token;

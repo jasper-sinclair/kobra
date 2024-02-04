@@ -317,7 +317,7 @@ inline Score evaluate(Board& board) {
 		Color c = color::make(pc);
 		Score s = psqTable[c][pt][gamePhase][sq];
 		psqScore += c == us ? s : -s;
-	};
-	result += psqScore;
+	}
+  result += psqScore;
 	return result;
 }

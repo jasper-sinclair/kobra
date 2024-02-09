@@ -48,7 +48,7 @@ namespace attacks {
 		for (Square from = A1; from < N_SQUARES; ++from) {
 			Bitboard attacks = Bitboard();
 			for (const auto& d : knightDirections) {
-				Square to = from + d;
+        const Square to = from + d;
 				if (square::isValid(to) && square::distance(from, to) <= 2)
 					attacks.set(to);
 			}
@@ -59,7 +59,7 @@ namespace attacks {
 		for (Square from = A1; from < N_SQUARES; ++from) {
 			Bitboard attacks = Bitboard();
 			for (const auto& d : kingDirections) {
-				Square to = from + d;
+        const Square to = from + d;
 				if (square::isValid(to) && square::distance(from, to) == 1)
 					attacks.set(to);
 			}
@@ -121,8 +121,8 @@ namespace attacks {
 
 		// ray attacks
 		for (Square sq = A1; sq < N_SQUARES; ++sq) {
-			File file = file::make(sq);
-			Rank rank = rank::make(sq);
+      const File file = file::make(sq);
+      const Rank rank = rank::make(sq);
 
 			rayAttacks[NORTH][sq] = Bitboard(0x101010101010100) << sq;
 			rayAttacks[SOUTH][sq] = Bitboard(0x80808080808080) >> 63 - sq;
@@ -152,7 +152,7 @@ namespace attacks {
 		// squares in between two squares
 		for (Square i = A1; i < N_SQUARES; ++i) {
 			for (Square j = A1; j < N_SQUARES; ++j) {
-				Bitboard b = Bitboard::fromSquare(j);
+        const Bitboard b = Bitboard::fromSquare(j);
 				for (const auto& arr : rayAttacks) {
 					if (arr[i] & b) {
 						inBetweenSquares[i][j] = arr[i] - arr[j] - b;
@@ -163,30 +163,30 @@ namespace attacks {
 		}
 
 		for (Square i = 0; i < 64; ++i) {
-			Bitboard b = Bitboard::fromSquare(i);
+      const Bitboard b = Bitboard::fromSquare(i);
 			// diagonals by square
-			for (auto& d : diagonals) {
+			for (const auto& d : diagonals) {
 				if (d & b) {
 					diagonalsBySquare[i] = d - b;
 					break;
 				}
 			}
 			// anti-diagonals by square
-			for (auto& d : antiDiagonals) {
+			for (const auto& d : antiDiagonals) {
 				if (d & b) {
 					antiDiagonalsBySquare[i] = d - b;
 					break;
 				}
 			}
 			// files by square
-			for (auto& d : files) {
+			for (const auto& d : files) {
 				if (d & b) {
 					filesBySquare[i] = d - b;
 					break;
 				}
 			}
 			// ranks by square
-			for (auto& d : ranks) {
+			for (const auto& d : ranks) {
 				if (d & b) {
 					ranksBySquare[i] = d - b;
 					break;
@@ -215,7 +215,7 @@ namespace attacks {
 				fillUpAttacks[i][j] = FILE_A_BB * firstRankAttacks[i][j];
 
 				// A-file attacks
-				Square r = i^7;
+        const Square r = i^7;
 				occ = Bitboard(j<<1) - Bitboard::fromSquare(r);
 				for (int k = r-1;; --k) {
 					if (k < 0) break;

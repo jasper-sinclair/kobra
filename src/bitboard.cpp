@@ -293,7 +293,7 @@ void Board::applyMove(Move m) {
 
 	// compute repetitions
 	bs.repetitions = 0;
-	for (int i = (int)history.size() - 4; i > (int)history.size() - bs.fiftyMoveCount - 1; i -= 2) {
+	for (int i = static_cast<int>(history.size()) - 4; i > static_cast<int>(history.size()) - bs.fiftyMoveCount - 1; i -= 2) {
 		if (i <= 0)
 			break;
 		if (history[i].zobrist == st->zobrist) {
@@ -711,7 +711,7 @@ Score Board::see(Move m) {
 		attacker = !attacker;
 		gain[d] = eval::PIECE_VALUES[fromPc] - gain[d - 1];
 
-		if (std::max(Score(-gain[d - 1]), gain[d]) < 0)
+		if (std::max(static_cast<Score>(-gain[d - 1]), gain[d]) < 0)
 			break;
 
 		attadef ^= fromSet;
@@ -724,6 +724,6 @@ Score Board::see(Move m) {
 			break;
 	}
 	while (--d)
-		gain[d - 1] = -std::max(Score(-gain[d-1]), gain[d]);
+		gain[d - 1] = -std::max(static_cast<Score>(-gain[d - 1]), gain[d]);
 	return gain[0];
 }

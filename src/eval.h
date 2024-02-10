@@ -296,8 +296,8 @@ inline Score evaluate(Board& board) {
 	PIECE_VALUES[ROOK] * (board.pieces(us, ROOK).popcount() - board.pieces(them, ROOK).popcount()) +
 	PIECE_VALUES[QUEEN] * (board.pieces(us, QUEEN).popcount() - board.pieces(them, QUEEN).popcount());
 	
-	bool wQueens = bool(board.pieces(WHITE, QUEEN));
-	bool bQueens = bool(board.pieces(BLACK, QUEEN));
+	bool wQueens = static_cast<bool>(board.pieces(WHITE, QUEEN));
+	bool bQueens = static_cast<bool>(board.pieces(BLACK, QUEEN));
 	bool isEndgame;
 	if (wQueens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1 ||
 	bQueens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1)

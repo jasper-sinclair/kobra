@@ -27,7 +27,7 @@ struct KingAttackInfo {
 	bool doubleCheck;
 	bool computed;
 
-	bool check() { return bool(attacks); }
+	bool check() { return static_cast<bool>(attacks); }
 };
 
 struct BoardStatus {
@@ -172,7 +172,7 @@ inline bool Board::isPromotion(Move m) {
 }
 
 inline bool Board::nonPawnMaterial(Color c) {
-	return bool(color(c) - pieces(PAWN) - pieces(KING));
+	return static_cast<bool>(color(c) - pieces(PAWN) - pieces(KING));
 }
 
 namespace zobrist {

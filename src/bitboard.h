@@ -186,7 +186,7 @@ namespace square {
 	}
 
 	constexpr Square make(std::string_view sv) {
-		return square::make(File(sv[0] - 'a'), Rank(sv[1] - '1'));
+		return square::make(static_cast<File>(sv[0] - 'a'), static_cast<Rank>(sv[1] - '1'));
 	}
 
 	constexpr void mirror(Square& sq) { sq ^= A8; }
@@ -217,23 +217,23 @@ struct Bitboard {
 	constexpr Bitboard(uint64_t data) :data(data) {}
 
 	constexpr static Bitboard fromSquare(Square sq) { 
-		return { uint64_t(1) << sq }; 
+		return { static_cast<uint64_t>(1) << sq }; 
 	}
 
 	constexpr bool isSet(Square sq) { 
-		return data & uint64_t(1) << sq; 
+		return data & static_cast<uint64_t>(1) << sq; 
 	}
 
 	constexpr void set(Square sq) { 
-		data |= uint64_t(1) << sq; 
+		data |= static_cast<uint64_t>(1) << sq; 
 	}
 
 	constexpr void clear(Square sq) { 
-		data &= ~(uint64_t(1) << sq); 
+		data &= ~(static_cast<uint64_t>(1) << sq); 
 	}
 
 	constexpr void toggle(Square sq) { 
-		data ^= uint64_t(1) << sq; 
+		data ^= static_cast<uint64_t>(1) << sq; 
 	}
 
 	template<Direction d>constexpr Bitboard shift();
@@ -249,19 +249,19 @@ struct Bitboard {
 	}
 
 	int popcount() { 
-		return (int)_mm_popcnt_u64(data); 
+		return static_cast<int>(_mm_popcnt_u64(data)); 
 	}
 
 	Square LSB() {
 		unsigned long idx;
 		_BitScanForward64(&idx, data);
-		return Square(idx);
+		return static_cast<Square>(idx);
 	}
 
 	Square MSB() {
 		unsigned long idx;
 		_BitScanReverse64(&idx, data);
-		return Square(idx);
+		return static_cast<Square>(idx);
 	}
 
 #else
@@ -346,7 +346,7 @@ struct Bitboard {
 	}
 
 	constexpr explicit operator bool() {
-		return bool(data);
+		return static_cast<bool>(data);
 	}
 
 	constexpr friend Bitboard operator<<(Bitboard b, uint8_t shift) {
@@ -442,7 +442,7 @@ namespace move {
 	}
 
 	constexpr MoveType moveType(Move m) {
-		return MoveType(m & 0x3 << 14);
+		return static_cast<MoveType>(m & 0x3 << 14);
 	}
 
 	constexpr PieceType pieceType(Move m) {

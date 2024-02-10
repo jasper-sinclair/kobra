@@ -9,11 +9,10 @@ void uci::loop() {
 	search.setNumThreads(DEFAULT_THREADS);
 
 	std::string line, token;
-	std::istringstream ss;
 
-	for (;;) {
+  for (;;) {
 		std::getline(std::cin, line);
-		ss = std::istringstream(line);
+		std::istringstream ss = std::istringstream(line);
 		token.clear();
 		ss >> token;
 
@@ -67,7 +66,7 @@ void uci::setoption(std::istringstream& ss) {
 				ss >> token;
 				if (token == "value") {
 					ss >> token;
-					ThreadID count = (ThreadID)std::stoi(token);
+					ThreadID count = static_cast<ThreadID>(std::stoi(token));
 					search.setNumThreads(count);
 				}
 			}
@@ -92,9 +91,8 @@ void uci::position(std::istringstream& ss) {
 
 	board = { fen };
 
-	Move move;
-	while (ss >> token) {
-		move = uci::toMove(token, board);
+  while (ss >> token) {
+		Move move = uci::toMove(token, board);
 		
 		// invalid move
 		if (!move) {

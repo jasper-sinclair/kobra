@@ -31,7 +31,7 @@ double TranspositionTable::usage() {
 		if (entries[i].key)
 			cnt += 1;
 	}
-	return (double)cnt / n;
+	return static_cast<double>(cnt) / n;
 }
 
 bool TranspositionTable::probe(Key key, TTEntry& tte) {

@@ -17,8 +17,7 @@ void generatePawnMoves(Board& board, MoveList& moveList) {
 	Bitboard theirTeam = board.color(them);
 	Bitboard ourPawns = board.pieces(us, PAWN);
 
-	Bitboard attacks;
-	Square to;
+  Square to;
 	Square from;
 
 	Bitboard singlePawnPushTargets = ourPawns.shift<up>() & empty;
@@ -28,7 +27,7 @@ void generatePawnMoves(Board& board, MoveList& moveList) {
 	Bitboard upLeftCaptures = upLeftBB & theirTeam;
 
 	// single pawn pushes
-	attacks = singlePawnPushTargets - relative_rank_8_bb;
+	Bitboard attacks = singlePawnPushTargets - relative_rank_8_bb;
 	while (attacks) {
 		to = attacks.popLSB();
 		from = to - up;

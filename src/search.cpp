@@ -23,8 +23,7 @@ Move Search::bestMove(Board& board, ThreadID id) {
 
 	Score alpha = -INFINITY_SCORE;
 	Score beta = INFINITY_SCORE;
-	Score delta;
-	Score score = 0;
+  Score score = 0;
 	Score prevScore = 0;
 	Depth maxDepth = MAX_DEPTH;
 
@@ -47,9 +46,9 @@ Move Search::bestMove(Board& board, ThreadID id) {
 			score = alphaBeta<Root>(copy, alpha, beta, td.rootDepth, td, ss);
 
 		else {
-			delta = 25;
+			Score delta = 25;
 			alpha = std::max(score - delta, -INFINITY_SCORE);
-			beta = std::min(score + delta, (int)INFINITY_SCORE);
+			beta = std::min(score + delta, static_cast<int>(INFINITY_SCORE));
 			for (;;) {
 				score = alphaBeta<Root>(copy, alpha, beta, td.rootDepth, td, ss);
 
@@ -60,7 +59,7 @@ Move Search::bestMove(Board& board, ThreadID id) {
 					alpha = std::max(alpha - delta, -INFINITY_SCORE);
 				}
 				else if (score >= beta)
-					beta = std::min(beta + delta, (int)INFINITY_SCORE);
+					beta = std::min(beta + delta, static_cast<int>(INFINITY_SCORE));
 
 				else break;
 
@@ -123,12 +122,12 @@ Score Search::alphaBeta(Board& board, Score alpha, Score beta, Depth depth, Thre
 	++td.nodeCount;
 
 	if (pvNode)
-		td.selDepth = std::max(td.selDepth, Depth(ss->ply+1));
+		td.selDepth = std::max(td.selDepth, static_cast<Depth>(ss->ply + 1));
 
 	// mate distance pruning
 	if (!rootNode) {
-		alpha = std::max(-MATE_SCORE + ss->ply, (int)alpha);
-		beta = std::min(MATE_SCORE - ss->ply - 1, (int)beta);
+		alpha = std::max(-MATE_SCORE + ss->ply, static_cast<int>(alpha));
+		beta = std::min(MATE_SCORE - ss->ply - 1, static_cast<int>(beta));
 		if (alpha >= beta) return alpha;
 	}
 	
@@ -272,7 +271,7 @@ Score Search::alphaBeta(Board& board, Score alpha, Score beta, Depth depth, Thre
 	
 			assert(m == hashMove);
 	
-			Score singularBeta = std::min(Score(eval - 2 * depth), beta);
+			Score singularBeta = std::min(static_cast<Score>(eval - 2 * depth), beta);
 			Depth singularDepth = depth / 2;
 	
 			ss->hashMove = m;
@@ -326,7 +325,7 @@ Score Search::alphaBeta(Board& board, Score alpha, Score beta, Depth depth, Thre
 		board.applyMove(m);
 
 		if (lmr) {
-			r = std::round(r / (double)LMR_FACTOR);
+			r = std::round(r / static_cast<double>(LMR_FACTOR));
 			Depth d = r > 0 ? newDepth-r : newDepth;
 			score = -alphaBeta<NonPV>(board, -alpha-1, -alpha, d, td, ss+1);
 
@@ -466,9 +465,8 @@ Score Search::quiescence(Board& board, Score alpha, Score beta, ThreadData& td, 
 	// hash move
 	Move bestMove = ttHit ? tte.move : Move();
 	MoveSorter moveSorter(board, ss, td.histories, bestMove, isInCheck);
-	Score score;
 
-	for (;;) {
+  for (;;) {
 		Move m = moveSorter.next();
 		if (!m) break;
 
@@ -493,7 +491,7 @@ Score Search::quiescence(Board& board, Score alpha, Score beta, ThreadData& td, 
 		ss->move = m;
 
 		board.applyMove(m);
-		score = -quiescence<searchType>(board, -beta, -alpha, td, ss+1);
+		Score score = -quiescence<searchType>(board, -beta, -alpha, td, ss + 1);
 		board.undoMove();
 	
 		if (score > bestScore) {
@@ -551,8 +549,8 @@ void Search::setTTSize(size_t MiB) {
 void Search::setNumThreads(ThreadID numThreads) {
 	this->numThreads = std::clamp(
 		numThreads,
-		(ThreadID)1,
-		std::min(std::thread::hardware_concurrency(), (ThreadID)MAX_THREADS)
+		static_cast<ThreadID>(1),
+		std::min(std::thread::hardware_concurrency(), static_cast<ThreadID>(MAX_THREADS))
 	);
 
 	while (threadData.size() > 0)

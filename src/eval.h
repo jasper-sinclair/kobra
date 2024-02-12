@@ -287,35 +287,35 @@ namespace eval {
 inline Score evaluate(Board& board) {
 	using namespace eval;
 
-	Color us = board.sideToMove;
-	Color them = !us;
+   const Color us = board.sideToMove;
+   const Color them = !us;
 	Score result = 
 	PIECE_VALUES[PAWN] * (board.pieces(us, PAWN).popcount() - board.pieces(them, PAWN).popcount()) +
 	PIECE_VALUES[KNIGHT] * (board.pieces(us, KNIGHT).popcount() - board.pieces(them, KNIGHT).popcount()) +
 	PIECE_VALUES[BISHOP] * (board.pieces(us, BISHOP).popcount() - board.pieces(them, BISHOP).popcount()) +
 	PIECE_VALUES[ROOK] * (board.pieces(us, ROOK).popcount() - board.pieces(them, ROOK).popcount()) +
 	PIECE_VALUES[QUEEN] * (board.pieces(us, QUEEN).popcount() - board.pieces(them, QUEEN).popcount());
-	
-	bool wQueens = static_cast<bool>(board.pieces(WHITE, QUEEN));
-	bool bQueens = static_cast<bool>(board.pieces(BLACK, QUEEN));
+
+   const bool wQueens = static_cast<bool>(board.pieces(WHITE, QUEEN));
+   const bool bQueens = static_cast<bool>(board.pieces(BLACK, QUEEN));
 	bool isEndgame;
 	if (wQueens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1 ||
 	bQueens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1)
 	isEndgame = false;
 	else
 	isEndgame = true;
-	GamePhases gamePhase = isEndgame ? END_GAME : MID_GAME;
+   const GamePhases gamePhase = isEndgame ? END_GAME : MID_GAME;
 
 	Score psqScore = 0;
 	for (Square sq = A1; sq < N_SQUARES; ++sq) {
-		Piece pc = board.pieceOn(sq);
+      const Piece pc = board.pieceOn(sq);
 
 		if (pc == NO_PIECE)
 			continue;
 
-		PieceType pt = pieceType::make(pc);
-		Color c = color::make(pc);
-		Score s = psqTable[c][pt][gamePhase][sq];
+      const PieceType pt = pieceType::make(pc);
+      const Color c = color::make(pc);
+      const Score s = psqTable[c][pt][gamePhase][sq];
 		psqScore += c == us ? s : -s;
 	}
   result += psqScore;

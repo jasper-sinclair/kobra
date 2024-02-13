@@ -18,11 +18,10 @@ void ButterflyHistory::decrease(Board& board, Move move, Depth d) {
 }
 
 void CaptureHistory::increase(Board& board, Move move, Depth d) {
-
-	Piece moved = board.pieceOn(move::from(move));
-	Square to = move::pieceType(move) == move::EN_PASSANT ?
-		move::to(move) - direction::pawnPush(board.sideToMove) : move::to(move);
-	PieceType captured = move::pieceType(board.pieceOn(to));
+   const Piece moved = board.pieceOn(move::from(move));
+   const Square to = move::pieceType(move) == move::EN_PASSANT ?
+                        move::to(move) - direction::pawnPush(board.sideToMove) : move::to(move);
+   const PieceType captured = move::pieceType(board.pieceOn(to));
 	auto& e = data()[moved][to][captured];
 
 	e += I_A * p(d) * (MAX - e) / MAX;
@@ -30,11 +29,10 @@ void CaptureHistory::increase(Board& board, Move move, Depth d) {
 }
 
 void CaptureHistory::decrease(Board& board, Move move, Depth d) {
-
-	Piece moved = board.pieceOn(move::from(move));
-	Square to = move::pieceType(move) == move::EN_PASSANT ?
-		move::to(move) - direction::pawnPush(board.sideToMove) : move::to(move);
-	PieceType captured = move::pieceType(board.pieceOn(to));
+   const Piece moved = board.pieceOn(move::from(move));
+   const Square to = move::pieceType(move) == move::EN_PASSANT ?
+                        move::to(move) - direction::pawnPush(board.sideToMove) : move::to(move);
+   const PieceType captured = move::pieceType(board.pieceOn(to));
 	auto& e = data()[moved][to][captured];
 
 	e -= D_A * p(d) * (MAX + e) / MAX;
@@ -95,7 +93,7 @@ void Histories::update(
 
 		capture.increase(board, bestMove, depth);
 
-		for (auto& m : moves) {
+		for (const auto& m : moves) {
 			if (m.move != bestMove && board.isCapture(m.move)) {
 
 				capture.decrease(board, m.move, depth);
@@ -115,7 +113,7 @@ void Histories::update(
 		butterfly.increase(board, bestMove, depth);
 		continuation.increase(board, ss, bestMove, depth);
 
-		for (auto& m : moves) {
+		for (const auto& m : moves) {
 			if (m.move != bestMove) {
 				if (board.isCapture(m.move)) {
 

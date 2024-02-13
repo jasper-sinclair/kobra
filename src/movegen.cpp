@@ -10,21 +10,21 @@ void generatePawnMoves(Board& board, MoveList& moveList) {
 	constexpr Direction upRight = c == WHITE ? NORTHEAST : SOUTHEAST;
 	constexpr Direction upLeft = c == WHITE ? NORTHWEST : SOUTHWEST;
 
-	Bitboard relative_rank_8_bb = c == WHITE ? RANK_8_BB : RANK_1_BB;
+   const Bitboard relative_rank_8_bb = c == WHITE ? RANK_8_BB : RANK_1_BB;
 	Bitboard relative_rank_4_bb = c == WHITE ? RANK_4_BB : RANK_5_BB;
 
 	Bitboard empty = ~board.occupied();
-	Bitboard theirTeam = board.color(them);
+   const Bitboard theirTeam = board.color(them);
 	Bitboard ourPawns = board.pieces(us, PAWN);
 
   Square to;
 	Square from;
 
 	Bitboard singlePawnPushTargets = ourPawns.shift<up>() & empty;
-	Bitboard upRightBB = ourPawns.shift<upRight>();
-	Bitboard upLeftBB = ourPawns.shift<upLeft>();
-	Bitboard upRightCaptures = upRightBB & theirTeam;
-	Bitboard upLeftCaptures = upLeftBB & theirTeam;
+   const Bitboard upRightBB = ourPawns.shift<upRight>();
+   const Bitboard upLeftBB = ourPawns.shift<upLeft>();
+   const Bitboard upRightCaptures = upRightBB & theirTeam;
+   const Bitboard upLeftCaptures = upLeftBB & theirTeam;
 
 	// single pawn pushes
 	Bitboard attacks = singlePawnPushTargets - relative_rank_8_bb;
@@ -119,16 +119,16 @@ void generatePieceMoves(Board& board, MoveList& moveList) {
 
 template<Color c>
 void generateKingMoves(Board& board, MoveList& moveList) {
-	Square ksq = board.ksq(c);
+   const Square ksq = board.ksq(c);
 	Bitboard attacks = attacks::kingAttacks[ksq] - board.color(c);
 	while (attacks)
 		moveList.add(move::make(ksq, attacks.popLSB()));
 
 	// castling
 	if (ksq == square::relative(c, E1)) {
-		Bitboard empty = ~board.occupied();
-		Bitboard path1 = c == WHITE ? WHITE_QUEEN_SIDE_PATH : BLACK_QUEEN_SIDE_PATH;
-		Bitboard path2 = c == WHITE ? WHITE_KING_SIDE_PATH : BLACK_KING_SIDE_PATH;
+      const Bitboard empty = ~board.occupied();
+      const Bitboard path1 = c == WHITE ? WHITE_QUEEN_SIDE_PATH : BLACK_QUEEN_SIDE_PATH;
+      const Bitboard path2 = c == WHITE ? WHITE_KING_SIDE_PATH : BLACK_KING_SIDE_PATH;
 
 		if (board.canCastle(c == WHITE ? WHITE_QUEEN_SIDE : BLACK_QUEEN_SIDE) && (empty & path1) == path1)
 			moveList.add(move::make(ksq, square::relative(c, C1), move::CASTLING));

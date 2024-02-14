@@ -60,13 +60,13 @@ Score MoveSorter::computeScore(Move m) {
 	Score s = 0;
 
 	if (board.isCapture(m)) {
-		Score see = board.see(m);
+      const Score see = board.see(m);
 		s += see >= 0 ? 16000 : -16000;
 
-		Piece moved = board.pieceOn(move::from(m));
-		Square to = move::pieceType(m) == move::EN_PASSANT ?
-			move::to(m) - direction::pawnPush(board.sideToMove) : move::to(m);
-		PieceType captured = move::pieceType(board.pieceOn(to));
+      const Piece moved = board.pieceOn(move::from(m));
+      const Square to = move::pieceType(m) == move::EN_PASSANT ?
+                           move::to(m) - direction::pawnPush(board.sideToMove) : move::to(m);
+      const PieceType captured = move::pieceType(board.pieceOn(to));
 
 		s += eval::PIECE_VALUES[board.pieceOn(move::to(m))] + 
 			histories.capture[moved][to][captured] / 89;
@@ -84,8 +84,8 @@ Score MoveSorter::computeScore(Move m) {
 				s += 8001;
 
 			else {
-				Square from = move::from(m);
-				Square to = move::to(m);
+            const Square from = move::from(m);
+            const Square to = move::to(m);
 
 				s += histories.butterfly[board.sideToMove][from][to] / 155 +
 					histories.continuation[(ss-1)->moved][move::to((ss-1)->move)][board.pieceOn(from)][to] / 52 +

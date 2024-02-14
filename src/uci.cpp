@@ -66,7 +66,7 @@ void uci::setoption(std::istringstream& ss) {
 				ss >> token;
 				if (token == "value") {
 					ss >> token;
-					ThreadID count = static_cast<ThreadID>(std::stoi(token));
+               const ThreadID count = static_cast<ThreadID>(std::stoi(token));
 					search.setNumThreads(count);
 				}
 			}
@@ -92,7 +92,7 @@ void uci::position(std::istringstream& ss) {
 	board = { fen };
 
   while (ss >> token) {
-		Move move = uci::toMove(token, board);
+     const Move move = uci::toMove(token, board);
 		
 		// invalid move
 		if (!move) {
@@ -138,11 +138,11 @@ void uci::go(const std::string& str) {
 			Depth depth;
 			ss >> depth;
 
-			std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+         const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-			uint64_t nodeCnt = perft(board, depth);
+         const uint64_t nodeCnt = perft(board, depth);
 
-			std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+         const std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
 			std::cout << "Nodes " << nodeCnt << std::endl;
 			std::cout << "Time " << (end - begin).count() * 1e-9 << std::endl;
@@ -166,7 +166,7 @@ void uci::stop() {
 Move uci::toMove(const std::string& str, Board& board) {
 	MoveList moves;
 	generateMoves(board, moves);
-	for (auto& m : moves) {
+	for (const auto& m : moves) {
 		if (move::toString(m.move) == str)
 			return m.move;
 	}
@@ -174,6 +174,6 @@ Move uci::toMove(const std::string& str, Board& board) {
 }
 
 void uci::searchAndPrint() {
-	Move best = search.bestMove(board);
+   const Move best = search.bestMove(board);
 	std::cout << "bestmove " << move::toString(best) << std::endl;
 }

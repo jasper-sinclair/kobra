@@ -220,7 +220,7 @@ struct Bitboard {
 		return { static_cast<uint64_t>(1) << sq }; 
 	}
 
-	constexpr bool isSet(Square sq) { 
+	constexpr bool isSet(Square sq) const { 
 		return data & static_cast<uint64_t>(1) << sq; 
 	}
 
@@ -236,7 +236,7 @@ struct Bitboard {
 		data ^= static_cast<uint64_t>(1) << sq; 
 	}
 
-	template<Direction d>constexpr Bitboard shift();
+	template<Direction d>constexpr Bitboard shift() const;
 
 #if defined(_MSC_VER)
 
@@ -244,7 +244,8 @@ struct Bitboard {
 		data = _byteswap_uint64(data); 
 	}
 
-	Bitboard mirrored() { 
+	Bitboard mirrored() const
+   { 
 		return _byteswap_uint64(data); 
 	}
 
@@ -252,13 +253,15 @@ struct Bitboard {
 		return static_cast<int>(_mm_popcnt_u64(data)); 
 	}
 
-	Square LSB() {
+	Square LSB() const
+   {
 		unsigned long idx;
 		_BitScanForward64(&idx, data);
 		return static_cast<Square>(idx);
 	}
 
-	Square MSB() {
+	Square MSB() const
+   {
 		unsigned long idx;
 		_BitScanReverse64(&idx, data);
 		return static_cast<Square>(idx);
@@ -294,13 +297,13 @@ struct Bitboard {
 #endif
 
 	Square popLSB() {
-		Square sq = LSB();
+      const Square sq = LSB();
 		data &= data - 1;
 		return sq;
 	}
 
 	Square popMSB() {
-		Square sq = MSB();
+      const Square sq = MSB();
 		data &= data - 1;
 		return sq;
 	}
@@ -341,7 +344,8 @@ struct Bitboard {
 		data &= ~b.data;
 	}
 
-	constexpr Bitboard operator~() {
+	constexpr Bitboard operator~() const
+   {
 		return ~data;
 	}
 
@@ -357,14 +361,15 @@ struct Bitboard {
 		return b.data >> shift;
 	}
 
-	constexpr bool operator==(Bitboard b) {
+	constexpr bool operator==(Bitboard b) const
+   {
 		return data == b.data;
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, Bitboard b) {
 		for (Rank r = RANK_8; r >= RANK_1; --r) {
 			for (File f = FILE_A; f <= FILE_H; ++f) {
-				Square sq = square::make(f, r);
+            const Square sq = square::make(f, r);
 				os << (b.isSet(sq) ? 'X' : '.') << ' ';
 			}
 			os << '\n';
@@ -394,8 +399,9 @@ constexpr Bitboard RANK_8_BB = RANK_1_BB << 56;
 constexpr Bitboard DIAG_C2_H7(0x0080402010080400);
 
 template<Direction d>
-constexpr Bitboard Bitboard::shift() {
-	Bitboard b(*this);
+constexpr Bitboard Bitboard::shift() const
+{
+   const Bitboard b(*this);
 	if (d == NORTH) return b << NORTH;
 	else if (d == SOUTH) return b >> NORTH;
 	else if (d == 2 * NORTH) return b << 2 * NORTH;

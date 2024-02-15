@@ -26,7 +26,7 @@ void TranspositionTable::clear() {
 
 double TranspositionTable::usage() {
 	int cnt = 0;
-   const int n = 1000;
+   constexpr int n = 1000;
 	for (int i = 1; i < n + 1; ++i) {
 		if (entries[i].key)
 			cnt += 1;

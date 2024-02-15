@@ -28,5 +28,5 @@ struct MoveSorter {
 	);
 
 	Move next();
-	Score computeScore(Move m);
+	Score computeScore(Move m) const;
 };

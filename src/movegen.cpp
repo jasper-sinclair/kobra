@@ -15,12 +15,12 @@ void generatePawnMoves(Board& board, MoveList& moveList) {
 
 	Bitboard empty = ~board.occupied();
    const Bitboard theirTeam = board.color(them);
-	Bitboard ourPawns = board.pieces(us, PAWN);
+   const Bitboard ourPawns = board.pieces(us, PAWN);
 
   Square to;
 	Square from;
 
-	Bitboard singlePawnPushTargets = ourPawns.shift<up>() & empty;
+   const Bitboard singlePawnPushTargets = ourPawns.shift<up>() & empty;
    const Bitboard upRightBB = ourPawns.shift<upRight>();
    const Bitboard upLeftBB = ourPawns.shift<upLeft>();
    const Bitboard upRightCaptures = upRightBB & theirTeam;

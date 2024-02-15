@@ -56,7 +56,8 @@ Move MoveSorter::next() {
   return 0;
 }
 
-Score MoveSorter::computeScore(Move m) {
+Score MoveSorter::computeScore(Move m) const
+{
 	Score s = 0;
 
 	if (board.isCapture(m)) {

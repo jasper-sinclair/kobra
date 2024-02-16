@@ -349,7 +349,8 @@ struct Bitboard {
 		return ~data;
 	}
 
-	constexpr explicit operator bool() {
+	constexpr explicit operator bool() const
+   {
 		return static_cast<bool>(data);
 	}
 

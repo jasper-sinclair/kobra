@@ -17,8 +17,8 @@ struct Castlings {
 
 	void set(int cr) { data |= cr; }
 	void reset(int cr) { data &= ~cr; }
-	bool canCastle(int cr) { return data & cr; }
-	bool noCastling() { return data == 0; }
+	bool canCastle(int cr) const { return data & cr; }
+	bool noCastling() const { return data == 0; }
 };
 
 struct KingAttackInfo {
@@ -27,7 +27,7 @@ struct KingAttackInfo {
 	bool doubleCheck;
 	bool computed;
 
-	bool check() { return static_cast<bool>(attacks); }
+	bool check() const { return static_cast<bool>(attacks); }
 };
 
 struct BoardStatus {
@@ -62,9 +62,9 @@ struct Board {
 
 	friend std::ostream& operator<<(std::ostream& os, Board& board);
 
-	std::string fen();
+	std::string fen() const;
 
-	Piece pieceOn(Square sq);
+	Piece pieceOn(Square sq) const;
 	template<bool updateZobrist = true>
 	void setPiece(Piece pc, Square sq);
 	template<bool updateZobrist = true>
@@ -74,48 +74,49 @@ struct Board {
 
 	BoardStatus* getBoardStatus();
 	BoardStatus* boardStatus(int idx);
-	Key key();
+	Key key() const;
 
-	bool canCastle(int cr);
-	bool noCastling();
+	bool canCastle(int cr) const;
+	bool noCastling() const;
 
 	void applyMove(Move m);
 	void undoMove();
 	void applyNullMove();
 	void undoNullMove();
 
-	Bitboard color(Color c);
-	Bitboard pieces(PieceType pt);
-	Bitboard pieces(Color c, PieceType pt);
-	Bitboard occupied();
+	Bitboard color(Color c) const;
+	Bitboard pieces(PieceType pt) const;
+	Bitboard pieces(Color c, PieceType pt) const;
+	Bitboard occupied() const;
 	// King square
-	Square ksq(Color c);
+	Square ksq(Color c) const;
 
 	// Draw by fifty-move rule or threefold repetition
-	bool isDraw();
+	bool isDraw() const;
 	
-	bool isCapture(Move m);
-	bool isPromotion(Move m);
-	bool givesCheck(Move m);
+	bool isCapture(Move m) const;
+   static bool isPromotion(Move m);
+	bool givesCheck(Move m) const;
 	// Tests whether a move from the transposition table or the principal variation is pseudo-legal
-	bool isPseudoLegal(Move m);
+	bool isPseudoLegal(Move m) const;
 	// Tests whether a pseudo-legal move is legal
 	bool isLegal(Move m);
 
-	bool isUnderAttack(Color us, Square sq);
-	bool isInCheck();
-	void generateKingAttackInfo(KingAttackInfo& k);
+	bool isUnderAttack(Color us, Square sq) const;
+	bool isInCheck() const;
+	void generateKingAttackInfo(KingAttackInfo& k) const;
 	
 	// Static Exchange Evaluation
-	Score see(Move m);
-	Bitboard attackersTo(Square sq, Bitboard occupied);
-	Bitboard leastValuablePiece(Bitboard attadef, Color attacker, Piece& pc);
+	Score see(Move m) const;
+	Bitboard attackersTo(Square sq, Bitboard occupied) const;
+	Bitboard leastValuablePiece(Bitboard attadef, Color attacker, Piece& pc) const;
 
-	bool nonPawnMaterial(Color c);
+	bool nonPawnMaterial(Color c) const;
 
 };
 
-inline Piece Board::pieceOn(Square sq) {
+inline Piece Board::pieceOn(Square sq) const
+{
 	return board[sq];
 }
 
@@ -127,43 +128,53 @@ inline BoardStatus* Board::boardStatus(int idx) {
 	return &history[history.size() - idx - 1];
 }
 
-inline bool Board::canCastle(int cr) {
+inline bool Board::canCastle(int cr) const
+{
 	return st->castlings.canCastle(cr);
 }
 
-inline bool Board::noCastling() {
+inline bool Board::noCastling() const
+{
 	return st->castlings.noCastling();
 }
 
-inline Bitboard Board::color(Color c) {
+inline Bitboard Board::color(Color c) const
+{
 	return colorBB[c];
 }
 
-inline Bitboard Board::pieces(PieceType pt) {
+inline Bitboard Board::pieces(PieceType pt) const
+{
 	return pieceBB[pt];
 }
 
-inline Bitboard Board::pieces(Color c, PieceType pt) {
+inline Bitboard Board::pieces(Color c, PieceType pt) const
+{
 	return color(c) & pieces(pt);
 }
 
-inline Bitboard Board::occupied() {
+inline Bitboard Board::occupied() const
+{
 	return occupiedBB;
 }
 
-inline Square Board::ksq(Color c) {
+inline Square Board::ksq(Color c) const
+{
 	return pieces(c, KING).LSB();
 }
 
-inline Key Board::key() {
+inline Key Board::key() const
+{
 	return st->zobrist;
 }
 
-inline bool Board::isDraw() {
+inline bool Board::isDraw() const
+{
 	return st->repetitions >= 2 || st->fiftyMoveCount >= 2 * 50;
 }
 
-inline bool Board::isCapture(Move m) {
+inline bool Board::isCapture(Move m) const
+{
 	return pieceOn(move::to(m)) || move::moveType(m) == move::EN_PASSANT;
 }
 
@@ -171,7 +182,8 @@ inline bool Board::isPromotion(Move m) {
 	return move::moveType(m) == move::PROMOTION;
 }
 
-inline bool Board::nonPawnMaterial(Color c) {
+inline bool Board::nonPawnMaterial(Color c) const
+{
 	return static_cast<bool>(color(c) - pieces(PAWN) - pieces(KING));
 }
 

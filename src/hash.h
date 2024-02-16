@@ -31,13 +31,13 @@ struct TranspositionTable {
 	uint64_t mask;
 
 	void setSize(uint64_t MiB);
-	void clear();
+	void clear() const;
 	TTEntry* get(Key key) {
 		return &entries[key & mask];
 	}
 	bool probe(Key key, TTEntry& tte);
 	void save(Key key, Score score, Score eval, Move move, Depth depth, NodeType nodeType);
-	double usage();
+	double usage() const;
 	static Score scoreToTT(Score score, Depth ply);
 	static Score scoreFromTT(Score score, Depth ply);
 };

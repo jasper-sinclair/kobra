@@ -117,7 +117,8 @@ std::ostream& operator<<(std::ostream& os, BoardStatus& bs) {
    return os;
 }
 
-std::string Board::fen() {
+std::string Board::fen() const
+{
    std::stringstream ss;
 
    for (Rank r = RANK_8; r >= RANK_1; --r) {
@@ -366,7 +367,8 @@ void Board::undoNullMove() {
    st = getBoardStatus();
 }
 
-bool Board::givesCheck(Move m) {
+bool Board::givesCheck(Move m) const
+{
    Bitboard theirKingBB = pieces(!sideToMove, KING);
    const Square ksq = theirKingBB.LSB();
    const Square from = move::from(m);
@@ -438,7 +440,8 @@ bool Board::givesCheck(Move m) {
    return false;
 }
 
-bool Board::isPseudoLegal(Move m) {
+bool Board::isPseudoLegal(Move m) const
+{
    if (!m) return false;
 
    const Color us = sideToMove;
@@ -539,7 +542,8 @@ bool Board::isPseudoLegal(Move m) {
    return true;
 }
 
-void Board::generateKingAttackInfo(KingAttackInfo& k) {
+void Board::generateKingAttackInfo(KingAttackInfo& k) const
+{
    k.computed = true;
 
    const Color them = !sideToMove;
@@ -658,7 +662,8 @@ bool Board::isLegal(Move m) {
    return true;
 }
 
-bool Board::isUnderAttack(Color us, Square sq) {
+bool Board::isUnderAttack(Color us, Square sq) const
+{
    const Color them = !us;
    return attacks::attacks<ROOK>(sq, occupiedBB) & (pieces(them, ROOK) | pieces(them, QUEEN)) ||
       attacks::attacks<BISHOP>(sq, occupiedBB) & (pieces(them, BISHOP) | pieces(them, QUEEN)) ||
@@ -667,11 +672,13 @@ bool Board::isUnderAttack(Color us, Square sq) {
       attacks::pawnAttacks[us][sq] & pieces(them, PAWN);
 }
 
-bool Board::isInCheck() {
+bool Board::isInCheck() const
+{
    return isUnderAttack(sideToMove, ksq(sideToMove));
 }
 
-Bitboard Board::attackersTo(Square sq, Bitboard occupied) {
+Bitboard Board::attackersTo(Square sq, Bitboard occupied) const
+{
    return attacks::pawnAttacks[WHITE][sq] & pieces(BLACK, PAWN) |
       attacks::pawnAttacks[BLACK][sq] & pieces(WHITE, PAWN) |
       attacks::knightAttacks[sq] & pieces(KNIGHT) |
@@ -680,7 +687,8 @@ Bitboard Board::attackersTo(Square sq, Bitboard occupied) {
       attacks::kingAttacks[sq] & pieces(KING);
 }
 
-Bitboard Board::leastValuablePiece(Bitboard attadef, Color attacker, Piece& pc) {
+Bitboard Board::leastValuablePiece(Bitboard attadef, Color attacker, Piece& pc) const
+{
    for (PieceType pt = PAWN; pt <= KING; ++pt) {
       Bitboard subset = attadef & pieces(pt);
       if (subset) {
@@ -691,7 +699,8 @@ Bitboard Board::leastValuablePiece(Bitboard attadef, Color attacker, Piece& pc) 
    return {};
 }
 
-Score Board::see(Move m) {
+Score Board::see(Move m) const
+{
    if (move::moveType(m) != move::NORMAL) return 0;
 
    const Square from = move::from(m);

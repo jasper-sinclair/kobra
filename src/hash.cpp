@@ -20,11 +20,13 @@ void TranspositionTable::setSize(uint64_t MiB) {
 	clear();
 }
 
-void TranspositionTable::clear() {
+void TranspositionTable::clear() const
+{
 	std::memset(entries.get(), 0, size * sizeof(TTEntry));
 }
 
-double TranspositionTable::usage() {
+double TranspositionTable::usage() const
+{
 	int cnt = 0;
    constexpr int n = 1000;
 	for (int i = 1; i < n + 1; ++i) {

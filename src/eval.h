@@ -284,7 +284,7 @@ namespace eval {
 	}
 }
 
-inline Score evaluate(Board& board) {
+inline Score evaluate(const Board& board) {
 	using namespace eval;
 
    const Color us = board.sideToMove;

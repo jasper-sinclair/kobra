@@ -84,7 +84,7 @@ Board& Board::operator=(const Board& other) {
    return *this;
 }
 
-std::ostream& operator<<(std::ostream& os, Board& board) {
+std::ostream& operator<<(std::ostream& os, const Board& board) {
    const std::string hor = "+---+---+---+---+---+---+---+---+";
    const std::string ver = "|";
 
@@ -106,7 +106,7 @@ std::ostream& operator<<(std::ostream& os, Board& board) {
    return os;
 }
 
-std::ostream& operator<<(std::ostream& os, BoardStatus& bs) {
+std::ostream& operator<<(std::ostream& os, const BoardStatus& bs) {
    os << "plyCount: " << bs.plyCount << '\n'
       << "fityMoveCount: " << bs.fiftyMoveCount << '\n'
       << "castlings: " << bs.castlings.data << '\n'

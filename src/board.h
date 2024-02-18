@@ -42,7 +42,7 @@ struct BoardStatus {
 	Move move;
 	KingAttackInfo kingAttackInfo;
 
-	friend std::ostream& operator<<(std::ostream& os, BoardStatus& bs);
+	friend std::ostream& operator<<(std::ostream& os, const BoardStatus& bs);
 };
 
 struct Board {
@@ -60,7 +60,7 @@ struct Board {
 	Board(const Board& other);
 	Board& operator=(const Board& other);
 
-	friend std::ostream& operator<<(std::ostream& os, Board& board);
+	friend std::ostream& operator<<(std::ostream& os, const Board& board);
 
 	std::string fen() const;
 

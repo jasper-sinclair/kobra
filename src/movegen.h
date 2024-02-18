@@ -9,7 +9,7 @@ struct ExtMove {
 	Move move;
 	Score score;
 
-	bool operator==(Move move) { return this->move == move; }
+	bool operator==(Move move) const { return this->move == move; }
 };
 
 constexpr int MAX_MOVE = 256;
@@ -22,15 +22,15 @@ struct MoveList {
   }
 
 	ExtMove* begin()        { return data; }
-	ExtMove* end()          { return last; }
-	size_t size()           { return last - data; }
+	ExtMove* end() const { return last; }
+	size_t size() const { return last - data; }
 
-	Move move(size_t idx)   { return data[idx].move; }
-	Score score(size_t idx) { return data[idx].score; }
+	Move move(size_t idx) const { return data[idx].move; }
+	Score score(size_t idx) const { return data[idx].score; }
 	void add(Move move)     { last++->move = move; }
 	void remove(size_t idx);
 
-	friend std::ostream& operator<<(std::ostream& os, MoveList& moveList);
+	friend std::ostream& operator<<(std::ostream& os, const MoveList& moveList);
 };
 
 inline void MoveList::remove(size_t idx) {
@@ -70,13 +70,13 @@ inline uint64_t perft(Board& board, int depth) {
 	return nodes;
 }
 
-inline std::ostream& operator<<(std::ostream& os, MoveList& moveList) {
+inline std::ostream& operator<<(std::ostream& os, const MoveList& moveList) {
 	for (int i = 0; i < moveList.size(); ++i)
 		os << move::toString(moveList.move(i)) << " ";
 	return os;
 }
 
-inline void print(std::vector<Move>& v) {
+inline void print(const std::vector<Move>& v) {
 	for (auto& m : v)
 		std::cout << move::toString(m) << " ";
 	std::cout << "\n";

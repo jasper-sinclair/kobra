@@ -30,8 +30,8 @@ struct CaptureHistory : public History<N_PIECES, N_SQUARES, N_PIECE_TYPES> {
 	static constexpr HistoryEntry I_A = 4;
 	static constexpr HistoryEntry D_A = 5;
 
-	void increase(Board& board, Move move, Depth d);
-	void decrease(Board& board, Move move, Depth d);
+	void increase(const Board& board, Move move, Depth d);
+	void decrease(const Board& board, Move move, Depth d);
 };
 
 struct ButterflyHistory : public History<N_COLORS, N_SQUARES, N_SQUARES> {
@@ -39,8 +39,8 @@ struct ButterflyHistory : public History<N_COLORS, N_SQUARES, N_SQUARES> {
 	static constexpr HistoryEntry I_A = 6;
 	static constexpr HistoryEntry D_A = 3;
 
-	void increase(Board& board, Move move, Depth d);
-	void decrease(Board& board, Move move, Depth d);
+	void increase(const Board& board, Move move, Depth d);
+	void decrease(const Board& board, Move move, Depth d);
 };
 
 struct Stack;
@@ -54,8 +54,8 @@ struct ContinuationHistory : public History<N_PIECES, N_SQUARES, N_PIECES, N_SQU
 	static constexpr HistoryEntry D_A2 = 2;
 	static constexpr HistoryEntry D_A4 = 2;
 
-	void increase(Board& board, Stack* ss, Move move, Depth d);
-	void decrease(Board& board, Stack* ss, Move move, Depth d);
+	void increase(const Board& board, const Stack* ss, Move move, Depth d);
+	void decrease(const Board& board, const Stack* ss, Move move, Depth d);
 };
 
 struct Histories {

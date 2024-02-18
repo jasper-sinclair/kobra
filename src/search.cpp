@@ -25,7 +25,7 @@ Move Search::bestMove(Board& board, ThreadID id) {
    Score beta = INFINITY_SCORE;
    Score score = 0;
    Score prevScore = 0;
-   const Depth maxDepth = MAX_DEPTH;
+   constexpr Depth maxDepth = MAX_DEPTH;
 
    for (int i = 0; i < MAX_PLY + CONTINUATION_PLY; ++i) {
       td.stack[i].ply = i - CONTINUATION_PLY;
@@ -559,7 +559,7 @@ void Search::setNumThreads(ThreadID numThreads) {
       threadData.push_back(new ThreadData(i));
 }
 
-std::string Search::info(ThreadData& td, Depth depth, Score score) {
+std::string Search::info(const ThreadData& td, Depth depth, Score score) {
    std::stringstream ss;
 
    ss << "info" <<
@@ -590,7 +590,8 @@ std::string Search::info(ThreadData& td, Depth depth, Score score) {
    return ss.str();
 }
 
-uint64_t Search::nodeCount() {
+uint64_t Search::nodeCount() const
+{
    uint64_t sum = 0;
    for (const auto& td : threadData)
       sum += td->nodeCount;

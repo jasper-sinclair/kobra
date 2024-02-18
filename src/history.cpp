@@ -1,7 +1,7 @@
 #include"history.h"
 #include"search.h"
 
-void ButterflyHistory::increase(Board& board, Move move, Depth d) {
+void ButterflyHistory::increase(const Board& board, Move move, Depth d) {
 
 	auto& e = data()[board.sideToMove][move::from(move)][move::to(move)];
 
@@ -9,7 +9,7 @@ void ButterflyHistory::increase(Board& board, Move move, Depth d) {
 	assert(std::abs(e) < MAX);
 }
 
-void ButterflyHistory::decrease(Board& board, Move move, Depth d) {
+void ButterflyHistory::decrease(const Board& board, Move move, Depth d) {
 
 	auto& e = data()[board.sideToMove][move::from(move)][move::to(move)];
 
@@ -17,7 +17,7 @@ void ButterflyHistory::decrease(Board& board, Move move, Depth d) {
 	assert(std::abs(e) < MAX);
 }
 
-void CaptureHistory::increase(Board& board, Move move, Depth d) {
+void CaptureHistory::increase(const Board& board, Move move, Depth d) {
    const Piece moved = board.pieceOn(move::from(move));
    const Square to = move::pieceType(move) == move::EN_PASSANT ?
                         move::to(move) - direction::pawnPush(board.sideToMove) : move::to(move);
@@ -28,7 +28,7 @@ void CaptureHistory::increase(Board& board, Move move, Depth d) {
 	assert(std::abs(e) < MAX);
 }
 
-void CaptureHistory::decrease(Board& board, Move move, Depth d) {
+void CaptureHistory::decrease(const Board& board, Move move, Depth d) {
    const Piece moved = board.pieceOn(move::from(move));
    const Square to = move::pieceType(move) == move::EN_PASSANT ?
                         move::to(move) - direction::pawnPush(board.sideToMove) : move::to(move);
@@ -39,7 +39,7 @@ void CaptureHistory::decrease(Board& board, Move move, Depth d) {
 	assert(std::abs(e) < MAX);
 }
 
-void ContinuationHistory::increase(Board& board, Stack* ss, Move move, Depth d) {
+void ContinuationHistory::increase(const Board& board, const Stack* ss, Move move, Depth d) {
 
 	if ((ss-1)->move) {
 		auto& e = data()[(ss-1)->moved][move::to((ss-1)->move)][board.pieceOn(move::from(move))][move::to(move)];
@@ -60,7 +60,7 @@ void ContinuationHistory::increase(Board& board, Stack* ss, Move move, Depth d) 
 	}
 }
 
-void ContinuationHistory::decrease(Board& board, Stack* ss, Move move, Depth d) {
+void ContinuationHistory::decrease(const Board& board, const Stack* ss, Move move, Depth d) {
 
 	if ((ss-1)->move) {
 		auto& e = data()[(ss-1)->moved][move::to((ss-1)->move)][board.pieceOn(move::from(move))][move::to(move)];

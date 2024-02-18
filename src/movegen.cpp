@@ -166,5 +166,5 @@ void generateMoves(Board& board, MoveList& moveList) {
 	}
 
 	moveList.last = std::remove_if(moveList.begin(), moveList.end(),
-		[&](ExtMove& m) { return !board.isLegal(m.move); });
+		[&](const ExtMove& m) { return !board.isLegal(m.move); });
 }

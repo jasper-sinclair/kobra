@@ -124,8 +124,7 @@ std::string Board::fen() const
    for (Rank r = RANK_8; r >= RANK_1; --r) {
       int emptyCount = 0;
       for (File f = FILE_A; f <= FILE_H; ++f) {
-         const Piece pc = pieceOn(square::make(f, r));
-         if (pc) {
+         if (const Piece pc = pieceOn(square::make(f, r))) {
             if (emptyCount)
                ss << emptyCount;
             ss << piece::PIECE_TO_CHAR[pc];
@@ -369,7 +368,7 @@ void Board::undoNullMove() {
 
 bool Board::givesCheck(Move m) const
 {
-   Bitboard theirKingBB = pieces(!sideToMove, KING);
+   const Bitboard theirKingBB = pieces(!sideToMove, KING);
    const Square ksq = theirKingBB.LSB();
    const Square from = move::from(m);
    const Square to = move::to(m);
@@ -690,8 +689,7 @@ Bitboard Board::attackersTo(Square sq, Bitboard occupied) const
 Bitboard Board::leastValuablePiece(Bitboard attadef, Color attacker, Piece& pc) const
 {
    for (PieceType pt = PAWN; pt <= KING; ++pt) {
-      Bitboard subset = attadef & pieces(pt);
-      if (subset) {
+      if (Bitboard subset = attadef & pieces(pt)) {
          pc = piece::make(attacker, pt);
          return Bitboard::fromSquare(subset.LSB());
       }

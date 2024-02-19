@@ -534,7 +534,7 @@ void Search::stop() {
 void Search::clear() {
    tt.clear();
 
-   while (threadData.size() > 0)
+   while (!threadData.empty())
       delete threadData.back(), threadData.pop_back();
 
    for (ThreadID i = 0; i < numThreads; ++i)
@@ -552,14 +552,15 @@ void Search::setNumThreads(ThreadID numThreads) {
       std::min(std::thread::hardware_concurrency(), static_cast<ThreadID>(MAX_THREADS))
    );
 
-   while (threadData.size() > 0)
+   while (!threadData.empty())
       delete threadData.back(), threadData.pop_back();
 
    for (ThreadID i = 0; i < this->numThreads; ++i)
       threadData.push_back(new ThreadData(i));
 }
 
-std::string Search::info(const ThreadData& td, Depth depth, Score score) {
+std::string Search::info(const ThreadData& td, Depth depth, Score score) const
+{
    std::stringstream ss;
 
    ss << "info" <<
@@ -581,7 +582,7 @@ std::string Search::info(const ThreadData& td, Depth depth, Score score) {
       " time " << elapsed <<
       " hashfull " << tt.usage() * 1000;
 
-   if (td.pv.size()) {
+   if (!td.pv.empty()) {
       ss << " pv";
       for (size_t i = 0; i < td.pv.size(); ++i)
          ss << " " << move::toString(td.pv[i]);

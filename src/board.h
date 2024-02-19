@@ -194,14 +194,15 @@ namespace zobrist {
 	inline Key enPassant[N_FILES];
 
 	inline void init() {
-		for (int i = 0; i < 16; ++i) {
+		for (auto& i : psq)
+      {
 			for (int j = 0; j < N_SQUARES; ++j)
-				psq[i][j] = rng::getULL();
+            i[j] = rng::getULL();
 		}
 		side = rng::getULL();
-		for (int i = 0; i < 16; ++i)
-			castling[i] = rng::getULL();
-		for (int i = 0; i < N_FILES; ++i)
-			enPassant[i] = rng::getULL();
+		for (unsigned long long& i : castling)
+         i = rng::getULL();
+		for (unsigned long long& i : enPassant)
+         i = rng::getULL();
 	}
 }

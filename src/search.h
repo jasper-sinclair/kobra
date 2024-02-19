@@ -74,7 +74,7 @@ struct Search {
 	void setNumThreads(ThreadID numThreads);
 
 	// UCI command
-	std::string info(const ThreadData& td, Depth depth, Score score);
+	std::string info(const ThreadData& td, Depth depth, Score score) const;
 
 	uint64_t nodeCount() const;
 };

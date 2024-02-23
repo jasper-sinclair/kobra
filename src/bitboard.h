@@ -1,477 +1,477 @@
 #pragma once
+#include <chrono>
+#include <cmath>
+#include <cstdint>
+#include <random>
+#include <sstream>
+#include <string>
+#include <vector>
 
-#include<algorithm>
-#include<cassert>
-#include<cstdint>
-#include<cstring>
-#include<sstream>
-#include<string>
-
+#include "main.h"
 #if defined(_MSC_VER)
-#include<intrin.h>
+#include <intrin.h>
 #endif
 
-using Color = bool;
-using Piece = int32_t;
-using PieceType = int32_t;
-using File = int8_t;
-using Rank = int8_t;
-using Direction = int32_t;
-using Square = uint8_t;
-using Move = uint16_t;
-using Key = uint64_t;
-
-using Score = int16_t;
-using Depth = int16_t;
-
-constexpr int MAX_DEPTH = 256;
-constexpr int MAX_PLY = MAX_DEPTH;
-constexpr int CONTINUATION_PLY = 6;
-
-enum Colors {
-	WHITE,
-	BLACK,
-	N_COLORS
-};
-
-enum Pieces {
-	NO_PIECE,
-	WHITE_PAWN,
-	WHITE_KNIGHT,
-	WHITE_BISHOP,
-	WHITE_ROOK,
-	WHITE_QUEEN,
-	WHITE_KING,
-	BLACK_PAWN = WHITE_PAWN + 8,
-	BLACK_KNIGHT,
-	BLACK_BISHOP,
-	BLACK_ROOK,
-	BLACK_QUEEN,
-	BLACK_KING,
-	N_PIECES
-};
-
-enum PieceTypes {
-	NO_PIECE_TYPE,
-	PAWN,
-	KNIGHT,
-	BISHOP,
-	ROOK,
-	QUEEN,
-	KING,
-	N_PIECE_TYPES
-};
-
-enum Squares {
-	A1, B1, C1, D1, E1, F1, G1, H1,
-	A2, B2, C2, D2, E2, F2, G2, H2,
-	A3, B3, C3, D3, E3, F3, G3, H3,
-	A4, B4, C4, D4, E4, F4, G4, H4,
-	A5, B5, C5, D5, E5, F5, G5, H5,
-	A6, B6, C6, D6, E6, F6, G6, H6,
-	A7, B7, C7, D7, E7, F7, G7, H7,
-	A8, B8, C8, D8, E8, F8, G8, H8,
-	NO_SQUARE = 0,
-	N_SQUARES = 64
-};
-
-enum Files {
-	FILE_A,
-	FILE_B,
-	FILE_C,
-	FILE_D,
-	FILE_E,
-	FILE_F,
-	FILE_G,
-	FILE_H,
-	N_FILES
-};
-
-enum Ranks {
-	RANK_1,
-	RANK_2,
-	RANK_3,
-	RANK_4,
-	RANK_5,
-	RANK_6,
-	RANK_7,
-	RANK_8,
-	N_RANKS
-};
-
-enum Directions {
-	NORTH = 8,
-	EAST = 1,
-	SOUTH = -NORTH,
-	WEST = -EAST,
-	NORTHEAST = NORTH + EAST,
-	NORTHWEST = NORTH + WEST,
-	SOUTHEAST = SOUTH + EAST,
-	SOUTHWEST = SOUTH + WEST,
-	N_DIRECTIONS = 8
-};
-
-enum CastlingRights {
-	NO_CASTLING,
-	WHITE_QUEEN_SIDE = 1,
-	WHITE_KING_SIDE = 1 << 1,
-	BLACK_QUEEN_SIDE = 1 << 2,
-	BLACK_KING_SIDE = 1 << 3,
-
-	QUEEN_SIDE = WHITE_QUEEN_SIDE | BLACK_QUEEN_SIDE,
-	KING_SIDE = WHITE_KING_SIDE | BLACK_KING_SIDE,
-	WHITE_CASTLING = WHITE_KING_SIDE | WHITE_QUEEN_SIDE,
-	BLACK_CASTLING = BLACK_KING_SIDE | BLACK_QUEEN_SIDE,
-	ANY_CASTLING = WHITE_CASTLING | BLACK_CASTLING,
-};
-
-enum Scores :int16_t {
-	DRAW_SCORE = 0,
-	INFINITY_SCORE = 32001,
-	MATE_SCORE = 32000,
-	MIN_MATE_SCORE = MATE_SCORE - MAX_DEPTH,
-	STOP_SCORE = 32002,
-	MAX_EVAL_SCORE = 30000
-};
+#ifdef _MSC_VER
+#pragma warning(disable : 4244)
+#pragma warning(disable : 4702)
+#else
+#endif
 
 namespace color {
-	constexpr Color make(Piece pc) {
-		return pc >> 3;
-	}
-}
+constexpr Color make(const Piece pc) { return pc >> 3; }
+}  // namespace color
 
-namespace pieceType {
-	constexpr PieceType make(Piece pc) {
-		return pc & 7;
-	}
-}
+namespace piece_type {
+constexpr PieceType make(const Piece pc) { return pc & 7; }
+}  // namespace piece_type
 
 namespace piece {
-	constexpr Piece make(Color c, PieceType pt) {
-		return (c << 3) + pt;
-	}
-
-	constexpr Piece relative(Piece pc) {
-		return pc ? pc ^ 8 : pc;
-	}
-
-	const std::string PIECE_TO_CHAR = " PNBRQK  pnbrqk";
+constexpr Piece make(const Color c, const PieceType pt) {
+  return (c << 3) + pt;
 }
+
+constexpr Piece relative(const Piece pc) { return pc ? pc ^ 8 : pc; }
+inline std::string piece_to_char = " PNBRQK  pnbrqk";
+}  // namespace piece
 
 namespace file {
-	constexpr File make(Square sq) {
-		return sq & 7;
-	}
+constexpr File make(const Square sq) { return static_cast<int8_t>(sq & 7); }
 
-	constexpr char CHAR_IDENTIFYERS[N_FILES] = { 'a','b','c','d','e','f','g','h' };
-}
+constexpr char kCharIdentifiers[N_FILES] = {'a', 'b', 'c', 'd',
+                                            'e', 'f', 'g', 'h'};
+}  // namespace file
 
 namespace rank {
-	constexpr Rank make(Square sq) {
-		return sq >> 3;
-	}
+constexpr Rank make(const Square sq) { return static_cast<int8_t>(sq >> 3); }
 
-	constexpr char CHAR_IDENTIFYERS[N_RANKS] = { '1','2','3','4','5','6','7','8' };
-}
+constexpr char kCharIdentifiers[N_RANKS] = {'1', '2', '3', '4',
+                                            '5', '6', '7', '8'};
+}  // namespace rank
 
 namespace direction {
-	constexpr Direction pawnPush(Color c) {
-		return c ? SOUTH : NORTH;
-	}
-}
+constexpr Direction PawnPush(const Color c) { return c ? SOUTH : NORTH; }
+}  // namespace direction
 
 namespace square {
-	constexpr Square make(File file, Rank rank) {
-		return (rank << 3) + file;
-	}
 
-	constexpr Square make(std::string_view sv) {
-		return square::make(static_cast<File>(sv[0] - 'a'), static_cast<Rank>(sv[1] - '1'));
-	}
-
-	constexpr void mirror(Square& sq) { sq ^= A8; }
-
-	constexpr Square relative(Color c, Square sq) { return c ? sq ^ A8 : sq; }
-
-	inline std::string toString(Square sq) {
-		return std::string(1, file::CHAR_IDENTIFYERS[file::make(sq)]) +
-			std::string(1, rank::CHAR_IDENTIFYERS[rank::make(sq)]);
-	}
-
-	constexpr bool isValid(Square sq) {
-		return sq >= A1 && sq <= H8;
-	}
-
-	inline uint8_t distance(Square s1, Square s2) {
-		return std::max(
-			std::abs(file::make(s1) - file::make(s2)), 
-			std::abs(rank::make(s1) - rank::make(s2))
-		);
-	}
+constexpr Square make(const File file, const Rank rank) {
+  return static_cast<Square>((rank << 3) + file);
 }
 
+constexpr Square make(const std::string_view sv) {
+  return make(static_cast<File>(sv[0] - 'a'), static_cast<Rank>(sv[1] - '1'));
+}
+
+constexpr void mirror(Square& sq) { sq ^= A8; }
+
+constexpr Square relative(const Color c, const Square sq) {
+  return c ? sq ^ A8 : sq;
+}
+
+inline std::string ToString(const Square sq) {
+  return std::string(1, file::kCharIdentifiers[file::make(sq)]) +
+         std::string(1, rank::kCharIdentifiers[rank::make(sq)]);
+}
+
+constexpr bool IsValid(const Square sq) { return sq >= A1 && sq <= H8; }
+
+inline uint8_t distance(const Square s1, const Square s2) {
+#define GETMAX(a, b) (((a) > (b)) ? (a) : (b))
+  return static_cast<uint8_t>(
+      GETMAX(std::abs(file::make(s1) - file::make(s2)),
+             std::abs(rank::make(s1) - rank::make(s2))));
+}
+}  // namespace square
+
 struct Bitboard {
-	uint64_t data;
+  uint64_t data;
+  Bitboard() = default;
 
-	Bitboard() = default;
-	constexpr Bitboard(uint64_t data) :data(data) {}
+  constexpr Bitboard(const uint64_t data) : data(data) {}
 
-	constexpr static Bitboard fromSquare(Square sq) { 
-		return { static_cast<uint64_t>(1) << sq }; 
-	}
+  constexpr static Bitboard FromSquare(const Square sq) {
+    return {static_cast<uint64_t>(1) << sq};
+  }
 
-	constexpr bool isSet(Square sq) const { 
-		return data & static_cast<uint64_t>(1) << sq; 
-	}
+  constexpr void set(const Square sq) {
+    data |= static_cast<uint64_t>(1) << sq;
+  }
+  constexpr void clear(const Square sq) {
+    data &= ~(static_cast<uint64_t>(1) << sq);
+  }
+  constexpr void toggle(const Square sq) {
+    data ^= static_cast<uint64_t>(1) << sq;
+  }
 
-	constexpr void set(Square sq) { 
-		data |= static_cast<uint64_t>(1) << sq; 
-	}
+  [[nodiscard]] constexpr bool IsSet(const Square sq) const {
+    return data & static_cast<uint64_t>(1) << sq;
+  }
 
-	constexpr void clear(Square sq) { 
-		data &= ~(static_cast<uint64_t>(1) << sq); 
-	}
-
-	constexpr void toggle(Square sq) { 
-		data ^= static_cast<uint64_t>(1) << sq; 
-	}
-
-	template<Direction d>constexpr Bitboard shift() const;
+  template <Direction D>
+  [[nodiscard]] constexpr Bitboard shift() const;
 
 #if defined(_MSC_VER)
+  void mirror() { data = _byteswap_uint64(data); }
 
-	void mirror() { 
-		data = _byteswap_uint64(data); 
-	}
+  [[nodiscard]] Bitboard mirrored() const { return _byteswap_uint64(data); }
 
-	Bitboard mirrored() const
-   { 
-		return _byteswap_uint64(data); 
-	}
+  [[nodiscard]] int popcount() const {
+    return static_cast<int>(_mm_popcnt_u64(data));
+  }
 
-	int popcount() { 
-		return static_cast<int>(_mm_popcnt_u64(data)); 
-	}
+  [[nodiscard]] Square Lsb() const {
+    unsigned long idx;
+    _BitScanForward64(&idx, data);
+    return static_cast<Square>(idx);
+  }
 
-	Square LSB() const
-   {
-		unsigned long idx;
-		_BitScanForward64(&idx, data);
-		return static_cast<Square>(idx);
-	}
-
-	Square MSB() const
-   {
-		unsigned long idx;
-		_BitScanReverse64(&idx, data);
-		return static_cast<Square>(idx);
-	}
-
+  [[nodiscard]] Square Msb() const {
+    unsigned long idx;
+    _BitScanReverse64(&idx, data);
+    return static_cast<Square>(idx);
+  }
 #else
-	void mirror() {
-		constexpr static uint64_t k1 = 0x00ff00ff00ff00ff;
-		constexpr static uint64_t k2 = 0x0000ffff0000ffff;
-		data = data >> 8 & k1 | (data & k1) << 8;
-		data = data >> 16 & k2 | (data & k2) << 16;
-		data = data >> 32 | data << 32;
-	}
+  void mirror() {
+    constexpr static uint64_t k1 = 0x00ff00ff00ff00ff;
+    constexpr static uint64_t k2 = 0x0000ffff0000ffff;
+    data = data >> 8 & k1 | (data & k1) << 8;
+    data = data >> 16 & k2 | (data & k2) << 16;
+    data = data >> 32 | data << 32;
+  }
 
-	Bitboard mirrored() {
-		Bitboard copy(data);
-		copy.mirror();
-		return copy;
-	}
+  Bitboard mirrored() {
+    Bitboard copy(data);
+    copy.mirror();
+    return copy;
+  }
 
-	int popcount() {
-		return __builtin_popcountll(data);
-	}
+  int popcount() { return __builtin_popcountll(data); }
 
-	Square LSB() {
-		return Square(__builtin_ctzll(data));
-	}
+  Square Lsb() { return Square(__builtin_ctzll(data)); }
 
-	Square MSB() {
-		return Square(__builtin_clzll(data) ^ 63);
-	}
-
+  Square Msb() { return Square(__builtin_clzll(data) ^ 63); }
 #endif
 
-	Square popLSB() {
-      const Square sq = LSB();
-		data &= data - 1;
-		return sq;
-	}
+  Square PopLsb() {
+    const Square sq = Lsb();
+    data &= data - 1;
+    return sq;
+  }
 
-	Square popMSB() {
-      const Square sq = MSB();
-		data &= data - 1;
-		return sq;
-	}
+  Square PopMsb() {
+    const Square sq = Msb();
+    data &= data - 1;
+    return sq;
+  }
 
-	constexpr friend Bitboard operator&(Bitboard a, Bitboard b) {
-		return a.data & b.data;
-	}
+  constexpr friend Bitboard operator&(const Bitboard a, const Bitboard b) {
+    return a.data & b.data;
+  }
 
-	constexpr friend Bitboard operator|(Bitboard a, Bitboard b) {
-		return a.data | b.data;
-	}
+  constexpr friend Bitboard operator|(const Bitboard a, const Bitboard b) {
+    return a.data | b.data;
+  }
 
-	constexpr friend Bitboard operator^(Bitboard a, Bitboard b) {
-		return a.data ^ b.data;
-	}
+  constexpr friend Bitboard operator^(const Bitboard a, const Bitboard b) {
+    return a.data ^ b.data;
+  }
 
-	constexpr friend Bitboard operator-(Bitboard a, Bitboard b) {
-		return a.data & ~b.data;
-	}
+  constexpr friend Bitboard operator-(const Bitboard a, const Bitboard b) {
+    return a.data & ~b.data;
+  }
 
-	constexpr friend Bitboard operator*(Bitboard a, Bitboard b) {
-		return a.data * b.data;
-	}
+  constexpr friend Bitboard operator*(const Bitboard a, const Bitboard b) {
+    return a.data * b.data;
+  }
 
-	constexpr void operator&=(Bitboard b) {
-		data &= b.data;
-	}
+  constexpr void operator&=(const Bitboard b) { data &= b.data; }
+  constexpr void operator|=(const Bitboard b) { data |= b.data; }
+  constexpr void operator^=(const Bitboard b) { data ^= b.data; }
+  constexpr void operator-=(const Bitboard b) { data &= ~b.data; }
+  constexpr Bitboard operator~() const { return ~data; }
+  constexpr explicit operator bool() const { return static_cast<bool>(data); }
 
-	constexpr void operator|=(Bitboard b) {
-		data |= b.data;
-	}
+  constexpr friend Bitboard operator<<(const Bitboard b, const uint8_t shift) {
+    return b.data << shift;
+  }
 
-	constexpr void operator^=(Bitboard b) {
-		data ^= b.data;
-	}
+  constexpr friend Bitboard operator>>(const Bitboard b, const uint8_t shift) {
+    return b.data >> shift;
+  }
 
-	constexpr void operator-=(Bitboard b) {
-		data &= ~b.data;
-	}
+  constexpr bool operator==(const Bitboard b) const { return data == b.data; }
 
-	constexpr Bitboard operator~() const
-   {
-		return ~data;
-	}
-
-	constexpr explicit operator bool() const
-   {
-		return static_cast<bool>(data);
-	}
-
-	constexpr friend Bitboard operator<<(Bitboard b, uint8_t shift) {
-		return b.data << shift;
-	}
-
-	constexpr friend Bitboard operator>>(Bitboard b, uint8_t shift) {
-		return b.data >> shift;
-	}
-
-	constexpr bool operator==(Bitboard b) const
-   {
-		return data == b.data;
-	}
-
-	friend std::ostream& operator<<(std::ostream& os, Bitboard b) {
-		for (Rank r = RANK_8; r >= RANK_1; --r) {
-			for (File f = FILE_A; f <= FILE_H; ++f) {
-            const Square sq = square::make(f, r);
-				os << (b.isSet(sq) ? 'X' : '.') << ' ';
-			}
-			os << '\n';
-		}
-		return os;
-	}
+  friend std::ostream& operator<<(std::ostream& os, const Bitboard b) {
+    for (Rank r = RANK_8; r >= RANK_1; --r) {
+      for (File f = FILE_A; f <= FILE_H; ++f) {
+        const Square sq = square::make(f, r);
+        os << (b.IsSet(sq) ? 'X' : '.') << ' ';
+      }
+      os << '\n';
+    }
+    return os;
+  }
 };
 
-constexpr Bitboard FILE_A_BB(0x101010101010101);
-constexpr Bitboard FILE_B_BB = FILE_A_BB << 1;
-constexpr Bitboard FILE_C_BB = FILE_A_BB << 2;
-constexpr Bitboard FILE_D_BB = FILE_A_BB << 3;
-constexpr Bitboard FILE_E_BB = FILE_A_BB << 4;
-constexpr Bitboard FILE_F_BB = FILE_A_BB << 5;
-constexpr Bitboard FILE_G_BB = FILE_A_BB << 6;
-constexpr Bitboard FILE_H_BB = FILE_A_BB << 7;
+constexpr Bitboard kFileABb(0x101010101010101);
+constexpr Bitboard kFileBBb = kFileABb << 1;
+constexpr Bitboard kFileCBb = kFileABb << 2;
+constexpr Bitboard kFileDBb = kFileABb << 3;
+constexpr Bitboard kFileEBb = kFileABb << 4;
+constexpr Bitboard kFileFBb = kFileABb << 5;
+constexpr Bitboard kFileGBb = kFileABb << 6;
+constexpr Bitboard kFileHBb = kFileABb << 7;
 
-constexpr Bitboard RANK_1_BB(0xff);
-constexpr Bitboard RANK_2_BB = RANK_1_BB << 8;
-constexpr Bitboard RANK_3_BB = RANK_1_BB <<	16;
-constexpr Bitboard RANK_4_BB = RANK_1_BB << 24;
-constexpr Bitboard RANK_5_BB = RANK_1_BB << 32;
-constexpr Bitboard RANK_6_BB = RANK_1_BB << 40;
-constexpr Bitboard RANK_7_BB = RANK_1_BB << 48;
-constexpr Bitboard RANK_8_BB = RANK_1_BB << 56;
+constexpr Bitboard kRank1Bb(0xff);
+constexpr Bitboard kRank2Bb = kRank1Bb << 8;
+constexpr Bitboard kRank3Bb = kRank1Bb << 16;
+constexpr Bitboard kRank4Bb = kRank1Bb << 24;
+constexpr Bitboard kRank5Bb = kRank1Bb << 32;
+constexpr Bitboard kRank6Bb = kRank1Bb << 40;
+constexpr Bitboard kRank7Bb = kRank1Bb << 48;
+constexpr Bitboard kRank8Bb = kRank1Bb << 56;
 
-constexpr Bitboard DIAG_C2_H7(0x0080402010080400);
+constexpr Bitboard kDiagC2H7(0x0080402010080400);
 
-template<Direction d>
-constexpr Bitboard Bitboard::shift() const
-{
-   const Bitboard b(*this);
-	if (d == NORTH) return b << NORTH;
-	else if (d == SOUTH) return b >> NORTH;
-	else if (d == 2 * NORTH) return b << 2 * NORTH;
-	else if (d == 2 * SOUTH) return b >> 2 * NORTH;
-	else if (d == NORTHEAST) return (b << NORTHEAST) - FILE_A_BB;
-	else if (d == NORTHWEST) return (b << NORTHWEST) - FILE_H_BB;
-	else if (d == SOUTHEAST) return (b >> NORTHWEST) - FILE_A_BB;
-	else if (d == SOUTHWEST) return (b >> NORTHEAST) - FILE_H_BB;
-	else return {};
+template <Direction D>
+constexpr Bitboard Bitboard::shift() const {
+  const Bitboard b(*this);
+  if constexpr (D == NORTH)
+    return b << NORTH;
+  else if constexpr (D == SOUTH)
+    return b >> NORTH;
+  else if constexpr (D == 2 * NORTH)
+    return b << 2 * NORTH;
+  else if constexpr (D == 2 * SOUTH)
+    return b >> 2 * NORTH;
+  else if constexpr (D == NORTHEAST)
+    return (b << NORTHEAST) - kFileABb;
+  else if constexpr (D == NORTHWEST)
+    return (b << NORTHWEST) - kFileHBb;
+  else if constexpr (D == SOUTHEAST)
+    return (b >> NORTHWEST) - kFileABb;
+  else if constexpr (D == SOUTHWEST)
+    return (b >> NORTHEAST) - kFileHBb;
+  else
+    return {};
 }
 
 namespace move {
-	// A move has the following format:
-
-	// bit 0-5:   from square
-	// bit 6-11:  to square
-	// bit 12-13: promotion piece type
-	// bit 14-15: move type
-
-	enum MoveType {
-		NORMAL,
-		EN_PASSANT = 1 << 14,
-		PROMOTION = 2 << 14,
-		CASTLING = 3 << 14
-	};
-
-	constexpr Move make(Square from, Square to) {
-		return from | to << 6;
-	}
-	constexpr Move make(Square from, Square to, MoveType moveType) {
-		return from | to << 6 | moveType;
-	}
-	template<PieceType pieceType>
-	constexpr Move make(Square from, Square to) {
-		return from | to << 6 | PROMOTION | (pieceType - 2) << 12;
-	}
-
-	constexpr Square from(Move m) {
-		return m & 0x3f;
-	}
-
-	constexpr Square to(Move m) {
-		return m >> 6 & 0x3f;
-	}
-
-	constexpr MoveType moveType(Move m) {
-		return static_cast<MoveType>(m & 0x3 << 14);
-	}
-
-	constexpr PieceType pieceType(Move m) {
-		return (m >> 12 & 0x3) + 2;
-	}
-
-	inline std::string toString(Move m) {
-		std::string s = square::toString(from(m)) + square::toString(to(m));
-
-		if (moveType(m) == PROMOTION) {
-			switch (pieceType(m)) {
-			case KNIGHT:
-				return s + 'n';
-			case BISHOP:
-				return s + 'b';
-			case ROOK:
-				return s + 'r';
-			case QUEEN:
-				return s + 'q';
-      default: ;
-      }
-    }
-		return s;
-	}
+enum MoveType {
+  NORMAL,
+  EN_PASSANT = 1 << 14,
+  PROMOTION = 2 << 14,
+  CASTLING = 3 << 14
 };
+
+constexpr Move make(const Square from, const Square to) {
+  return static_cast<Move>(from | to << 6);
+}
+
+constexpr Move make(const Square from, const Square to,
+                    const MoveType move_type) {
+  return static_cast<Move>(from | to << 6 | move_type);
+}
+
+template <PieceType Pt>
+constexpr Move make(const Square from, const Square to) {
+  return from | to << 6 | PROMOTION | (Pt - 2) << 12;
+}
+
+constexpr Square from(const Move m) { return m & 0x3f; }
+constexpr Square to(const Move m) { return m >> 6 & 0x3f; }
+
+constexpr MoveType move_type(const Move m) {
+  return static_cast<MoveType>(m & 0x3 << 14);
+}
+
+constexpr PieceType GetPieceType(const Move m) { return (m >> 12 & 0x3) + 2; }
+
+inline std::string ToString(const Move m) {
+  std::string s = square::ToString(from(m)) + square::ToString(to(m));
+  if (move_type(m) == PROMOTION) {
+    switch (GetPieceType(m)) {
+      case KNIGHT:
+        return s + 'n';
+      case BISHOP:
+        return s + 'b';
+      case ROOK:
+        return s + 'r';
+      case QUEEN:
+        return s + 'q';
+      default:;
+    }
+  }
+  return s;
+}
+}  // namespace move
+
+const std::string kStartFen =
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+constexpr Bitboard kWhiteQueenSidePath(0xe);
+constexpr Bitboard kWhiteKingSidePath(0x60);
+constexpr Bitboard kBlackQueenSidePath(0xE00000000000000);
+constexpr Bitboard kBlackKingSidePath(0x6000000000000000);
+
+struct Castling {
+  int data;
+  void set(const int cr) { data |= cr; }
+  void reset(const int cr) { data &= ~cr; }
+
+  [[nodiscard]] bool CanCastle(const int cr) const { return data & cr; }
+  [[nodiscard]] bool CannotCastle() const { return data == 0; }
+};
+
+struct KingAttackInfo {
+  Bitboard pinned{};
+  Bitboard attacks{};
+  bool double_check = false;
+  bool computed = false;
+  [[nodiscard]] bool check() const { return static_cast<bool>(attacks); }
+};
+
+struct BoardStatus {
+  Castling castlings{};
+  int fifty_move_count = 0;
+  int ply_count = 0;
+  int repetitions = 0;
+  Key zobrist = 0;
+  KingAttackInfo king_attack_info{};
+  Move move = 0;
+  Piece captured = 0;
+  Square ep_square = 0;
+};
+
+struct Board {
+  [[nodiscard]] Bitboard AttackersTo(Square sq, Bitboard occupied) const;
+  [[nodiscard]] Bitboard color(Color c) const;
+  [[nodiscard]] Bitboard NonPawnMaterial(Color c) const;
+  [[nodiscard]] Bitboard occupied() const;
+  [[nodiscard]] Bitboard pieces(Color c, PieceType pt) const;
+  [[nodiscard]] Bitboard pieces(PieceType pt) const;
+  [[nodiscard]] bool CanCastle(int cr) const;
+  [[nodiscard]] bool GivesCheck(Move m) const;
+  [[nodiscard]] bool IsCapture(Move m) const;
+  [[nodiscard]] bool IsDraw() const;
+  [[nodiscard]] bool IsInCheck() const;
+  [[nodiscard]] bool IsPseudoLegal(Move m) const;
+  [[nodiscard]] bool IsUnderAttack(Color us, Square sq) const;
+  [[nodiscard]] bool CannotCastle() const;
+  [[nodiscard]] Key key() const;
+  [[nodiscard]] Piece PieceOn(Square sq) const;
+  [[nodiscard]] Score see(Move m) const;
+  [[nodiscard]] Square ksq(Color c) const;
+  [[nodiscard]] std::string fen() const;
+
+  Bitboard color_bb[N_COLORS];
+  Bitboard LeastValuablePiece(Bitboard attacking, Color attacker,
+                              Piece& pc) const;
+  Bitboard occupied_bb = 0;
+  Bitboard piece_bb[N_PIECE_TYPES]{};
+
+  Board() = default;
+  Board(const Board& other);
+  Board(const std::string& fen);
+
+  Board& operator=(const Board& other);
+  BoardStatus* Bs(int idx);
+  BoardStatus* GetBoardStatus();
+  BoardStatus* st;
+
+  bool IsLegal(Move m);
+  Color side_to_move;
+  friend std::ostream& operator<<(std::ostream& os, const Board& board);
+  Piece board[N_SQUARES];
+  static bool IsPromotion(Move m);
+  std::vector<BoardStatus> history;
+
+  template <bool UpdateZobrist = true>
+  void MovePiece(Square from, Square to);
+  template <bool UpdateZobrist = true>
+  void RemovePiece(Square sq);
+  template <bool UpdateZobrist = true>
+  void SetPiece(Piece pc, Square sq);
+  template <PieceType Pt>
+  Bitboard AttacksBy(Color c);
+
+  void ApplyMove(Move m);
+  void ApplyNullMove();
+  void GenKingAttackInfo(KingAttackInfo& k) const;
+  void UndoMove();
+  void UndoNullMove();
+};
+
+inline Piece Board::PieceOn(const Square sq) const { return board[sq]; }
+inline BoardStatus* Board::GetBoardStatus() { return &history.back(); }
+
+inline BoardStatus* Board::Bs(const int idx) {
+  return &history[history.size() - idx - 1];
+}
+
+inline bool Board::CanCastle(const int cr) const {
+  return st->castlings.CanCastle(cr);
+}
+
+inline bool Board::CannotCastle() const { return st->castlings.CannotCastle(); }
+inline Bitboard Board::color(const Color c) const { return color_bb[c]; }
+inline Bitboard Board::pieces(const PieceType pt) const { return piece_bb[pt]; }
+
+inline Bitboard Board::pieces(const Color c, const PieceType pt) const {
+  return color(c) & pieces(pt);
+}
+
+inline Bitboard Board::occupied() const { return occupied_bb; }
+inline Square Board::ksq(const Color c) const { return pieces(c, KING).Lsb(); }
+inline Key Board::key() const { return st->zobrist; }
+inline bool Board::IsDraw() const { return st->repetitions >= 2; }
+
+inline bool Board::IsCapture(const Move m) const {
+  return PieceOn(move::to(m)) || move::move_type(m) == move::EN_PASSANT;
+}
+
+inline bool Board::IsPromotion(const Move m) {
+  return move::move_type(m) == move::PROMOTION;
+}
+
+inline Bitboard Board::NonPawnMaterial(const Color c) const {
+  return color(c) - pieces(PAWN) - pieces(KING);
+}
+
+using std::chrono::milliseconds;
+
+typedef long TimeMs;
+
+inline TimeMs curr_time() {
+  return static_cast<long>(
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count());
+}
+inline std::uint32_t RandU32(std::uint32_t low, std::uint32_t high) {
+  std::mt19937 gen(curr_time());
+  std::uniform_int_distribution<std::uint32_t> dis(low, high);
+  return dis(gen);
+}
+
+inline uint64_t RandU64() {
+  std::random_device rd;
+  std::mt19937_64 gen(rd());
+  std::uniform_int_distribution<uint64_t> dis;
+  return dis(gen);
+}
+
+namespace zobrist {
+inline Key psq[16][N_SQUARES];
+inline Key side;
+inline Key castling[16];
+inline Key en_passant[N_FILES];
+inline void init() {
+  for (auto& i : psq) {
+    for (unsigned long long& j : i) j = RandU64();
+  }
+  side = RandU64();
+  for (unsigned long long& i : castling) i = RandU64();
+  for (unsigned long long& i : en_passant) i = RandU64();
+}
+}  // namespace zobrist

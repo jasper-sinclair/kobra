@@ -1,83 +1,68 @@
-#include<memory>
+#include "hash.h"
 
-#include"hash.h"
+#include <cstring>
+#include <memory>
+#include "main.h"
 
-// mebibytes (1024^2 bytes)
-void TranspositionTable::setSize(uint64_t MiB) {
-   const uint64_t bytes = MiB * 1024 * 1024;
-   const uint64_t maxSize = bytes / sizeof(TTEntry);
-
-	size = 1;
-	for (;;) {
-      const uint64_t newSize = 2 * size;
-		if (newSize > maxSize)
-			break;
-		size = newSize;
-	}
-
-	mask = size - 1;
-	entries = std::make_unique<TTEntry[]>(size);
-	clear();
+void HashTable::SetSize(const uint64_t mb) {
+  const uint64_t bytes = mb * 1024 * 1024;
+  const uint64_t max_size = bytes / sizeof(HashEntry);
+  size = 1;
+  for (;;) {
+    const uint64_t new_size = 2 * size;
+    if (new_size > max_size) break;
+    size = new_size;
+  }
+  mask = size - 1;
+  entries = std::make_unique<HashEntry[]>(size);
+  clear();
 }
 
-void TranspositionTable::clear() const
-{
-	std::memset(entries.get(), 0, size * sizeof(TTEntry));
+void HashTable::clear() const {
+  std::memset(entries.get(), 0, size * sizeof(HashEntry));
 }
 
-double TranspositionTable::usage() const
-{
-	int cnt = 0;
-   constexpr int n = 1000;
-	for (int i = 1; i < n + 1; ++i) {
-		if (entries[i].key)
-			cnt += 1;
-	}
-	return static_cast<double>(cnt) / n;
+double HashTable::usage() const {
+  int cnt = 0;
+  constexpr int n = 1000;
+  for (int i = 1; i < n + 1; ++i) {
+    if (entries[i].key) cnt += 1;
+  }
+  return static_cast<double>(cnt) / n;
 }
 
-bool TranspositionTable::probe(Key key, TTEntry& tte) {
-	tte = *get(key);
-
-	if ((tte.key ^ tte.data) == key)
-		return true;
-
-	else {
-		tte = {};
-		return false;
-	}
+bool HashTable::probe(const Key key, HashEntry& hash_entry) {
+  hash_entry = *get(key);
+  if ((hash_entry.key ^ hash_entry.data) == key) return true;
+  hash_entry = {};
+  return false;
 }
 
-void TranspositionTable::save(Key key, Score score, Score eval, Move move, Depth depth, NodeType nodeType) {
-	TTEntry tmp;
-	tmp.score = score;
-	tmp.eval = eval;
-	tmp.move = move;
-	tmp.depth = static_cast<uint8_t>(depth);
-	tmp.nodeType = nodeType;
-
-	tmp.key = key ^ tmp.data;
-
-	TTEntry* tte = get(key);
-
-	if (nodeType == PV_NODE ||
-		key != (tte->key ^ tte->data) ||
-		depth + 4 > tte->depth) 
-	{
-		*tte = tmp;
-	}
+void HashTable::save(const Key key, const Score score,
+                              const Score static_eval, const Move move,
+                              const Depth depth, const NodeType node_type) {
+  HashEntry tmp;
+  tmp.score = score;
+  tmp.static_eval = static_eval;
+  tmp.move = move;
+  tmp.depth = static_cast<uint8_t>(depth);
+  tmp.node_type = node_type;
+  tmp.key = key ^ tmp.data;
+  if (HashEntry* hash_entry = get(key); node_type == PV_NODE ||
+                               key != (hash_entry->key ^ hash_entry->data) ||
+                               depth + 4 > hash_entry->depth) {
+    *hash_entry = tmp;
+  }
 }
 
-Score TranspositionTable::scoreToTT(Score score, Depth ply) {
-	return
-		score >= MIN_MATE_SCORE ? score + ply :
-		score <= -MIN_MATE_SCORE ? score - ply :
-		score;
+Score HashTable::ScoreToHash(const Score score, const Depth ply) {
+  return static_cast<Score>(score >= MIN_MATE_SCORE    ? score + ply
+                            : score <= -MIN_MATE_SCORE ? score - ply
+                                                       : score);
 }
 
-Score TranspositionTable::scoreFromTT(Score score, Depth ply) {
-	return 
-		score >= MIN_MATE_SCORE ? score - ply :
-		score <= -MIN_MATE_SCORE ? score + ply :
-		score;
+Score HashTable::ScoreFromHash(const Score score, const Depth ply) {
+  return static_cast<Score>(score >= MIN_MATE_SCORE    ? score - ply
+                            : score <= -MIN_MATE_SCORE ? score + ply
+                                                       : score);
 }

@@ -9,14 +9,14 @@ namespace eval {
 		N_GAME_PHASES
 	};
 
-	inline std::array<std::array<std::array<std::array<Score, N_SQUARES>, N_GAME_PHASES>, N_PIECE_TYPES>, N_COLORS>psqTable;
+	inline std::array<std::array<std::array<std::array<Score, N_SQUARES>, N_GAME_PHASES>, N_PIECE_TYPES>, N_COLORS>psq_table;
 
 	constexpr std::array<Score, 7>kPtValues = { 0, 100, 330, 350, 525, 1100, 8000 };
 	constexpr std::array<Score, 16>kPieceValues = { 0, kPtValues[1], kPtValues[2], kPtValues[3], kPtValues[4], kPtValues[5], kPtValues[6], 0,
 													0, kPtValues[1], kPtValues[2], kPtValues[3], kPtValues[4], kPtValues[5], kPtValues[6], 0, };
 
 	inline void init() {
-		psqTable[WHITE][PAWN][MID_GAME] = {
+		psq_table[WHITE][PAWN][MID_GAME] = {
 			0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, -5, 0, 15, 15, 0,
 			10, 0, 10, 10, 10, 0, 10, 10,
@@ -27,7 +27,7 @@ namespace eval {
 			0, 0, 0, 0, 0, 0, 0, 0,
 		};
 
-		psqTable[WHITE][PAWN][END_GAME] = {
+		psq_table[WHITE][PAWN][END_GAME] = {
 			0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, -5, 0, 15, 15, 0,
 			10, 0, 10, 10, 10, 0, 10, 10,
@@ -38,7 +38,7 @@ namespace eval {
 			0, 0, 0, 0, 0, 0, 0, 0,
 		};
 
-		psqTable[WHITE][KNIGHT][MID_GAME] = {
+		psq_table[WHITE][KNIGHT][MID_GAME] = {
 			-30, 0, 0, 0, 0, 0, -5, -30,
 			-20, 0, 0, 25, 25, 0, 0, -20,
 			5, 25, 30, 25, 25, 30, 25, 5,
@@ -49,7 +49,7 @@ namespace eval {
 			5, 10, 15, 15, 15, 15, 10, 5,
 		};
 
-		psqTable[WHITE][KNIGHT][END_GAME] = {
+		psq_table[WHITE][KNIGHT][END_GAME] = {
 			-30, 0, 0, 0, 0, 0, -5, -30,
 			-20, 0, 0, 25, 25, 0, 0, -20,
 			5, 25, 30, 25, 25, 30, 25, 5,
@@ -60,7 +60,7 @@ namespace eval {
 			5, 10, 15, 15, 15, 15, 10, 5,
 		};
 
-		psqTable[WHITE][BISHOP][MID_GAME] = {
+		psq_table[WHITE][BISHOP][MID_GAME] = {
 			-10, 20, 0, 0, 0, 0, 0, -50,
 			15, 15, 15, 15, 20, 0, 25, 20,
 			15, 15, 15, 20, 15, 0, 20, 10,
@@ -71,7 +71,7 @@ namespace eval {
 			-10, -10, -10, -10, -10, -10, -10, -10,
 		};
 
-		psqTable[WHITE][BISHOP][END_GAME] = {
+		psq_table[WHITE][BISHOP][END_GAME] = {
 			-10, 20, 0, 0, 0, 0, 0, -50,
 			15, 15, 15, 15, 20, 0, 25, 20,
 			15, 15, 15, 20, 15, 0, 20, 10,
@@ -82,7 +82,7 @@ namespace eval {
 			-10, -10, -10, -10, -10, -10, -10, -10,
 		};
 
-		psqTable[WHITE][ROOK][MID_GAME] = {
+		psq_table[WHITE][ROOK][MID_GAME] = {
 			5, 10, 20, 20, 20, 0, 0, 0,
 			0, 5, 10, 0, 0, 0, 0, -5,
 			10, 5, 10, 0, 0, 0, 10, 10,
@@ -93,7 +93,7 @@ namespace eval {
 			40, 40, 40, 40, 40, 40, 40, 40,
 		};
 
-		psqTable[WHITE][ROOK][END_GAME] = {
+		psq_table[WHITE][ROOK][END_GAME] = {
 			5, 10, 20, 20, 20, 0, 0, 0,
 			0, 5, 10, 0, 0, 0, 0, -5,
 			10, 5, 10, 0, 0, 0, 10, 10,
@@ -104,7 +104,7 @@ namespace eval {
 			40, 40, 40, 40, 40, 40, 40, 40,
 		};
 
-		psqTable[WHITE][QUEEN][MID_GAME] = {
+		psq_table[WHITE][QUEEN][MID_GAME] = {
 			-10, 5, 5, 5, 5, -10, -10, -10,
 			-10, 5, 15, 5, 0, 0, 0, -10,
 			-10, 15, 5, 10, 5, 5, 5, 5,
@@ -115,7 +115,7 @@ namespace eval {
 			20, 25, 30, 35, 40, 40, 40, 40,
 		};
 
-		psqTable[WHITE][QUEEN][END_GAME] = {
+		psq_table[WHITE][QUEEN][END_GAME] = {
 			-10, 5, 5, 5, 5, -10, -10, -10,
 			-10, 5, 15, 5, 0, 0, 0, -10,
 			-10, 15, 5, 10, 5, 5, 5, 5,
@@ -126,7 +126,7 @@ namespace eval {
 			20, 25, 30, 35, 40, 40, 40, 40,
 		};
 
-		psqTable[WHITE][KING][MID_GAME] = {
+		psq_table[WHITE][KING][MID_GAME] = {
 			20, 25, 10, -20, 0, 10, 30, 20,
 			20, 10, 0, 0, 0, 0, 10, 20,
 			-10, -20, -20, -20, -20, -20, -20, -10,
@@ -137,7 +137,7 @@ namespace eval {
 			-30, -40, -40, -50, -50, -40, -40, -30,
 		};
 
-		psqTable[WHITE][KING][END_GAME] = {
+		psq_table[WHITE][KING][END_GAME] = {
 			-15, -10, -10, -20, -20, -20, -10, -15,
 			-10, -10, -10, -15, -15, -10, -10, -10,
 			-5, -5, -5, 0, 0, -5, -5, -5,
@@ -148,7 +148,7 @@ namespace eval {
 			0, 0, 0, 0, 0, 0, 0, 0,
 		};
 
-		psqTable[BLACK][PAWN][MID_GAME] = {
+		psq_table[BLACK][PAWN][MID_GAME] = {
 			0, 0, 0, 0, 0, 0, 0, 0,
 			50, 50, 50, 50, 50, 50, 50, 50,
 			20, 25, 30, 45, 30, 30, 25, 20,
@@ -159,7 +159,7 @@ namespace eval {
 			0, 0, 0, 0, 0, 0, 0, 0,
 		};
 
-		psqTable[BLACK][PAWN][END_GAME] = {
+		psq_table[BLACK][PAWN][END_GAME] = {
 			0, 0, 0, 0, 0, 0, 0, 0,
 			50, 50, 50, 50, 50, 50, 50, 50,
 			20, 25, 30, 45, 30, 30, 25, 20,
@@ -170,7 +170,7 @@ namespace eval {
 			0, 0, 0, 0, 0, 0, 0, 0,
 		};
 
-		psqTable[BLACK][KNIGHT][MID_GAME] = {
+		psq_table[BLACK][KNIGHT][MID_GAME] = {
 			5, 10, 15, 15, 15, 15, 10, 5,
 			10, 35, 40, 40, 40, 40, 35, 10,
 			20, 35, 40, 40, 40, 40, 35, 20,
@@ -181,7 +181,7 @@ namespace eval {
 			-30, -5, 0, 0, 0, 0, 0, -30,
 		};
 
-		psqTable[BLACK][KNIGHT][END_GAME] = {
+		psq_table[BLACK][KNIGHT][END_GAME] = {
 			5, 10, 15, 15, 15, 15, 10, 5,
 			10, 35, 40, 40, 40, 40, 35, 10,
 			20, 35, 40, 40, 40, 40, 35, 20,
@@ -192,7 +192,7 @@ namespace eval {
 			-30, -5, 0, 0, 0, 0, 0, -30,
 		};
 
-		psqTable[BLACK][BISHOP][MID_GAME] = {
+		psq_table[BLACK][BISHOP][MID_GAME] = {
 			-10, -10, -10, -10, -10, -10, -10, -10,
 			-10, 0, 0, 0, 0, 0, 0, -10,
 			20, 0, 5, 10, 10, 5, 0, 20,
@@ -203,7 +203,7 @@ namespace eval {
 			0, 0, 0, 0, 0, 0, 0, -50,
 		};
 
-		psqTable[BLACK][BISHOP][END_GAME] = {
+		psq_table[BLACK][BISHOP][END_GAME] = {
 			-10, -10, -10, -10, -10, -10, -10, -10,
 			-10, 0, 0, 0, 0, 0, 0, -10,
 			20, 0, 5, 10, 10, 5, 0, 20,
@@ -214,7 +214,7 @@ namespace eval {
 			0, 0, 0, 0, 0, 0, 0, -50,
 		};
 
-		psqTable[BLACK][ROOK][MID_GAME] = {
+		psq_table[BLACK][ROOK][MID_GAME] = {
 			40, 40, 40, 40, 40, 40, 40, 40,
 			40, 40, 40, 40, 40, 40, 40, 40,
 			30, 30, 30, 30, 30, 30, 30, 30,
@@ -225,7 +225,7 @@ namespace eval {
 			10, 10, 20, 20, 20, 0, 0, 0,
 		};
 
-		psqTable[BLACK][ROOK][END_GAME] = {
+		psq_table[BLACK][ROOK][END_GAME] = {
 			40, 40, 40, 40, 40, 40, 40, 40,
 			40, 40, 40, 40, 40, 40, 40, 40,
 			30, 30, 30, 30, 30, 30, 30, 30,
@@ -236,7 +236,7 @@ namespace eval {
 			10, 10, 20, 20, 20, 0, 0, 0,
 		};
 
-		psqTable[BLACK][QUEEN][MID_GAME] = {
+		psq_table[BLACK][QUEEN][MID_GAME] = {
 			15, 15, 20, 30, 40, 40, 40, 40,
 			15, 15, 20, 20, 40, 40, 40, 40,
 			10, 10, 10, 15, 20, 20, 20, 20,
@@ -247,7 +247,7 @@ namespace eval {
 			0, -10, 5, 5, 5, 5, -10, -10,
 		};
 
-		psqTable[BLACK][QUEEN][END_GAME] = {
+		psq_table[BLACK][QUEEN][END_GAME] = {
 			15, 15, 20, 30, 40, 40, 40, 40,
 			15, 15, 20, 20, 40, 40, 40, 40,
 			10, 10, 10, 15, 20, 20, 20, 20,
@@ -258,7 +258,7 @@ namespace eval {
 			0, -10, 5, 5, 5, 5, -10, -10,
 		};
 
-		psqTable[BLACK][KING][MID_GAME] = {
+		psq_table[BLACK][KING][MID_GAME] = {
 			-30, -40, -40, -50, -50, -40, -40, -30,
 			-30, -40, -40, -50, -50, -40, -40, -30,
 			-30, -40, -40, -50, -50, -40, -40, -30,
@@ -269,7 +269,7 @@ namespace eval {
 			20, 25, 10, -20, 0, 10, 30, 20,
 		};
 
-		psqTable[BLACK][KING][END_GAME] = {
+		psq_table[BLACK][KING][END_GAME] = {
 			0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0,
@@ -294,17 +294,17 @@ inline Score evaluate(const Board& board) {
 		kPieceValues[ROOK] * (board.pieces(us, ROOK).popcount() - board.pieces(them, ROOK).popcount()) +
 		kPieceValues[QUEEN] * (board.pieces(us, QUEEN).popcount() - board.pieces(them, QUEEN).popcount());
 
-	const bool wQueens = static_cast<bool>(board.pieces(WHITE, QUEEN));
-	const bool bQueens = static_cast<bool>(board.pieces(BLACK, QUEEN));
-	bool isEndgame;
-	if (wQueens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1 ||
-		bQueens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1)
-		isEndgame = false;
+	const bool w_queens = static_cast<bool>(board.pieces(WHITE, QUEEN));
+	const bool b_queens = static_cast<bool>(board.pieces(BLACK, QUEEN));
+	bool is_endgame;
+	if (w_queens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1 ||
+		b_queens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1)
+		is_endgame = false;
 	else
-		isEndgame = true;
-	const GamePhases gamePhase = isEndgame ? END_GAME : MID_GAME;
+		is_endgame = true;
+	const GamePhases game_phase = is_endgame ? END_GAME : MID_GAME;
 
-	Score psqScore = 0;
+	Score psq_score = 0;
 	for (Square sq = A1; sq < N_SQUARES; ++sq) {
 		const Piece pc = board.PieceOn(sq);
 
@@ -313,9 +313,9 @@ inline Score evaluate(const Board& board) {
 
 		const PieceType pt = piece_type::make(pc);
 		const Color c = color::make(pc);
-		const Score s = psqTable[c][pt][gamePhase][sq];
-		psqScore += c == us ? s : -s;
+		const Score s = psq_table[c][pt][game_phase][sq];
+		psq_score += c == us ? s : -s;
 	}
-	result += psqScore;
+	result += psq_score;
 	return result;
 }

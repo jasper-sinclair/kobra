@@ -297,8 +297,8 @@ void Board::UndoNullMove() {
 }
 
 bool Board::GivesCheck(const Move m) const {
-  Bitboard theirKingBB = pieces(!side_to_move, KING);
-  Square ksq = theirKingBB.Lsb();
+  Bitboard their_king_bb = pieces(!side_to_move, KING);
+  Square ksq = their_king_bb.Lsb();
   const Square from = move::from(m);
   const Square to = move::to(m);
   const move::MoveType move_type = move::move_type(m);
@@ -337,14 +337,14 @@ bool Board::GivesCheck(const Move m) const {
       attacked = {};
   }
 
-  if (attacked & theirKingBB) return true;
+  if (attacked & their_king_bb) return true;
 
   if (move_type == move::CASTLING) {
     occ.clear(from);
     if (const Square rsq = side_to_move == WHITE ? to > from ? F1 : D1
                            : to > from           ? F8
                                                  : D8;
-        attack::attacks<ROOK>(rsq, occ) & theirKingBB)
+        attack::attacks<ROOK>(rsq, occ) & their_king_bb)
       return true;
   } else if (move_type == move::EN_PASSANT) {
     occ.clear(from);

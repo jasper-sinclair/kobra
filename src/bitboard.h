@@ -443,13 +443,13 @@ typedef long TimeMs;
 
 inline TimeMs curr_time() {
   return static_cast<long>(
-      std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::duration_cast<milliseconds>(
           std::chrono::system_clock::now().time_since_epoch())
           .count());
 }
-inline std::uint32_t RandU32(std::uint32_t low, std::uint32_t high) {
+inline std::uint32_t RandU32(const std::uint32_t low, const std::uint32_t high) {
   std::mt19937 gen(curr_time());
-  std::uniform_int_distribution<std::uint32_t> dis(low, high);
+  std::uniform_int_distribution dis(low, high);
   return dis(gen);
 }
 

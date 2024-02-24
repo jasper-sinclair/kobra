@@ -1,33 +1,29 @@
 #pragma once
+#include <chrono>
 
-#include<chrono>
+#include "main.h"
 
-#include"bitboard.h"
+struct Chrono {
+  using TimePoint = std::chrono::milliseconds::rep;
+  bool stop;
+  bool use_match_time_limit;
+  bool use_node_limit;
+  bool use_depth_limit;
+  bool use_move_time_limit;
 
-struct TimeManagement {
-	using TimePoint = std::chrono::milliseconds::rep;
+  uint64_t node_limit;
+  Depth depth_limit;
 
-	bool stop;
+  TimePoint begin;
+  TimePoint time_to_use;
+  TimePoint match_time_limit;
+  TimePoint move_time_limit;
+  TimePoint time[N_COLORS], inc[N_COLORS];
 
-	bool useMatchTimeLimit;
-	bool useNodeLimit;
-	bool useDepthLimit;
-	bool useMoveTimeLimit;
-
-	TimePoint matchTimeLimit;
-	uint64_t nodeLimit;
-	Depth depthLimit;
-	TimePoint moveTimeLimit;
-
-	TimePoint begin;
-	TimePoint timeToUse;
-	TimePoint time[N_COLORS], inc[N_COLORS];
-
-	TimeManagement();
-
-	static TimePoint now();
-	void start();
-	TimePoint elapsed() const;
-	void initializeTimeToUse(Color sideToMove);
-	void update(uint64_t nodeCnt);
+  Chrono();
+  void start();
+  static TimePoint now();
+  void InitTimeToUse(Color side_to_move);
+  void update(uint64_t node_cnt);
+  [[nodiscard]] TimePoint elapsed() const;
 };

@@ -1,92 +1,70 @@
 #pragma once
+#include <array>
+#include <cstdint>
 
-#include<array>
-#include<cstdint>
-
-#include"movegen.h"
+#include "movegen.h"
 
 using HistoryEntry = int16_t;
 
-template<size_t Size, size_t... Sizes>
-struct History : public std::array<History<Sizes...>, Size> {
-
-	void fill(HistoryEntry value) {
-		HistoryEntry* e = reinterpret_cast<HistoryEntry*>(this);
-		std::fill(e, e + sizeof(*this) / sizeof(HistoryEntry), value);
-	}
-
-	static constexpr HistoryEntry MAX = 30000;
-
-	static HistoryEntry p(Depth d) {
-		return std::min(153 * d - 133, 1525);
-	}
+template <size_t Size, size_t... Sizes>
+struct History : std::array<History<Sizes...>, Size> {
+  void fill(const HistoryEntry value) {
+    const auto e = reinterpret_cast<HistoryEntry*>(this);
+    std::fill_n(e, sizeof(*this) / sizeof(HistoryEntry), value);
+  }
+  static constexpr HistoryEntry max = 30000;
+  static HistoryEntry p(const Depth d) {
+    return static_cast<HistoryEntry>(std::min(153 * d - 133, 1525));
+  }
 };
 
-template<size_t Size>
-struct History<Size> : public std::array<HistoryEntry, Size> {};
+template <size_t Size>
+struct History<Size> : std::array<HistoryEntry, Size> {};
 
-struct CaptureHistory : public History<N_PIECES, N_SQUARES, N_PIECE_TYPES> {
+struct CaptureHistory : History<N_PIECES, N_SQUARES, N_PIECE_TYPES> {
+  static constexpr HistoryEntry i_a = 7;
+  static constexpr HistoryEntry d_a = 8;
 
-	static constexpr HistoryEntry I_A = 4;
-	static constexpr HistoryEntry D_A = 5;
-
-	void increase(const Board& board, Move move, Depth d);
-	void decrease(const Board& board, Move move, Depth d);
+  void increase(const Board& board, Move move, Depth d);
+  void decrease(const Board& board, Move move, Depth d);
 };
 
-struct ButterflyHistory : public History<N_COLORS, N_SQUARES, N_SQUARES> {
+struct ButterflyHistory : History<N_COLORS, N_SQUARES, N_SQUARES> {
+  static constexpr HistoryEntry i_a = 10;
+  static constexpr HistoryEntry d_a = 5;
 
-	static constexpr HistoryEntry I_A = 6;
-	static constexpr HistoryEntry D_A = 3;
-
-	void increase(const Board& board, Move move, Depth d);
-	void decrease(const Board& board, Move move, Depth d);
+  void increase(const Board& board, Move move, Depth d);
+  void decrease(const Board& board, Move move, Depth d);
 };
 
 struct Stack;
 
-struct ContinuationHistory : public History<N_PIECES, N_SQUARES, N_PIECES, N_SQUARES> {
+struct ContinuationHistory : History<N_PIECES, N_SQUARES, N_PIECES, N_SQUARES> {
+  static constexpr HistoryEntry i_a1 = 2;
+  static constexpr HistoryEntry i_a2 = 2;
+  static constexpr HistoryEntry i_a4 = 2;
+  static constexpr HistoryEntry d_a1 = 2;
+  static constexpr HistoryEntry d_a2 = 2;
+  static constexpr HistoryEntry d_a4 = 2;
 
-	static constexpr HistoryEntry I_A1 = 2;
-	static constexpr HistoryEntry I_A2 = 2;
-	static constexpr HistoryEntry I_A4 = 2;
-	static constexpr HistoryEntry D_A1 = 2;
-	static constexpr HistoryEntry D_A2 = 2;
-	static constexpr HistoryEntry D_A4 = 2;
-
-	void increase(const Board& board, const Stack* ss, Move move, Depth d);
-	void decrease(const Board& board, const Stack* ss, Move move, Depth d);
+  void increase(const Board& board, const Stack* ss, Move move, Depth d);
+  void decrease(const Board& board, const Stack* ss, Move move, Depth d);
 };
 
 struct Histories {
-	Move killer[MAX_DEPTH + 1][2];
+  ButterflyHistory butterfly;
+  CaptureHistory capture;
+  ContinuationHistory continuation;
 
-	// [moving piece][to]
-	Move counter[N_PIECES][N_SQUARES];
+  Move counter[N_PIECES][N_SQUARES];
+  Move killer[kMaxDepth + 1][2];
 
-	// [color][from][to]
-	ButterflyHistory butterfly;
+  static constexpr HistoryEntry butterfly_fill = -425;
+  static constexpr HistoryEntry capture_fill = -970;
+  static constexpr HistoryEntry continuation_fill = -470;
 
-	// [moving piece][to][captured piece type]
-	CaptureHistory capture;
-
-	// [past moving piece][past to][moving piece][to];
-	ContinuationHistory continuation;
-
-	static constexpr HistoryEntry BUTTERFLY_FILL = -425;
-	static constexpr HistoryEntry CAPTURE_FILL = -415;
-	static constexpr HistoryEntry CONTINUATION_FILL = -470;
-
-	Histories() { clear(); }
-
-	void update(
-		Board& board,
-		Stack* ss,
-		Move bestMove,
-		MoveList& moves,
-		Depth depth,
-		bool isInCheck
-	);
-
-	void clear();
+  void clear();
+  void update(const Board& board, const Stack* ss, Move best_move,
+              MoveList& moves, Depth depth);
+  Histories() { clear(); }
 };

@@ -1,80 +1,74 @@
 #pragma once
+#include <thread>
 
-#include<thread>
+#include "chrono.h"
+#include "hash.h"
+#include "movesort.h"
 
-#include"movesort.h"
-#include"chrono.h"
-#include"hash.h"
+using ThreadId = uint32_t;
+constexpr int kMinDisplayTime = 5000;
+constexpr int kMaxThreads = 256;
 
-using ThreadID = uint32_t;
-
-constexpr int MIN_DISPLAY_TIME = 5000;
-constexpr int MAX_THREADS = 256;
-
-enum SearchType {
-	NonPV, PV, Root
-};
+enum SearchType { kNonPv, PV, kRoot };
 
 struct Stack {
-	Move pv[MAX_DEPTH];
-	int pvSize;
-	int ply;
-	Piece moved;
-	Move move;
-	Move hashMove;
+  Move pv[kMaxDepth];
+
+  int ply;
+  int pv_size;
+
+  Move hash_move;
+  Move move;
+  Piece moved;
+  Score static_eval;
 };
 
 struct ThreadData {
-	ThreadID id;
-	Histories histories;
-	Stack stack[MAX_PLY + CONTINUATION_PLY];
-	std::vector<Move>pv;
-	uint64_t nodeCount;
-	Depth rootDepth;
-	Depth selDepth;
-	Depth nmpMinPly;
-	Color nmpColor;
+  Depth root_depth;
+  Depth sel_depth;
 
-	ThreadData() : id(0), stack{}, nodeCount(0), rootDepth(0), selDepth(0), nmpMinPly(0), nmpColor(false)
-  {
-  }
+  Histories histories;
+  Stack stack[kMaxPly + kContinuationPly];
+  std::vector<Move> pv;
+  ThreadId id;
+  uint64_t node_count;
+  ThreadData() : root_depth(0), sel_depth(0), stack{}, id(0), node_count(0) {}
 
-	ThreadData(ThreadID id) : id(id), stack{}, nodeCount(0), rootDepth(0), selDepth(0), nmpMinPly(0),
-                            nmpColor(false)
-  {
-  }
+  explicit ThreadData(const ThreadId id)
+      : root_depth(0), sel_depth(0), stack{}, id(id), node_count(0) {}
 };
 
 struct Search {
-	TranspositionTable tt;
-	TimeManagement time;
+  [[nodiscard]] std::string info(const ThreadData& td, Depth depth,
+                                 Score score) const;
+  [[nodiscard]] uint64_t NodeCount() const;
 
-	std::vector<std::thread>threads;
-	std::vector<ThreadData*>threadData;
-	ThreadID numThreads;
+  Chrono time;
+  constexpr static int16_t lmr_factor = 1000;
 
-	static constexpr int16_t LMR_FACTOR = 1000;
-	inline static Depth lateMoveReductions[MAX_DEPTH][MAX_MOVE];
-	
-	// Initialize LMR table
-	static void init();
+  inline static Depth forward_pruning_table[kMaxDepth][kMaxMoves];
+  inline static Depth log_reduction_table[kMaxDepth][kMaxMoves];
+  inline static Depth move_count_pruning_table[kMaxDepth];
 
-	template<bool mainThread=true> 
-	Move bestMove(Board& board, ThreadID id=0);
+  static void init();
 
-	template<SearchType searchType, bool skipHashMove=false>
-	Score alphaBeta(Board& board, Score alpha, Score beta, Depth depth, ThreadData& td, Stack* ss);
+  std::vector<std::thread> threads;
+  std::vector<ThreadData*> thread_data;
 
-	template<SearchType searchType>
-	Score quiescence(Board& board, Score alpha, Score beta, ThreadData& td, Stack* ss);
+  template <bool MainThread = true>
+  Move BestMove(Board& board, ThreadId id = 0);
+  template <SearchType St, bool SkipHashMove = false>
+  Score AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
+                  ThreadData& td, Stack* ss);
+  template <SearchType St>
+  Score quiescence(Board& board, Score alpha, Score beta, ThreadData& td,
+                   Stack* ss);
 
-	void stop();
-	void clear();
-	void setTTSize(size_t MiB);
-	void setNumThreads(ThreadID numThreads);
+  ThreadId num_threads = 1;
+  HashTable hash;
 
-	// UCI command
-	std::string info(const ThreadData& td, Depth depth, Score score) const;
-
-	uint64_t nodeCount() const;
+  void clear();
+  void SetNumThreads(ThreadId threadnum);
+  void SetHashSize(size_t mb);
+  void stop();
 };

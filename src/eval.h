@@ -2,8 +2,6 @@
 
 #include<array>
 
-#include"movegen.h"
-
 namespace eval {
 
 	enum GamePhases {
@@ -13,9 +11,9 @@ namespace eval {
 
 	inline std::array<std::array<std::array<std::array<Score, N_SQUARES>, N_GAME_PHASES>, N_PIECE_TYPES>, N_COLORS>psqTable;
 
-	constexpr std::array<Score, 7>PT_VALUES = { 0, 100, 330, 350, 525, 1100, 8000 };
-	constexpr std::array<Score, 16>PIECE_VALUES = { 0, PT_VALUES[1], PT_VALUES[2], PT_VALUES[3], PT_VALUES[4], PT_VALUES[5], PT_VALUES[6], 0,
-												   0, PT_VALUES[1], PT_VALUES[2], PT_VALUES[3], PT_VALUES[4], PT_VALUES[5], PT_VALUES[6], 0, };
+	constexpr std::array<Score, 7>kPtValues = { 0, 100, 330, 350, 525, 1100, 8000 };
+	constexpr std::array<Score, 16>kPieceValues = { 0, kPtValues[1], kPtValues[2], kPtValues[3], kPtValues[4], kPtValues[5], kPtValues[6], 0,
+													0, kPtValues[1], kPtValues[2], kPtValues[3], kPtValues[4], kPtValues[5], kPtValues[6], 0, };
 
 	inline void init() {
 		psqTable[WHITE][PAWN][MID_GAME] = {
@@ -287,37 +285,37 @@ namespace eval {
 inline Score evaluate(const Board& board) {
 	using namespace eval;
 
-   const Color us = board.sideToMove;
-   const Color them = !us;
-	Score result = 
-	PIECE_VALUES[PAWN] * (board.pieces(us, PAWN).popcount() - board.pieces(them, PAWN).popcount()) +
-	PIECE_VALUES[KNIGHT] * (board.pieces(us, KNIGHT).popcount() - board.pieces(them, KNIGHT).popcount()) +
-	PIECE_VALUES[BISHOP] * (board.pieces(us, BISHOP).popcount() - board.pieces(them, BISHOP).popcount()) +
-	PIECE_VALUES[ROOK] * (board.pieces(us, ROOK).popcount() - board.pieces(them, ROOK).popcount()) +
-	PIECE_VALUES[QUEEN] * (board.pieces(us, QUEEN).popcount() - board.pieces(them, QUEEN).popcount());
+	const Color us = board.side_to_move;
+	const Color them = !us;
+	Score result =
+		kPieceValues[PAWN] * (board.pieces(us, PAWN).popcount() - board.pieces(them, PAWN).popcount()) +
+		kPieceValues[KNIGHT] * (board.pieces(us, KNIGHT).popcount() - board.pieces(them, KNIGHT).popcount()) +
+		kPieceValues[BISHOP] * (board.pieces(us, BISHOP).popcount() - board.pieces(them, BISHOP).popcount()) +
+		kPieceValues[ROOK] * (board.pieces(us, ROOK).popcount() - board.pieces(them, ROOK).popcount()) +
+		kPieceValues[QUEEN] * (board.pieces(us, QUEEN).popcount() - board.pieces(them, QUEEN).popcount());
 
-   const bool wQueens = static_cast<bool>(board.pieces(WHITE, QUEEN));
-   const bool bQueens = static_cast<bool>(board.pieces(BLACK, QUEEN));
+	const bool wQueens = static_cast<bool>(board.pieces(WHITE, QUEEN));
+	const bool bQueens = static_cast<bool>(board.pieces(BLACK, QUEEN));
 	bool isEndgame;
 	if (wQueens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1 ||
-	bQueens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1)
-	isEndgame = false;
+		bQueens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1)
+		isEndgame = false;
 	else
-	isEndgame = true;
-   const GamePhases gamePhase = isEndgame ? END_GAME : MID_GAME;
+		isEndgame = true;
+	const GamePhases gamePhase = isEndgame ? END_GAME : MID_GAME;
 
 	Score psqScore = 0;
 	for (Square sq = A1; sq < N_SQUARES; ++sq) {
-      const Piece pc = board.pieceOn(sq);
+		const Piece pc = board.PieceOn(sq);
 
 		if (pc == NO_PIECE)
 			continue;
 
-      const PieceType pt = pieceType::make(pc);
-      const Color c = color::make(pc);
-      const Score s = psqTable[c][pt][gamePhase][sq];
+		const PieceType pt = piece_type::make(pc);
+		const Color c = color::make(pc);
+		const Score s = psqTable[c][pt][gamePhase][sq];
 		psqScore += c == us ? s : -s;
 	}
-  result += psqScore;
+	result += psqScore;
 	return result;
 }

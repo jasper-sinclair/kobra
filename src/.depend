@@ -1,15 +1,15 @@
-bitboard.o: bitboard.cpp attack.h bitboard.h board.h random.h eval.h \
- movegen.h
-chrono.o: chrono.cpp chrono.h bitboard.h
-hash.o: hash.cpp hash.h bitboard.h
-history.o: history.cpp history.h movegen.h bitboard.h board.h random.h \
- search.h movesort.h chrono.h hash.h
-main.o: main.cpp attack.h bitboard.h eval.h movegen.h board.h random.h \
- uci.h search.h movesort.h history.h chrono.h hash.h
-movegen.o: movegen.cpp attack.h bitboard.h movegen.h board.h random.h
-movesort.o: movesort.cpp eval.h movegen.h bitboard.h board.h random.h \
- movesort.h history.h search.h chrono.h hash.h
-search.o: search.cpp eval.h movegen.h bitboard.h board.h random.h \
- search.h movesort.h history.h chrono.h hash.h
-uci.o: uci.cpp movegen.h bitboard.h board.h random.h uci.h search.h \
- movesort.h history.h chrono.h hash.h
+attack.o: attack.cpp bitboard.h main.h attack.h
+bitboard.o: bitboard.cpp bitboard.h main.h attack.h eval.h
+chrono.o: chrono.cpp chrono.h main.h
+hash.o: hash.cpp hash.h bitboard.h main.h
+history.o: history.cpp history.h movegen.h bitboard.h main.h search.h \
+ chrono.h hash.h movesort.h
+main.o: main.cpp attack.h bitboard.h main.h eval.h uci.h search.h \
+ chrono.h hash.h movesort.h history.h movegen.h
+movegen.o: movegen.cpp movegen.h bitboard.h main.h attack.h
+movesort.o: movesort.cpp movesort.h history.h movegen.h bitboard.h main.h \
+ eval.h search.h chrono.h hash.h
+search.o: search.cpp search.h chrono.h main.h hash.h bitboard.h \
+ movesort.h history.h movegen.h eval.h
+uci.o: uci.cpp uci.h search.h chrono.h main.h hash.h bitboard.h \
+ movesort.h history.h movegen.h

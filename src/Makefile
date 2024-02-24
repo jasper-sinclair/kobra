@@ -9,8 +9,8 @@ ifeq ($(OS),Windows_NT)
 endif
 
 # Source files
-SRC = bitboard.cpp chrono.cpp hash.cpp history.cpp main.cpp movegen.cpp movesort.cpp \
-		search.cpp uci.cpp
+SRC = attack.cpp bitboard.cpp chrono.cpp hash.cpp history.cpp \
+       main.cpp movegen.cpp movesort.cpp search.cpp uci.cpp
 
 # Object files
 OBJS = $(subst .cpp,.o,$(SRC))
@@ -27,8 +27,8 @@ native = yes
 # Low-level configuration
 COMP = gcc
 CXX = g++
-CXXFLAGS = -std=c++17 -static
-
+CXXFLAGS = -std=c++20 -static
+	
 # Debugging
 ifeq ($(debug),no)
 	CXXFLAGS += -DNDEBUG

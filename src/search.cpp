@@ -1,600 +1,502 @@
-#include"eval.h"
-#include"search.h"
+#include "search.h"
 
-template<bool mainThread>
-Move Search::bestMove(Board& board, ThreadID id) {
+#include <cassert>
 
-   if (mainThread) {
+#include "eval.h"
 
-      for (const auto& td : threadData) {
-         td->pv.clear();
-         td->nodeCount = 0;
-         td->rootDepth = 1;
-         td->selDepth = 1;
-         td->nmpMinPly = 0;
-      }
+#ifdef _MSC_VER
+#pragma warning(disable : 4127)
+#pragma warning(disable : 4244)
+#pragma warning(disable : 4702)
+#else
+#endif
 
-      for (ThreadID i = 1; i < numThreads; ++i)
-         threads.emplace_back(&Search::bestMove<false>, this, std::ref(board), i);
-   }
+template <bool MainThread>
+Move Search::BestMove(Board& board, const ThreadId id) {
+  if (MainThread) {
+    for (const auto& td : thread_data) {
+      td->pv.clear();
+      td->node_count = 0;
+      td->root_depth = 1;
+      td->sel_depth = 1;
+    }
+    for (ThreadId i = 1; i < num_threads; ++i)
+      threads.emplace_back(&Search::BestMove<false>, this, std::ref(board), i);
+  }
+  ThreadData& td = *thread_data[id];
+  Board copy(board);
+  Score alpha;
+  Score beta;
+  Score score = 0;
+  Score prev_score = 0;
+  constexpr Depth max_depth = kMaxDepth;
 
-   ThreadData& td = *threadData[id];
-   Board copy(board);
+  for (int i = 0; i < kMaxPly + kContinuationPly; ++i) {
+    td.stack[i].ply = i - kContinuationPly;
+    td.stack[i].moved = NO_PIECE;
+    td.stack[i].pv_size = 0;
+    td.stack[i].move = Move();
+  }
 
-   Score alpha = -INFINITY_SCORE;
-   Score beta = INFINITY_SCORE;
-   Score score = 0;
-   Score prevScore = 0;
-   constexpr Depth maxDepth = MAX_DEPTH;
+  Stack* ss = &td.stack[kContinuationPly];
+  *ss = Stack();
 
-   for (int i = 0; i < MAX_PLY + CONTINUATION_PLY; ++i) {
-      td.stack[i].ply = i - CONTINUATION_PLY;
-      td.stack[i].moved = NO_PIECE;
-      td.stack[i].pvSize = 0;
-      td.stack[i].move = Move();
-   }
-
-   Stack* ss = &td.stack[CONTINUATION_PLY];
-   *ss = Stack();
-
-   // iterative deepening
-   for (;;) {
-      if (td.rootDepth >= maxDepth) break;
-      if (mainThread && time.useDepthLimit && td.rootDepth > time.depthLimit) break;
-
-      if (td.rootDepth < 4)
-         score = alphaBeta<Root>(copy, alpha, beta, td.rootDepth, td, ss);
-
-      else {
-         Score delta = 25;
-         alpha = std::max(score - delta, -INFINITY_SCORE);
-         beta = std::min(score + delta, static_cast<int>(INFINITY_SCORE));
-         for (;;) {
-            score = alphaBeta<Root>(copy, alpha, beta, td.rootDepth, td, ss);
-
-            if (time.stop) break;
-
-            if (score <= alpha) {
-               beta = (alpha + beta) / 2;
-               alpha = std::max(alpha - delta, -INFINITY_SCORE);
-            }
-            else if (score >= beta)
-               beta = std::min(beta + delta, static_cast<int>(INFINITY_SCORE));
-
-            else break;
-
-            delta += delta / 4;
-         }
-      }
-
+  while (td.root_depth < max_depth) {
+    if (MainThread && time.use_depth_limit && td.root_depth > time.depth_limit)
+      break;
+    Score delta = 17;
+    if (td.root_depth == 1) {
+      alpha = -INFINITY_SCORE;
+      beta = INFINITY_SCORE;
+    } else {
+      alpha = static_cast<Score>(std::max(score - delta, -INFINITY_SCORE));
+      beta = static_cast<Score>(std::min(score + delta, +INFINITY_SCORE));
+    }
+    for (;;) {
+      score = AlphaBeta<kRoot>(copy, alpha, beta, td.root_depth, td, ss);
       if (time.stop) break;
-
-      prevScore = score;
-
-      td.pv.clear();
-      for (int i = 0; i < ss->pvSize; ++i)
-         td.pv.push_back(ss->pv[i]);
-
-      if (mainThread)
-         std::cout << info(td, td.rootDepth, score) << std::endl;
-
-      ++td.rootDepth;
-   }
-
-   if (mainThread) {
-      // stop the search
-      stop();
-      for (auto& t : threads)
-         t.join();
-      threads.clear();
-
-      if (time.useNodeLimit || time.useMoveTimeLimit)
-         std::cout << info(td, td.rootDepth, prevScore) << std::endl;
-      return td.pv[0];
-   }
-
-   return Move();
+      if (score <= alpha) {
+        beta = static_cast<Score>((alpha + beta) / 2);
+        alpha = static_cast<Score>(std::max(alpha - delta, -INFINITY_SCORE));
+      } else if (score >= beta)
+        beta = static_cast<Score>(std::min(beta + delta, +INFINITY_SCORE));
+      else
+        break;
+      delta += delta / 3;
+    }
+    if (time.stop) break;
+    prev_score = score;
+    td.pv.clear();
+    for (int i = 0; i < ss->pv_size; ++i) td.pv.push_back(ss->pv[i]);
+    if (MainThread) {
+      std::cout << info(td, td.root_depth, score) << std::endl;
+    }
+    ++td.root_depth;
+  }
+  if (MainThread) {
+    stop();
+    for (auto& t : threads) t.join();
+    threads.clear();
+    if (time.use_node_limit || time.use_move_time_limit) {
+      std::cout << info(td, td.root_depth, prev_score) << std::endl;
+    }
+    return td.pv[0];
+  }
+  return Move();
 }
 
-template Move Search::bestMove<false>(Board& board, ThreadID id);
-template Move Search::bestMove<true>(Board& board, ThreadID id);
+template Move Search::BestMove<true>(Board& board, ThreadId id);
+template Move Search::BestMove<false>(Board& board, ThreadId id);
+template <SearchType St, bool SkipHashMove>
 
-template<SearchType searchType, bool skipHashMove>
-Score Search::alphaBeta(Board& board, Score alpha, Score beta, Depth depth, ThreadData& td, Stack* ss) {
-   constexpr bool rootNode = searchType == Root;
-   constexpr bool pvNode = searchType != NonPV;
+Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
 
-   if (!pvNode) assert(beta - alpha == 1);
-   assert(alpha < beta);
+                        ThreadData& td, Stack* ss) {
+  constexpr bool root_node = St == kRoot;
+  constexpr bool pv_node = St != kNonPv;
 
-   const bool mainThread = td.id == 0;
+  if (!pv_node) assert(beta - alpha == 1);
+  assert(alpha < beta);
+  assert(depth < MAX_DEPTH);
 
-   if (mainThread &&
-      depth >= 5) time.update(nodeCount());
+  const bool main_thread = td.id == 0;
 
-   if (time.stop) return STOP_SCORE;
+  if (main_thread && depth >= 5) time.update(NodeCount());
+  if (time.stop) return STOP_SCORE;
+  if (board.IsDraw()) return DRAW_SCORE;
+  if (depth <= 0)
+    return quiescence < pv_node ? PV : kNonPv > (board, alpha, beta, td, ss);
 
-   if (board.isDraw()) return DRAW_SCORE;
+  ++td.node_count;
+  if (pv_node)
+    td.sel_depth = std::max(td.sel_depth, static_cast<Depth>(ss->ply + 1));
+  if (!root_node) {
+    alpha = static_cast<Score>(
+        std::max(-MATE_SCORE + ss->ply, static_cast<int>(alpha)));
+    beta = static_cast<Score>(
+        std::min(MATE_SCORE - ss->ply - 1, static_cast<int>(beta)));
+    if (alpha >= beta) return alpha;
+  }
 
-   if (depth <= 0)
-      return quiescence<pvNode ? PV : NonPV>(board, alpha, beta, td, ss);
+  const Key key = board.key();
+  HashEntry he;
+  const bool hash_hit = hash.probe(key, he);
+  const Score hash_score =
+      HashTable::ScoreFromHash(he.score, static_cast<Depth>(ss->ply));
 
-   ++td.nodeCount;
+  if (!pv_node && !SkipHashMove && hash_hit && depth <= he.depth) {
+    if (he.node_type == PV_NODE ||
+        he.node_type == CUT_NODE && hash_score >= beta ||
+        he.node_type == ALL_NODE && hash_score <= alpha) {
+      if (board.st->fifty_move_count < 90) return hash_score;
+    }
+  }
 
-   if (pvNode)
-      td.selDepth = std::max(td.selDepth, static_cast<Depth>(ss->ply + 1));
+  const bool is_in_check = board.IsInCheck();
+  Score eval;
 
-   // mate distance pruning
-   if (!rootNode) {
-      alpha = std::max(-MATE_SCORE + ss->ply, static_cast<int>(alpha));
-      beta = std::min(MATE_SCORE - ss->ply - 1, static_cast<int>(beta));
-      if (alpha >= beta) return alpha;
-   }
+  if (is_in_check)
+    eval = ss->static_eval = -INFINITY_SCORE;
+  else if (hash_hit) {
+    ss->static_eval = he.static_eval;
+    if (depth <= he.depth &&
+        (he.node_type == PV_NODE ||
+         he.node_type == CUT_NODE && hash_score > ss->static_eval ||
+         he.node_type == ALL_NODE && hash_score < ss->static_eval)) {
+      eval = hash_score;
+    } else
+      eval = ss->static_eval;
+  } else
+    eval = ss->static_eval = evaluate(board);
+  td.histories.killer[(ss + 1)->ply][0] =
+      td.histories.killer[(ss + 1)->ply][1] = Move();
 
-   // transposition table lookup
-   const Key key = board.key();
-   TTEntry tte;
-   const bool ttHit = tt.probe(key, tte);
-   const Score ttScore = TranspositionTable::scoreFromTT(tte.score, ss->ply);
+  if (!root_node && !is_in_check) {
+    if (!pv_node && depth < 3 && eval >= beta + 171 * depth &&
+        eval < MIN_MATE_SCORE)
+      return eval;
 
-   if (!pvNode &&
-      !skipHashMove &&
-      ttHit &&
-      depth <= tte.depth) {
+    if (!pv_node && !SkipHashMove && board.NonPawnMaterial(board.side_to_move) &&
+        beta > -MIN_MATE_SCORE && eval >= ss->static_eval && eval >= beta &&
+        ss->static_eval >= beta - 22 * depth + 400 && depth < 12) {
+      assert((ss - 1)->move);
+      const Depth r = static_cast<Depth>((13 + depth) / 5);
+      ss->move = Move();
+      board.ApplyNullMove();
 
-      if (tte.nodeType == PV_NODE ||
-         tte.nodeType == CUT_NODE && ttScore >= beta ||
-         tte.nodeType == ALL_NODE && ttScore <= alpha) {
-         if (board.st->fiftyMoveCount < 90)
-            return ttScore;
+      Score null_score = static_cast<Score>(-AlphaBeta<kNonPv>(
+          board, static_cast<Score>(-beta), static_cast<Score>(-alpha),
+          static_cast<Depth>(depth - r), td, ss + 1));
+
+      board.UndoNullMove();
+      if (null_score >= beta) {
+        if (null_score >= MIN_MATE_SCORE) null_score = beta;
+        return null_score;
       }
-   }
+    }
 
-   const bool isInCheck = board.isInCheck();
-   Score staticEval, eval;
+    if (pv_node && !hash_hit) --depth;
+    if (depth <= 0)
+      return quiescence < pv_node ? PV : kNonPv > (board, alpha, beta, td, ss);
+  }
 
-   if (ttHit && depth <= tte.depth) {
-      staticEval = TranspositionTable::scoreFromTT(tte.eval, ss->ply);
+  const Move hash_move = hash_hit ? he.move : Move();
+  MoveSort move_sorter(board, ss, td.histories, hash_move, is_in_check);
+  Score best_score = -INFINITY_SCORE;
+  Score score = 0;
+  Move best_move = Move();
+  int move_count = 0;
 
-      if (tte.nodeType == CUT_NODE && ttScore > staticEval ||
-         tte.nodeType == ALL_NODE && ttScore < staticEval ||
-         tte.nodeType == PV_NODE)
-         eval = ttScore;
+  for (;;) {
+    const Move m = move_sorter.next();
+    if (!m) break;
+    assert(board.isPseudoLegal(m));
+    assert(board.isLegal(m));
+    if (pv_node) (ss + 1)->pv_size = 0;
+    ++move_count;
 
-      else eval = staticEval;
-   }
+    if (main_thread && root_node && time.elapsed() >= kMinDisplayTime) {
+      std::cout << "info depth " << depth << " currmove " << move::ToString(m)
+                << " currmovenumber " << move_count << std::endl;
+    }
 
-   else eval = staticEval = evaluate(board);
+    if (SkipHashMove && m == ss->hash_move) continue;
+    const bool is_capture = board.IsCapture(m);
+    const Square from = move::from(m);
+    const Square to = move::to(m);
+    ss->moved = board.PieceOn(from);
+    Depth new_depth = static_cast<Depth>(depth - 1);
 
-   // reset killer moves
-   td.histories.killer[(ss + 1)->ply][0] = td.histories.killer[(ss + 1)->ply][1] = Move();
-
-   if (!rootNode && !isInCheck) {
-
-      // futility pruning
-      if (!pvNode &&
-         eval >= beta + 171 * depth &&
-         eval < MIN_MATE_SCORE)
-         return eval;
-
-      // null move pruning
-      if (!pvNode &&
-         !skipHashMove &&
-         (ss->ply >= td.nmpMinPly || board.sideToMove != td.nmpColor) &&
-         (ss - 1)->move &&
-         board.nonPawnMaterial(board.sideToMove) &&
-         eval >= beta + 30) {
-         const Depth r = (14 + depth) / 5;
-         const Depth nullDepth = depth - r;
-
-         board.applyNullMove();
-         Score nullScore = -alphaBeta<NonPV>(board, -beta, -alpha, nullDepth, td, ss + 1);
-         board.undoNullMove();
-
-         if (nullScore >= beta) {
-            if (nullScore > MIN_MATE_SCORE)
-               nullScore = beta;
-
-            if (td.nmpMinPly) return nullScore;
-
-            td.nmpMinPly = ss->ply + 4 * nullDepth / 5;
-            td.nmpColor = board.sideToMove;
-
-            const Score s = alphaBeta<NonPV>(board, alpha, beta, nullDepth, td, ss);
-
-            td.nmpMinPly = 0;
-
-            if (s >= beta) return nullScore;
-         }
+    if (!root_node && std::abs(best_score) < MIN_MATE_SCORE &&
+        board.NonPawnMaterial(board.side_to_move)) {
+      if (depth < 3 && move_count > move_count_pruning_table[depth]) continue;
+      if (!is_capture && !is_in_check && !board.GivesCheck(m)) {
+        const Score h_score = static_cast<Score>(
+            td.histories.butterfly[board.side_to_move][from][to] / 106 +
+            td.histories.continuation[(ss - 1)->moved][move::to((ss - 1)->move)]
+                                     [ss->moved][to] /
+                30 +
+            td.histories.continuation[(ss - 2)->moved][move::to((ss - 2)->move)]
+                                     [ss->moved][to] /
+                34 +
+            td.histories.continuation[(ss - 4)->moved][move::to((ss - 4)->move)]
+                                     [ss->moved][to] /
+                42);
+        Depth pruning_depth = static_cast<Depth>(
+            new_depth +
+            (5 * h_score - forward_pruning_table[depth][move_count] - 506) / 1000);
+        pruning_depth = static_cast<Depth>(std::max(+pruning_depth, -1));
+        if (pruning_depth < 2 &&
+            ss->static_eval <= alpha - 200 - 172 * pruning_depth)
+          continue;
       }
+    }
 
-      // If the position is not in TT, then the position is probably bad.
-      if (pvNode &&
-         !ttHit)
-         --depth;
+    ss->move = m;
+    Depth ext = 0;
+    bool lmr = false;
 
-      if (depth <= 0)
-         return quiescence<pvNode ? PV : NonPV>(board, alpha, beta, td, ss);
-   }
-
-   const Move hashMove = (pvNode && td.pv.size() > ss->ply) ? td.pv[ss->ply] :
-      ttHit && (tte.nodeType == PV_NODE || tte.nodeType == CUT_NODE) ? tte.move : Move();
-
-   MoveSorter moveSorter(board, ss, td.histories, hashMove, isInCheck);
-   Score bestScore = -INFINITY_SCORE;
-   Score score = 0;
-   Move bestMove = Move();
-   int moveCount = 0;
-
-   for (;;) {
-      const Move m = moveSorter.next();
-      if (!m) break;
-
-      assert(board.isPseudoLegal(m));
-      assert(board.isLegal(m));
-
-      if (pvNode) (ss + 1)->pvSize = 0;
-
-      ++moveCount;
-
-      if (mainThread && rootNode && time.elapsed() >= MIN_DISPLAY_TIME) {
-         std::cout << "info depth " << depth <<
-            " currmove " << move::toString(m) <<
-            " currmovenumber " << moveCount << std::endl;
+    if (move_count == 1) {
+      if (!root_node && !SkipHashMove && depth >= 8 && m == hash_move &&
+          (he.node_type == CUT_NODE || he.node_type == PV_NODE) &&
+          he.depth + 3 >= depth && std::abs(eval) < MIN_MATE_SCORE) {
+        const Score singular_beta =
+            std::min(static_cast<Score>(eval - 2 * depth), beta);
+        const Depth singular_depth = static_cast<Depth>(depth / 2);
+        ss->hash_move = m;
+        score =
+            AlphaBeta<kNonPv, true>(board, static_cast<Score>(singular_beta - 1),
+                                   singular_beta, singular_depth, td, ss);
+        if (score < singular_beta)
+          ext = 1;
+        else if (hash_score >= beta)
+          ext = -1;
+        new_depth += ext;
       }
-
-      if (skipHashMove && m == ss->hashMove) continue;
-
-      const Square from = move::from(m);
-      const Square to = move::to(m);
-
-      ss->moved = board.pieceOn(from);
-      ss->move = m;
-
-      const bool isCapture = board.isCapture(m);
-      const Piece moved = board.pieceOn(from);
-      Depth newDepth = depth - 1;
-      Depth extension = 0;
-      Depth r = 0;
-      bool lmr = false;
-
-      // singular extension
-      if (!rootNode &&
-         !skipHashMove &&
-         moveCount == 1 &&
-         depth >= 8 &&
-         m == hashMove &&
-         (tte.nodeType == CUT_NODE || tte.nodeType == PV_NODE) &&
-         tte.depth + 3 >= depth &&
-         std::abs(eval) < MIN_MATE_SCORE) {
-
-         assert(m == hashMove);
-
-         const Score singularBeta = std::min(static_cast<Score>(eval - 2 * depth), beta);
-         const Depth singularDepth = depth / 2;
-
-         ss->hashMove = m;
-         score = alphaBeta<NonPV, true>(board, singularBeta - 1, singularBeta, singularDepth, td, ss);
-
-         if (score < singularBeta) extension = 1;
+    } else {
+      if (depth >= 2 && !(pv_node && is_capture)) {
+        lmr = true;
+        ext = static_cast<Score>(-log_reduction_table[depth][move_count]);
+        if (is_capture) {
+          const Square cap_sq =
+              move::move_type(m) == move::EN_PASSANT
+                  ? to - static_cast<Square>(static_cast<Score>(
+                             direction::PawnPush(board.side_to_move)))
+                  : to;
+          const PieceType cap_pt = piece_type::make(board.PieceOn(cap_sq));
+          const Score h_score = static_cast<Score>(
+              td.histories.capture[ss->moved][cap_sq][cap_pt] / 21 + 43);
+          ext += h_score;
+        } else {
+          const Score h_score = static_cast<Score>(
+              td.histories.butterfly[board.side_to_move][from][to] / 106 +
+              td.histories.continuation[(ss - 1)->moved][move::to(
+                  (ss - 1)->move)][ss->moved][to] /
+                  30 +
+              td.histories.continuation[(ss - 2)->moved][move::to(
+                  (ss - 2)->move)][ss->moved][to] /
+                  34 +
+              td.histories.continuation[(ss - 4)->moved][move::to(
+                  (ss - 4)->move)][ss->moved][to] /
+                  42);
+          ext += h_score;
+        }
+        if (pv_node) ext += 1057 + 11026 / (3 + depth);
+        if (hash_move && board.IsCapture(hash_move)) ext += -839;
+        if (is_in_check) ext += 722;
+        if (board.GivesCheck(m)) ext += 796;
+        if (m == td.histories.killer[ss->ply][0])
+          ext += 1523;
+        else if (m == td.histories.killer[ss->ply][1])
+          ext += 1488;
       }
+    }
+    board.ApplyMove(m);
 
-      newDepth += extension;
-
-      // Late Move Reductions
-      if (depth >= 2 &&
-         moveCount >= 2 &&
-         !(pvNode && isCapture)) {
-
-         lmr = true;
-
-         r = lateMoveReductions[depth][moveCount];
-
-         if (isCapture) {
-            const Square capSq = move::pieceType(m) == move::EN_PASSANT ? to - direction::pawnPush(board.sideToMove) : to;
-            const PieceType capPt = move::pieceType(board.pieceOn(capSq));
-            const Score hScore = td.histories.capture[moved][capSq][capPt] / 61 - 1155;
-
-            r -= hScore;
-         }
-
-         else {
-            const Score hScore = td.histories.butterfly[board.sideToMove][from][to] / 126 +
-               td.histories.continuation[(ss - 1)->moved][move::to((ss - 1)->move)][moved][to] / 66 +
-               td.histories.continuation[(ss - 2)->moved][move::to((ss - 2)->move)][moved][to] / 89 +
-               td.histories.continuation[(ss - 4)->moved][move::to((ss - 4)->move)][moved][to] / 93 +
-               -1176;
-
-            r -= hScore;
-         }
-
-         if (pvNode)
-            r -= 1057 + 11026 / (3 + depth);
-
-         if (hashMove && board.isCapture(hashMove))
-            r += 839;
-
-         if (isInCheck)
-            r -= 722;
-
-         if (board.givesCheck(m))
-            r -= 796;
+    if (lmr) {
+      ext =
+          static_cast<Depth>(std::round(ext / static_cast<double>(lmr_factor)));
+      const Depth d =
+          static_cast<Depth>(std::clamp(new_depth + ext, 0, +new_depth + 1));
+      score = static_cast<Score>(
+          -AlphaBeta<kNonPv>(board, static_cast<Score>(-alpha - 1),
+                            static_cast<Score>(-alpha), d, td, ss + 1));
+      if (ext < 0 && score > alpha)
+        score = static_cast<Score>(-AlphaBeta<kNonPv>(
+            board, static_cast<Score>(-alpha - 1), static_cast<Score>(-alpha),
+            new_depth, td, ss + 1));
+    } else if (!pv_node || move_count > 1)
+      score = static_cast<Score>(
+          -AlphaBeta<kNonPv>(board, static_cast<Score>(-alpha - 1),
+                            static_cast<Score>(-alpha), new_depth, td, ss + 1));
+    if (pv_node &&
+        (move_count == 1 || (score > alpha && (root_node || score < beta))))
+      score = static_cast<Score>(
+          -AlphaBeta<PV>(board, static_cast<Score>(-beta),
+                         static_cast<Score>(-alpha), new_depth, td, ss + 1));
+    board.UndoMove();
+    if (time.stop) return STOP_SCORE;
+    if (score > best_score) {
+      best_score = score;
+      if (pv_node) {
+        ss->pv[0] = m;
+        std::memcpy(ss->pv + 1, (ss + 1)->pv, (ss + 1)->pv_size * sizeof(Move));
+        ss->pv_size = (ss + 1)->pv_size + 1;
       }
-
-      board.applyMove(m);
-
-      if (lmr) {
-         r = std::round(r / static_cast<double>(LMR_FACTOR));
-         const Depth d = r > 0 ? newDepth - r : newDepth;
-         score = -alphaBeta<NonPV>(board, -alpha - 1, -alpha, d, td, ss + 1);
-
-         if (r > 0 && score > alpha)
-            score = -alphaBeta<NonPV>(board, -alpha - 1, -alpha, newDepth, td, ss + 1);
+      if (score > alpha) {
+        best_move = m;
+        if (score < beta)
+          alpha = score;
+        else
+          break;
       }
+    }
+  }
 
-      else if (!pvNode || moveCount > 1)
-         score = -alphaBeta<NonPV>(board, -alpha - 1, -alpha, newDepth, td, ss + 1);
-
-      if (pvNode && (moveCount == 1 || (score > alpha && (rootNode || score < beta))))
-         score = -alphaBeta<PV>(board, -beta, -alpha, newDepth, td, ss + 1);
-
-      board.undoMove();
-
-      if (time.stop) return STOP_SCORE;
-
-      if (score > bestScore) {
-         bestScore = score;
-
-         if (pvNode) {
-            ss->pv[0] = m;
-            std::memcpy(ss->pv + 1, (ss + 1)->pv, (ss + 1)->pvSize * sizeof(Move));
-            ss->pvSize = (ss + 1)->pvSize + 1;
-         }
-
-         if (score > alpha) {
-            bestMove = m;
-            if (score < beta) alpha = score;
-            else break;
-         }
-      }
-   }
-
-   if (skipHashMove && moveCount == 1) return alpha;
-
-   // checkmate or stalemate
-   if (!moveCount)
-      return isInCheck ? -MATE_SCORE + ss->ply : DRAW_SCORE;
-
-   if (!skipHashMove) {
-      const NodeType nodeType = bestScore >= beta ? CUT_NODE :
-         pvNode && bestMove ? PV_NODE : ALL_NODE;
-
-      assert(nodeType == CUT_NODE || nodeType == PV_NODE == bool(bestMove));
-
-      if (bestMove)
-         td.histories.update(board, ss, bestMove, moveSorter.moves, depth, isInCheck);
-
-      tt.save(key, TranspositionTable::scoreToTT(bestScore, ss->ply),
-         TranspositionTable::scoreToTT(eval, ss->ply), bestMove, depth, nodeType);
-   }
-
-   return bestScore;
+  if (SkipHashMove && move_count == 1) return alpha;
+  if (!move_count) return is_in_check ? -MATE_SCORE + ss->ply : DRAW_SCORE;
+  if (!SkipHashMove) {
+    const NodeType node_type = best_score >= beta    ? CUT_NODE
+                              : pv_node && best_move ? PV_NODE
+                                                   : ALL_NODE;
+    assert(nodeType == CUT_NODE || nodeType == PV_NODE == bool(bestMove));
+    if (best_move)
+      td.histories.update(board, ss, best_move, move_sorter.moves, depth);
+    hash.save(key, HashTable::ScoreToHash(best_score, ss->ply),
+            ss->static_eval, best_move, depth, node_type);
+  }
+  return best_score;
 }
 
-// Quiescence search. 
-// When in check, all moves are searched.
-// When not in check, only captures and queen promotions are searched.
-template<SearchType searchType>
-Score Search::quiescence(Board& board, Score alpha, Score beta, ThreadData& td, Stack* ss) {
-   constexpr bool pvNode = searchType == PV;
+template <SearchType St>
+Score Search::quiescence(Board& board, Score alpha, const Score beta,
+                         ThreadData& td, Stack* ss) {
+  constexpr bool pv_node = St == PV;
+  ++td.node_count;
+  assert(pvNode || beta - alpha == 1);
+  assert(alpha < beta);
+  if (time.stop) return STOP_SCORE;
+  if (board.IsDraw()) return DRAW_SCORE;
+  if (ss->ply >= kMaxPly)
+    return static_cast<Score>(board.IsInCheck() ? DRAW_SCORE : evaluate(board));
+  const Key key = board.key();
+  HashEntry he;
+  const bool hash_hit = hash.probe(key, he);
+  const Score hash_score = HashTable::ScoreFromHash(he.score, ss->ply);
 
-   ++td.nodeCount;
+  if (!pv_node && hash_hit &&
+      (he.node_type == PV_NODE || he.node_type == CUT_NODE && hash_score >= beta ||
+       he.node_type == ALL_NODE && hash_score <= alpha))
+    return hash_score;
 
-   assert(pvNode || beta - alpha == 1);
-   assert(alpha < beta);
+  const bool is_in_check = board.IsInCheck();
+  Score best_score;
+  if (is_in_check)
+    best_score = ss->static_eval = -INFINITY_SCORE;
+  else
+    best_score = ss->static_eval = hash_hit ? he.static_eval : evaluate(board);
+  if (hash_hit && (he.node_type == PV_NODE ||
+                he.node_type == CUT_NODE && hash_score > best_score ||
+                he.node_type == ALL_NODE && hash_score < best_score))
+    best_score = hash_score;
+  if (!is_in_check) {
+    if (best_score >= beta) {
+      if (!hash_hit)
+        hash.save(key,
+                HashTable::ScoreToHash(best_score,
+                                              static_cast<Depth>(ss->ply)),
+                ss->static_eval, Move(), 0, CUT_NODE);
+      return best_score;
+    }
+    if (pv_node && best_score > alpha) alpha = best_score;
+  }
 
-   if (time.stop) return STOP_SCORE;
-   if (board.isDraw()) return DRAW_SCORE;
+  Move best_move = hash_hit ? he.move : Move();
+  MoveSort move_sorter(board, ss, td.histories, best_move, is_in_check);
 
-   if (ss->ply >= MAX_PLY)
-      return board.isInCheck() ? DRAW_SCORE : evaluate(board);
-
-   // transposition table lookup
-   const Key key = board.key();
-   TTEntry tte;
-   const bool ttHit = tt.probe(key, tte);
-   const Score ttScore = TranspositionTable::scoreFromTT(tte.score, ss->ply);
-
-   if (!pvNode &&
-      ttHit && (
-         tte.nodeType == PV_NODE ||
-         tte.nodeType == CUT_NODE && ttScore >= beta ||
-         tte.nodeType == ALL_NODE && ttScore <= alpha))
-      return ttScore;
-
-   const bool isInCheck = board.isInCheck();
-   Score bestScore, staticEval;
-
-   if (isInCheck) {
-
-      if (ttHit) {
-         staticEval = TranspositionTable::scoreFromTT(tte.eval, ss->ply);
-
-         if (tte.nodeType == CUT_NODE && ttScore > staticEval ||
-            tte.nodeType == ALL_NODE && ttScore < staticEval ||
-            tte.nodeType == PV_NODE) {
-
-            bestScore = staticEval = ttScore;
-         }
-
-         else bestScore = -INFINITY_SCORE;
+  for (;;) {
+    const Move m = move_sorter.next();
+    if (!m) break;
+    const bool is_capture = board.IsCapture(m);
+    if (const bool is_queen_promotion =
+            board.IsPromotion(m) && move::GetPieceType(m) == QUEEN;
+        !is_in_check && !(is_capture || is_queen_promotion))
+      continue;
+    assert(board.isPseudoLegal(m));
+    assert(board.isLegal(m));
+    if (is_capture && !is_in_check) {
+      if (const Score see = board.see(m);
+          see < eval::kPtValues[KNIGHT] - eval::kPtValues[BISHOP])
+        continue;
+    }
+    ss->moved = board.PieceOn(move::from(m));
+    ss->move = m;
+    board.ApplyMove(m);
+    const Score score = -quiescence<St>(board, -beta, -alpha, td, ss + 1);
+    board.UndoMove();
+    if (score > best_score) {
+      best_score = score;
+      if (score > alpha) {
+        best_move = m;
+        if (pv_node && score < beta)
+          alpha = score;
+        else
+          break;
       }
+    }
+  }
 
-      else {
-         staticEval = evaluate(board);
-         bestScore = -INFINITY_SCORE;
-      }
-   }
+  if (!move_sorter.moves.size())
+    return static_cast<Score>(is_in_check ? -MATE_SCORE + ss->ply : DRAW_SCORE);
+  const NodeType node_type = best_score >= beta    ? CUT_NODE
+                            : pv_node && best_move ? PV_NODE
+                                                 : ALL_NODE;
+  hash.save(key, HashTable::ScoreToHash(best_score, ss->ply),
+          ss->static_eval, best_move, 0, node_type);
+  return best_score;
+}
 
-   else {
-      if (ttHit) {
-         staticEval = TranspositionTable::scoreFromTT(tte.eval, ss->ply);
+std::string Search::info(const ThreadData& td, const Depth depth,
+                         const Score score) const {
+  std::stringstream ss;
+  ss << "info"
+     << " depth " << depth << " seldepth " << td.sel_depth;
 
-         if (tte.nodeType == CUT_NODE && ttScore > staticEval ||
-            tte.nodeType == ALL_NODE && ttScore < staticEval ||
-            tte.nodeType == PV_NODE)
-            staticEval = ttScore;
-      }
+  if (std::abs(score) < MIN_MATE_SCORE)
+    ss << " score cp " << score;
+  else
+    ss << " score mate "
+       << (MATE_SCORE - std::abs(score) + 1) / 2 * (score < 0 ? -1 : 1);
 
-      else staticEval = evaluate(board);
+  const Chrono::TimePoint elapsed = time.elapsed() + 1;
+  const uint64_t nodes = NodeCount();
 
-      bestScore = staticEval;
+  ss << " nodes " << nodes << " nps " << nodes * 1000 / elapsed << " time "
+     << elapsed << " hashfull " << hash.usage() * 1000;
 
-      if (bestScore >= beta) {
-         if (!ttHit)
-            tt.save(key, TranspositionTable::scoreToTT(bestScore, ss->ply),
-               TranspositionTable::scoreToTT(staticEval, ss->ply), Move(), 0, CUT_NODE);
-         return bestScore;
-      }
-
-      if (pvNode && bestScore > alpha)
-         alpha = bestScore;
-   }
-
-   // hash move
-   Move bestMove = ttHit ? tte.move : Move();
-   MoveSorter moveSorter(board, ss, td.histories, bestMove, isInCheck);
-
-   for (;;) {
-      const Move m = moveSorter.next();
-      if (!m) break;
-
-      const bool isCapture = board.isCapture(m);
-      const bool isQueenPromotion = board.isPromotion(m) && move::pieceType(m) == QUEEN;
-
-      if (!isInCheck &&
-         !(isCapture || isQueenPromotion))
-         continue;
-
-      assert(board.isPseudoLegal(m));
-      assert(board.isLegal(m));
-
-      // prune bad captures
-      if (isCapture && !isInCheck) {
-         const Score see = board.see(m);
-         if (see < 0)
-            continue;
-      }
-
-      ss->moved = board.pieceOn(move::from(m));
-      ss->move = m;
-
-      board.applyMove(m);
-      const Score score = -quiescence<searchType>(board, -beta, -alpha, td, ss + 1);
-      board.undoMove();
-
-      if (score > bestScore) {
-         bestScore = score;
-
-         if (score > alpha) {
-            bestMove = m;
-
-            if (pvNode && score < beta)
-               alpha = score;
-
-            else break;
-         }
-      }
-   }
-
-   // checkmate or stalemate
-   if (!moveSorter.moves.size())
-      return isInCheck ? -MATE_SCORE + ss->ply : DRAW_SCORE;
-
-   const NodeType nodeType = bestScore >= beta ? CUT_NODE :
-      pvNode && bestMove ? PV_NODE : ALL_NODE;
-
-   tt.save(key, TranspositionTable::scoreToTT(bestScore, ss->ply),
-      TranspositionTable::scoreToTT(staticEval, ss->ply), bestMove, 0, nodeType);
-
-   return bestScore;
+  if (!td.pv.empty()) {
+    ss << " pv";
+    for (const unsigned short i : td.pv) ss << " " << move::ToString(i);
+  }
+  return ss.str();
 }
 
 void Search::init() {
-   using std::log;
-   for (int d = 1; d < MAX_DEPTH; ++d)
-      for (int m = 1; m < MAX_MOVE; ++m)
-         lateMoveReductions[d][m] = 492 * log(d) * log(m) + 83 * log(m);
+  using std::log;
+  for (int d = 1; d < kMaxDepth; ++d)
+    for (int m = 1; m < kMaxMoves; ++m)
+      log_reduction_table[d][m] = static_cast<Depth>(
+          492 * log(d) * log(m) + 83 * log(m) + 42 * log(d) + 1126);
+  move_count_pruning_table[1] = 4;
+  move_count_pruning_table[2] = 11;
+  for (int d = 1; d < kMaxDepth; ++d)
+    for (int m = 1; m < kMaxMoves; ++m)
+      forward_pruning_table[d][m] =
+          static_cast<Depth>(410 * log(d) * log(m) + 69 * log(m) + 35 * log(d));
 }
 
-void Search::stop() {
-   time.stop = true;
+void Search::stop() { time.stop = true; }
+
+void Search::SetHashSize(const size_t mb) { hash.SetSize(mb); }
+
+uint64_t Search::NodeCount() const {
+  uint64_t sum = 0;
+  for (const auto& td : thread_data) sum += td->node_count;
+  return sum;
 }
 
 void Search::clear() {
-   tt.clear();
-
-   while (!threadData.empty())
-      delete threadData.back(), threadData.pop_back();
-
-   for (ThreadID i = 0; i < numThreads; ++i)
-      threadData.push_back(new ThreadData(i));
+  hash.clear();
+  while (!thread_data.empty()) delete thread_data.back(), thread_data.pop_back();
+  for (ThreadId i = 0; i < num_threads; ++i)
+    thread_data.push_back(new ThreadData(i));
 }
 
-void Search::setTTSize(size_t MiB) {
-   tt.setSize(MiB);
-}
-
-void Search::setNumThreads(ThreadID numThreads) {
-   this->numThreads = std::clamp(
-      numThreads,
-      static_cast<ThreadID>(1),
-      std::min(std::thread::hardware_concurrency(), static_cast<ThreadID>(MAX_THREADS))
-   );
-
-   while (!threadData.empty())
-      delete threadData.back(), threadData.pop_back();
-
-   for (ThreadID i = 0; i < this->numThreads; ++i)
-      threadData.push_back(new ThreadData(i));
-}
-
-std::string Search::info(const ThreadData& td, Depth depth, Score score) const
-{
-   std::stringstream ss;
-
-   ss << "info" <<
-      " depth " << depth <<
-      " seldepth " << td.selDepth;
-
-   if (std::abs(score) < MIN_MATE_SCORE)
-      ss << " score cp " << score;
-
-   else
-      ss << " score mate " << (MATE_SCORE - std::abs(score) + 1) / 2 * (score < 0 ? -1 : 1);
-
-   const TimeManagement::TimePoint elapsed = time.elapsed() + 1;
-
-   const uint64_t nodes = nodeCount();
-
-   ss << " nodes " << nodes <<
-      " nps " << nodes * 1000 / elapsed <<
-      " time " << elapsed <<
-      " hashfull " << tt.usage() * 1000;
-
-   if (!td.pv.empty()) {
-      ss << " pv";
-      for (size_t i = 0; i < td.pv.size(); ++i)
-         ss << " " << move::toString(td.pv[i]);
-   }
-
-   return ss.str();
-}
-
-uint64_t Search::nodeCount() const
-{
-   uint64_t sum = 0;
-   for (const auto& td : threadData)
-      sum += td->nodeCount;
-   return sum;
+void Search::SetNumThreads(const ThreadId threadnum) {
+  this->num_threads = std::clamp(threadnum, static_cast<ThreadId>(1),
+                                std::min(std::thread::hardware_concurrency(),
+                                         static_cast<ThreadId>(kMaxThreads)));
+  while (!thread_data.empty()) delete thread_data.back(), thread_data.pop_back();
+  for (ThreadId i = 0; i < this->num_threads; ++i)
+    thread_data.push_back(new ThreadData(i));
 }

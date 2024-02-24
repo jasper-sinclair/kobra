@@ -1,83 +1,89 @@
 #pragma once
+#include <cstring>
+#include <iostream>
+#include <string>
 
-#include<iostream>
+#include "bitboard.h"
 
-#include"bitboard.h"
-#include"board.h"
+#ifdef _MSC_VER
+#pragma warning(disable : 4127)
+#else
+#endif
 
-struct ExtMove {
-	Move move;
-	Score score;
-
-	bool operator==(Move move) const { return this->move == move; }
+struct MoveData {
+  Move move;
+  int score;
+  bool operator==(const Move mv) const { return this->move == mv; }
 };
 
-constexpr int MAX_MOVE = 256;
+constexpr int kMaxMoves = 256;
 
 struct MoveList {
-  ExtMove data[MAX_MOVE], *last;
+  [[nodiscard]] MoveData* end() const { return last; }
+  [[nodiscard]] int score(const size_t idx) const { return data[idx].score; }
+  [[nodiscard]] Move move(const size_t idx) const { return data[idx].move; }
+  [[nodiscard]] size_t size() const { return last - data; }
 
-	MoveList() : data{}, last(data)
-  {
-  }
+  MoveData data[kMaxMoves], *last;
+  MoveData* begin() { return data; }
 
-	ExtMove* begin()        { return data; }
-	ExtMove* end() const { return last; }
-	size_t size() const { return last - data; }
+  friend std::ostream& operator<<(std::ostream& os, const MoveList& move_list);
 
-	Move move(size_t idx) const { return data[idx].move; }
-	Score score(size_t idx) const { return data[idx].score; }
-	void add(Move move)     { last++->move = move; }
-	void remove(size_t idx);
-
-	friend std::ostream& operator<<(std::ostream& os, const MoveList& moveList);
+  void add(const Move move) { last++->move = move; }
+  void remove(size_t idx);
+  MoveList() : data{}, last(data) {}
 };
 
-inline void MoveList::remove(size_t idx) {
-	std::memmove(begin() + idx, begin() + idx + 1, (size() - idx - 1) * sizeof(ExtMove));
-	--last;
+inline void MoveList::remove(const size_t idx) {
+  std::memmove(begin() + idx, begin() + idx + 1,
+               (size() - idx - 1) * sizeof(MoveData));
+  --last;
 }
 
-template<Color c>
-void generatePawnMoves(Board& board, MoveList& moveList);
-template<Color c, PieceType pt>
-void generatePieceMoves(Board& board, MoveList& moveList);
-template<Color c>
-void generateKingMoves(Board& board, MoveList& moveList);
-void generateMoves(Board& board, MoveList& moveList);
+template <Color C>
+void GenPawnMoves(Board& board, MoveList& move_list);
 
-template<bool Root=true>
-inline uint64_t perft(Board& board, int depth) {
-	uint64_t cnt, nodes = 0;
-	const bool leaf = (depth == 2);
+template <Color C, PieceType Pt>
+void GenPieceMoves(Board& board, MoveList& move_list);
 
-	MoveList moves;
-	generateMoves(board, moves);
-	for (int i = 0; i < moves.size(); ++i) {
-		if (Root && depth <= 1)
-			cnt = 1, ++nodes;
-		else {
-			board.applyMove(moves.move(i));
-			MoveList m;
-			generateMoves(board, m);
-			cnt = leaf ? m.size() : perft<false>(board, depth - 1);
-			nodes += cnt;
-			board.undoMove();
-		}
-		if (Root)
-			std::cout << move::toString(moves.move(i)) << " " << cnt << "\n";
-	}
-	return nodes;
+template <Color C>
+void GenKingMoves(Board& board, MoveList& move_list);
+
+void GenMoves(Board& board, MoveList& move_list);
+
+template <bool Root = true>
+uint64_t perft(Board& board, const int depth) {
+  uint64_t cnt, nodes = 0;
+  const bool leaf = depth == 2;
+  MoveList moves;
+  GenMoves(board, moves);
+  for (size_t i = 0; i < moves.size(); ++i) {
+    if (Root && depth <= 1)
+      cnt = 1, ++nodes;
+    else {
+      board.ApplyMove(moves.move(i));
+      MoveList m;
+      GenMoves(board, m);
+      cnt = leaf ? m.size() : perft<false>(board, depth - 1);
+      nodes += cnt;
+      board.UndoMove();
+    }
+    if (Root) {
+      std::cout << move::ToString(moves.move(i)) << " " << cnt << fflush(stdout)
+                << '\n';
+    }
+  }
+  return nodes;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const MoveList& moveList) {
-	for (int i = 0; i < moveList.size(); ++i)
-		os << move::toString(moveList.move(i)) << " ";
-	return os;
+inline std::ostream& operator<<(std::ostream& os, const MoveList& move_list) {
+  for (int i = 0; i < static_cast<int>(move_list.size()); ++i)
+    os << move::ToString(move_list.move(i)) << " ";
+  return os;
 }
 
-inline void print(const std::vector<Move>& v) {
-	for (auto& m : v)
-		std::cout << move::toString(m) << " ";
-	std::cout << "\n";
+inline int print(const std::vector<Move>& v) {
+  for (const auto& m : v) std::cout << move::ToString(m) << " ";
+  std::cout << "\n";
+  return fflush(stdout);
 }

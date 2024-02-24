@@ -1,32 +1,22 @@
 #pragma once
+#include "history.h"
 
-#include"history.h"
+struct MoveSort {
+  enum Stages { HASH_MOVE, NORMAL_INIT, NORMAL };
 
-struct MoveSorter {
-	Board& board;
-	Stack* ss;
-	Histories& histories;
-	MoveList moves;
-	Move hashMove;
-	bool isInCheck;
-	int idx;
-	int stage;
+  Board& board;
+  Histories& histories;
 
-	enum Stages {
-		HASH_MOVE,
-		NORMAL_INIT,
-		NORMAL
-	};
+  bool is_in_check;
+  int idx;
+  int stage;
 
-	// Generate all legal moves and sort them
-	MoveSorter(
-		Board& board, 
-		Stack* ss, 
-		Histories& histories, 
-		Move hashMove, 
-		bool isInCheck
-	);
+  Move hash_move;
+  Move next();
 
-	Move next();
-	Score computeScore(Move m) const;
+  MoveList moves;
+  MoveSort(Board& board, Stack* ss, Histories& histories, Move hash_move,
+           bool is_in_check);
+  Stack* ss;
+  void ComputeScores();
 };

@@ -342,7 +342,7 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
     assert(nodeType == CUT_NODE || nodeType == PV_NODE == bool(bestMove));
     if (best_move)
       td.histories.update(board, ss, best_move, move_sorter.moves, depth);
-    hash.save(key, HashTable::ScoreToHash(best_score, ss->ply),
+    hash.save(key, HashTable::ScoreToHash(best_score, static_cast<Depth>(ss->ply)),
             ss->static_eval, best_move, depth, node_type);
   }
   return best_score;
@@ -362,7 +362,7 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
   const Key key = board.key();
   HashEntry he;
   const bool hash_hit = hash.probe(key, he);
-  const Score hash_score = HashTable::ScoreFromHash(he.score, ss->ply);
+  const Score hash_score = HashTable::ScoreFromHash(he.score, static_cast<Depth>(ss->ply));
 
   if (!pv_node && hash_hit &&
       (he.node_type == PV_NODE || he.node_type == CUT_NODE && hash_score >= beta ||
@@ -431,7 +431,7 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
   const NodeType node_type = best_score >= beta    ? CUT_NODE
                             : pv_node && best_move ? PV_NODE
                                                  : ALL_NODE;
-  hash.save(key, HashTable::ScoreToHash(best_score, ss->ply),
+  hash.save(key, HashTable::ScoreToHash(best_score, static_cast<Depth>(ss->ply)),
           ss->static_eval, best_move, 0, node_type);
   return best_score;
 }

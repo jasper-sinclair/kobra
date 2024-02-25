@@ -16,7 +16,7 @@ struct MoveSort {
 
   MoveList moves;
   MoveSort(Board& board, Stack* ss, Histories& histories, Move hash_move,
-           bool is_in_check);
+    bool is_in_check);
   Stack* ss;
   void ComputeScores();
 };

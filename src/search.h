@@ -35,12 +35,12 @@ struct ThreadData {
   ThreadData() : root_depth(0), sel_depth(0), stack{}, id(0), node_count(0) {}
 
   explicit ThreadData(const ThreadId id)
-      : root_depth(0), sel_depth(0), stack{}, id(id), node_count(0) {}
+    : root_depth(0), sel_depth(0), stack{}, id(id), node_count(0) {}
 };
 
 struct Search {
   [[nodiscard]] std::string info(const ThreadData& td, Depth depth,
-                                 Score score) const;
+    Score score) const;
   [[nodiscard]] uint64_t NodeCount() const;
 
   Chrono time;
@@ -59,10 +59,10 @@ struct Search {
   Move BestMove(Board& board, ThreadId id = 0);
   template <SearchType St, bool SkipHashMove = false>
   Score AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
-                  ThreadData& td, Stack* ss);
+    ThreadData& td, Stack* ss);
   template <SearchType St>
   Score quiescence(Board& board, Score alpha, Score beta, ThreadData& td,
-                   Stack* ss);
+    Stack* ss);
 
   ThreadId num_threads = 1;
   HashTable hash;

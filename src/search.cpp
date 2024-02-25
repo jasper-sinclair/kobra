@@ -48,7 +48,8 @@ Move Search::BestMove(Board& board, const ThreadId id) {
     if (td.root_depth == 1) {
       alpha = -INFINITY_SCORE;
       beta = INFINITY_SCORE;
-    } else {
+    }
+    else {
       alpha = static_cast<Score>(std::max(score - delta, -INFINITY_SCORE));
       beta = static_cast<Score>(std::min(score + delta, +INFINITY_SCORE));
     }
@@ -58,7 +59,8 @@ Move Search::BestMove(Board& board, const ThreadId id) {
       if (score <= alpha) {
         beta = static_cast<Score>((alpha + beta) / 2);
         alpha = static_cast<Score>(std::max(alpha - delta, -INFINITY_SCORE));
-      } else if (score >= beta)
+      }
+      else if (score >= beta)
         beta = static_cast<Score>(std::min(beta + delta, +INFINITY_SCORE));
       else
         break;
@@ -91,7 +93,7 @@ template <SearchType St, bool SkipHashMove>
 
 Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
 
-                        ThreadData& td, Stack* ss) {
+  ThreadData& td, Stack* ss) {
   constexpr bool root_node = St == kRoot;
   constexpr bool pv_node = St != kNonPv;
 
@@ -105,16 +107,16 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
   if (time.stop) return STOP_SCORE;
   if (board.IsDraw()) return DRAW_SCORE;
   if (depth <= 0)
-    return quiescence < pv_node ? PV : kNonPv > (board, alpha, beta, td, ss);
+    return quiescence < pv_node ? PV : kNonPv >(board, alpha, beta, td, ss);
 
   ++td.node_count;
   if (pv_node)
     td.sel_depth = std::max(td.sel_depth, static_cast<Depth>(ss->ply + 1));
   if (!root_node) {
     alpha = static_cast<Score>(
-        std::max(-MATE_SCORE + ss->ply, static_cast<int>(alpha)));
+      std::max(-MATE_SCORE + ss->ply, static_cast<int>(alpha)));
     beta = static_cast<Score>(
-        std::min(MATE_SCORE - ss->ply - 1, static_cast<int>(beta)));
+      std::min(MATE_SCORE - ss->ply - 1, static_cast<int>(beta)));
     if (alpha >= beta) return alpha;
   }
 
@@ -122,12 +124,12 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
   HashEntry he;
   const bool hash_hit = hash.probe(key, he);
   const Score hash_score =
-      HashTable::ScoreFromHash(he.score, static_cast<Depth>(ss->ply));
+    HashTable::ScoreFromHash(he.score, static_cast<Depth>(ss->ply));
 
   if (!pv_node && !SkipHashMove && hash_hit && depth <= he.depth) {
     if (he.node_type == PV_NODE ||
-        he.node_type == CUT_NODE && hash_score >= beta ||
-        he.node_type == ALL_NODE && hash_score <= alpha) {
+      he.node_type == CUT_NODE && hash_score >= beta ||
+      he.node_type == ALL_NODE && hash_score <= alpha) {
       if (board.st->fifty_move_count < 90) return hash_score;
     }
   }
@@ -140,33 +142,35 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
   else if (hash_hit) {
     ss->static_eval = he.static_eval;
     if (depth <= he.depth &&
-        (he.node_type == PV_NODE ||
-         he.node_type == CUT_NODE && hash_score > ss->static_eval ||
-         he.node_type == ALL_NODE && hash_score < ss->static_eval)) {
+      (he.node_type == PV_NODE ||
+        he.node_type == CUT_NODE && hash_score > ss->static_eval ||
+        he.node_type == ALL_NODE && hash_score < ss->static_eval)) {
       eval = hash_score;
-    } else
+    }
+    else
       eval = ss->static_eval;
-  } else
+  }
+  else
     eval = ss->static_eval = evaluate(board);
   td.histories.killer[(ss + 1)->ply][0] =
-      td.histories.killer[(ss + 1)->ply][1] = Move();
+    td.histories.killer[(ss + 1)->ply][1] = Move();
 
   if (!root_node && !is_in_check) {
     if (!pv_node && depth < 3 && eval >= beta + 171 * depth &&
-        eval < MIN_MATE_SCORE)
+      eval < MIN_MATE_SCORE)
       return eval;
 
     if (!pv_node && !SkipHashMove && board.NonPawnMaterial(board.side_to_move) &&
-        beta > -MIN_MATE_SCORE && eval >= ss->static_eval && eval >= beta &&
-        ss->static_eval >= beta - 22 * depth + 400 && depth < 12) {
+      beta > -MIN_MATE_SCORE && eval >= ss->static_eval && eval >= beta &&
+      ss->static_eval >= beta - 22 * depth + 400 && depth < 12) {
       assert((ss - 1)->move);
       const Depth r = static_cast<Depth>((13 + depth) / 5);
       ss->move = Move();
       board.ApplyNullMove();
 
       Score null_score = static_cast<Score>(-AlphaBeta<kNonPv>(
-          board, static_cast<Score>(-beta), static_cast<Score>(-alpha),
-          static_cast<Depth>(depth - r), td, ss + 1));
+        board, static_cast<Score>(-beta), static_cast<Score>(-alpha),
+        static_cast<Depth>(depth - r), td, ss + 1));
 
       board.UndoNullMove();
       if (null_score >= beta) {
@@ -177,7 +181,7 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
 
     if (pv_node && !hash_hit) --depth;
     if (depth <= 0)
-      return quiescence < pv_node ? PV : kNonPv > (board, alpha, beta, td, ss);
+      return quiescence < pv_node ? PV : kNonPv >(board, alpha, beta, td, ss);
   }
 
   const Move hash_move = hash_hit ? he.move : Move();
@@ -197,7 +201,7 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
 
     if (main_thread && root_node && time.elapsed() >= kMinDisplayTime) {
       std::cout << "info depth " << depth << " currmove " << move::ToString(m)
-                << " currmovenumber " << move_count << std::endl;
+        << " currmovenumber " << move_count << std::endl;
     }
 
     if (SkipHashMove && m == ss->hash_move) continue;
@@ -208,26 +212,26 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
     Depth new_depth = static_cast<Depth>(depth - 1);
 
     if (!root_node && std::abs(best_score) < MIN_MATE_SCORE &&
-        board.NonPawnMaterial(board.side_to_move)) {
+      board.NonPawnMaterial(board.side_to_move)) {
       if (depth < 3 && move_count > move_count_pruning_table[depth]) continue;
       if (!is_capture && !is_in_check && !board.GivesCheck(m)) {
         const Score h_score = static_cast<Score>(
-            td.histories.butterfly[board.side_to_move][from][to] / 106 +
-            td.histories.continuation[(ss - 1)->moved][move::to((ss - 1)->move)]
-                                     [ss->moved][to] /
-                30 +
-            td.histories.continuation[(ss - 2)->moved][move::to((ss - 2)->move)]
-                                     [ss->moved][to] /
-                34 +
-            td.histories.continuation[(ss - 4)->moved][move::to((ss - 4)->move)]
-                                     [ss->moved][to] /
-                42);
+          td.histories.butterfly[board.side_to_move][from][to] / 106 +
+          td.histories.continuation[(ss - 1)->moved][move::to((ss - 1)->move)]
+          [ss->moved][to] /
+          30 +
+          td.histories.continuation[(ss - 2)->moved][move::to((ss - 2)->move)]
+          [ss->moved][to] /
+          34 +
+          td.histories.continuation[(ss - 4)->moved][move::to((ss - 4)->move)]
+          [ss->moved][to] /
+          42);
         Depth pruning_depth = static_cast<Depth>(
-            new_depth +
-            (5 * h_score - forward_pruning_table[depth][move_count] - 506) / 1000);
+          new_depth +
+          (5 * h_score - forward_pruning_table[depth][move_count] - 506) / 1000);
         pruning_depth = static_cast<Depth>(std::max(+pruning_depth, -1));
         if (pruning_depth < 2 &&
-            ss->static_eval <= alpha - 200 - 172 * pruning_depth)
+          ss->static_eval <= alpha - 200 - 172 * pruning_depth)
           continue;
       }
     }
@@ -238,47 +242,49 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
 
     if (move_count == 1) {
       if (!root_node && !SkipHashMove && depth >= 8 && m == hash_move &&
-          (he.node_type == CUT_NODE || he.node_type == PV_NODE) &&
-          he.depth + 3 >= depth && std::abs(eval) < MIN_MATE_SCORE) {
+        (he.node_type == CUT_NODE || he.node_type == PV_NODE) &&
+        he.depth + 3 >= depth && std::abs(eval) < MIN_MATE_SCORE) {
         const Score singular_beta =
-            std::min(static_cast<Score>(eval - 2 * depth), beta);
+          std::min(static_cast<Score>(eval - 2 * depth), beta);
         const Depth singular_depth = static_cast<Depth>(depth / 2);
         ss->hash_move = m;
         score =
-            AlphaBeta<kNonPv, true>(board, static_cast<Score>(singular_beta - 1),
-                                   singular_beta, singular_depth, td, ss);
+          AlphaBeta<kNonPv, true>(board, static_cast<Score>(singular_beta - 1),
+            singular_beta, singular_depth, td, ss);
         if (score < singular_beta)
           ext = 1;
         else if (hash_score >= beta)
           ext = -1;
         new_depth += ext;
       }
-    } else {
+    }
+    else {
       if (depth >= 2 && !(pv_node && is_capture)) {
         lmr = true;
         ext = static_cast<Score>(-log_reduction_table[depth][move_count]);
         if (is_capture) {
           const Square cap_sq =
-              move::move_type(m) == move::EN_PASSANT
-                  ? to - static_cast<Square>(static_cast<Score>(
-                             direction::PawnPush(board.side_to_move)))
-                  : to;
+            move::move_type(m) == move::EN_PASSANT
+            ? to - static_cast<Square>(static_cast<Score>(
+              direction::PawnPush(board.side_to_move)))
+            : to;
           const PieceType cap_pt = piece_type::make(board.PieceOn(cap_sq));
           const Score h_score = static_cast<Score>(
-              td.histories.capture[ss->moved][cap_sq][cap_pt] / 21 + 43);
+            td.histories.capture[ss->moved][cap_sq][cap_pt] / 21 + 43);
           ext += h_score;
-        } else {
+        }
+        else {
           const Score h_score = static_cast<Score>(
-              td.histories.butterfly[board.side_to_move][from][to] / 106 +
-              td.histories.continuation[(ss - 1)->moved][move::to(
-                  (ss - 1)->move)][ss->moved][to] /
-                  30 +
-              td.histories.continuation[(ss - 2)->moved][move::to(
-                  (ss - 2)->move)][ss->moved][to] /
-                  34 +
-              td.histories.continuation[(ss - 4)->moved][move::to(
-                  (ss - 4)->move)][ss->moved][to] /
-                  42);
+            td.histories.butterfly[board.side_to_move][from][to] / 106 +
+            td.histories.continuation[(ss - 1)->moved][move::to(
+              (ss - 1)->move)][ss->moved][to] /
+            30 +
+            td.histories.continuation[(ss - 2)->moved][move::to(
+              (ss - 2)->move)][ss->moved][to] /
+            34 +
+            td.histories.continuation[(ss - 4)->moved][move::to(
+              (ss - 4)->move)][ss->moved][to] /
+            42);
           ext += h_score;
         }
         if (pv_node) ext += 1057 + 11026 / (3 + depth);
@@ -295,25 +301,26 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
 
     if (lmr) {
       ext =
-          static_cast<Depth>(std::round(ext / static_cast<double>(lmr_factor)));
+        static_cast<Depth>(std::round(ext / static_cast<double>(lmr_factor)));
       const Depth d =
-          static_cast<Depth>(std::clamp(new_depth + ext, 0, +new_depth + 1));
+        static_cast<Depth>(std::clamp(new_depth + ext, 0, +new_depth + 1));
       score = static_cast<Score>(
-          -AlphaBeta<kNonPv>(board, static_cast<Score>(-alpha - 1),
-                            static_cast<Score>(-alpha), d, td, ss + 1));
+        -AlphaBeta<kNonPv>(board, static_cast<Score>(-alpha - 1),
+          static_cast<Score>(-alpha), d, td, ss + 1));
       if (ext < 0 && score > alpha)
         score = static_cast<Score>(-AlphaBeta<kNonPv>(
-            board, static_cast<Score>(-alpha - 1), static_cast<Score>(-alpha),
-            new_depth, td, ss + 1));
-    } else if (!pv_node || move_count > 1)
+          board, static_cast<Score>(-alpha - 1), static_cast<Score>(-alpha),
+          new_depth, td, ss + 1));
+    }
+    else if (!pv_node || move_count > 1)
       score = static_cast<Score>(
-          -AlphaBeta<kNonPv>(board, static_cast<Score>(-alpha - 1),
-                            static_cast<Score>(-alpha), new_depth, td, ss + 1));
+        -AlphaBeta<kNonPv>(board, static_cast<Score>(-alpha - 1),
+          static_cast<Score>(-alpha), new_depth, td, ss + 1));
     if (pv_node &&
-        (move_count == 1 || (score > alpha && (root_node || score < beta))))
+      (move_count == 1 || (score > alpha && (root_node || score < beta))))
       score = static_cast<Score>(
-          -AlphaBeta<PV>(board, static_cast<Score>(-beta),
-                         static_cast<Score>(-alpha), new_depth, td, ss + 1));
+        -AlphaBeta<PV>(board, static_cast<Score>(-beta),
+          static_cast<Score>(-alpha), new_depth, td, ss + 1));
     board.UndoMove();
     if (time.stop) return STOP_SCORE;
     if (score > best_score) {
@@ -336,21 +343,21 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
   if (SkipHashMove && move_count == 1) return alpha;
   if (!move_count) return is_in_check ? -MATE_SCORE + ss->ply : DRAW_SCORE;
   if (!SkipHashMove) {
-    const NodeType node_type = best_score >= beta    ? CUT_NODE
-                              : pv_node && best_move ? PV_NODE
-                                                   : ALL_NODE;
+    const NodeType node_type = best_score >= beta ? CUT_NODE
+      : pv_node && best_move ? PV_NODE
+      : ALL_NODE;
     assert(nodeType == CUT_NODE || nodeType == PV_NODE == bool(bestMove));
     if (best_move)
       td.histories.update(board, ss, best_move, move_sorter.moves, depth);
     hash.save(key, HashTable::ScoreToHash(best_score, static_cast<Depth>(ss->ply)),
-            ss->static_eval, best_move, depth, node_type);
+      ss->static_eval, best_move, depth, node_type);
   }
   return best_score;
 }
 
 template <SearchType St>
 Score Search::quiescence(Board& board, Score alpha, const Score beta,
-                         ThreadData& td, Stack* ss) {
+  ThreadData& td, Stack* ss) {
   constexpr bool pv_node = St == PV;
   ++td.node_count;
   assert(pvNode || beta - alpha == 1);
@@ -365,8 +372,8 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
   const Score hash_score = HashTable::ScoreFromHash(he.score, static_cast<Depth>(ss->ply));
 
   if (!pv_node && hash_hit &&
-      (he.node_type == PV_NODE || he.node_type == CUT_NODE && hash_score >= beta ||
-       he.node_type == ALL_NODE && hash_score <= alpha))
+    (he.node_type == PV_NODE || he.node_type == CUT_NODE && hash_score >= beta ||
+      he.node_type == ALL_NODE && hash_score <= alpha))
     return hash_score;
 
   const bool is_in_check = board.IsInCheck();
@@ -376,16 +383,16 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
   else
     best_score = ss->static_eval = hash_hit ? he.static_eval : evaluate(board);
   if (hash_hit && (he.node_type == PV_NODE ||
-                he.node_type == CUT_NODE && hash_score > best_score ||
-                he.node_type == ALL_NODE && hash_score < best_score))
+    he.node_type == CUT_NODE && hash_score > best_score ||
+    he.node_type == ALL_NODE && hash_score < best_score))
     best_score = hash_score;
   if (!is_in_check) {
     if (best_score >= beta) {
       if (!hash_hit)
         hash.save(key,
-                HashTable::ScoreToHash(best_score,
-                                              static_cast<Depth>(ss->ply)),
-                ss->static_eval, Move(), 0, CUT_NODE);
+          HashTable::ScoreToHash(best_score,
+            static_cast<Depth>(ss->ply)),
+          ss->static_eval, Move(), 0, CUT_NODE);
       return best_score;
     }
     if (pv_node && best_score > alpha) alpha = best_score;
@@ -399,14 +406,14 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
     if (!m) break;
     const bool is_capture = board.IsCapture(m);
     if (const bool is_queen_promotion =
-            board.IsPromotion(m) && move::GetPieceType(m) == QUEEN;
-        !is_in_check && !(is_capture || is_queen_promotion))
+      board.IsPromotion(m) && move::GetPieceType(m) == QUEEN;
+      !is_in_check && !(is_capture || is_queen_promotion))
       continue;
     assert(board.isPseudoLegal(m));
     assert(board.isLegal(m));
     if (is_capture && !is_in_check) {
       if (const Score see = board.see(m);
-          see < eval::kPtValues[KNIGHT] - eval::kPtValues[BISHOP])
+        see < eval::kPtValues[KNIGHT] - eval::kPtValues[BISHOP])
         continue;
     }
     ss->moved = board.PieceOn(move::from(m));
@@ -428,31 +435,31 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
 
   if (!move_sorter.moves.size())
     return static_cast<Score>(is_in_check ? -MATE_SCORE + ss->ply : DRAW_SCORE);
-  const NodeType node_type = best_score >= beta    ? CUT_NODE
-                            : pv_node && best_move ? PV_NODE
-                                                 : ALL_NODE;
+  const NodeType node_type = best_score >= beta ? CUT_NODE
+    : pv_node && best_move ? PV_NODE
+    : ALL_NODE;
   hash.save(key, HashTable::ScoreToHash(best_score, static_cast<Depth>(ss->ply)),
-          ss->static_eval, best_move, 0, node_type);
+    ss->static_eval, best_move, 0, node_type);
   return best_score;
 }
 
 std::string Search::info(const ThreadData& td, const Depth depth,
-                         const Score score) const {
+  const Score score) const {
   std::stringstream ss;
   ss << "info"
-     << " depth " << depth << " seldepth " << td.sel_depth;
+    << " depth " << depth << " seldepth " << td.sel_depth;
 
   if (std::abs(score) < MIN_MATE_SCORE)
     ss << " score cp " << score;
   else
     ss << " score mate "
-       << (MATE_SCORE - std::abs(score) + 1) / 2 * (score < 0 ? -1 : 1);
+    << (MATE_SCORE - std::abs(score) + 1) / 2 * (score < 0 ? -1 : 1);
 
   const Chrono::TimePoint elapsed = time.elapsed() + 1;
   const uint64_t nodes = NodeCount();
 
   ss << " nodes " << nodes << " nps " << nodes * 1000 / elapsed << " time "
-     << elapsed << " hashfull " << hash.usage() * 1000;
+    << elapsed << " hashfull " << hash.usage() * 1000;
 
   if (!td.pv.empty()) {
     ss << " pv";
@@ -466,13 +473,13 @@ void Search::init() {
   for (int d = 1; d < kMaxDepth; ++d)
     for (int m = 1; m < kMaxMoves; ++m)
       log_reduction_table[d][m] = static_cast<Depth>(
-          492 * log(d) * log(m) + 83 * log(m) + 42 * log(d) + 1126);
+        492 * log(d) * log(m) + 83 * log(m) + 42 * log(d) + 1126);
   move_count_pruning_table[1] = 4;
   move_count_pruning_table[2] = 11;
   for (int d = 1; d < kMaxDepth; ++d)
     for (int m = 1; m < kMaxMoves; ++m)
       forward_pruning_table[d][m] =
-          static_cast<Depth>(410 * log(d) * log(m) + 69 * log(m) + 35 * log(d));
+      static_cast<Depth>(410 * log(d) * log(m) + 69 * log(m) + 35 * log(d));
 }
 
 void Search::stop() { time.stop = true; }
@@ -494,8 +501,8 @@ void Search::clear() {
 
 void Search::SetNumThreads(const ThreadId threadnum) {
   this->num_threads = std::clamp(threadnum, static_cast<ThreadId>(1),
-                                std::min(std::thread::hardware_concurrency(),
-                                         static_cast<ThreadId>(kMaxThreads)));
+    std::min(std::thread::hardware_concurrency(),
+      static_cast<ThreadId>(kMaxThreads)));
   while (!thread_data.empty()) delete thread_data.back(), thread_data.pop_back();
   for (ThreadId i = 0; i < this->num_threads; ++i)
     thread_data.push_back(new ThreadData(i));

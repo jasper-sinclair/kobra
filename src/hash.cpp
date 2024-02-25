@@ -39,8 +39,8 @@ bool HashTable::probe(const Key key, HashEntry& hash_entry) {
 }
 
 void HashTable::save(const Key key, const Score score,
-                              const Score static_eval, const Move move,
-                              const Depth depth, const NodeType node_type) {
+  const Score static_eval, const Move move,
+  const Depth depth, const NodeType node_type) {
   HashEntry tmp;
   tmp.score = score;
   tmp.static_eval = static_eval;
@@ -49,20 +49,20 @@ void HashTable::save(const Key key, const Score score,
   tmp.node_type = node_type;
   tmp.key = key ^ tmp.data;
   if (HashEntry* hash_entry = get(key); node_type == PV_NODE ||
-                               key != (hash_entry->key ^ hash_entry->data) ||
-                               depth + 4 > hash_entry->depth) {
+    key != (hash_entry->key ^ hash_entry->data) ||
+    depth + 4 > hash_entry->depth) {
     *hash_entry = tmp;
   }
 }
 
 Score HashTable::ScoreToHash(const Score score, const Depth ply) {
-  return static_cast<Score>(score >= MIN_MATE_SCORE    ? score + ply
-                            : score <= -MIN_MATE_SCORE ? score - ply
-                                                       : score);
+  return static_cast<Score>(score >= MIN_MATE_SCORE ? score + ply
+    : score <= -MIN_MATE_SCORE ? score - ply
+    : score);
 }
 
 Score HashTable::ScoreFromHash(const Score score, const Depth ply) {
-  return static_cast<Score>(score >= MIN_MATE_SCORE    ? score - ply
-                            : score <= -MIN_MATE_SCORE ? score + ply
-                                                       : score);
+  return static_cast<Score>(score >= MIN_MATE_SCORE ? score - ply
+    : score <= -MIN_MATE_SCORE ? score + ply
+    : score);
 }

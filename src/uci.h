@@ -4,22 +4,22 @@
 #include "search.h"
 
 namespace uci {
-constexpr size_t kDefaultHash = 256;
-constexpr ThreadId kDefaultThreads = 1;
+  constexpr size_t kDefaultHash = 256;
+  constexpr ThreadId kDefaultThreads = 1;
 
-inline Board board;
-inline Search search;
-inline std::thread thread;
+  inline Board board;
+  inline Search search;
+  inline std::thread thread;
 
-int loop();
-int position(std::istringstream& ss);
-int GetBestMove();
-int uci();
+  int loop();
+  int position(std::istringstream& ss);
+  int GetBestMove();
+  int uci();
 
-Move ToMove(const std::string& str, Board& pos);
+  Move ToMove(const std::string& str, Board& pos);
 
-void go(const std::string& str);
-void setoption(std::istringstream& ss);
-void stop();
-void ucinewgame();
-}    
+  void go(const std::string& str);
+  void setoption(std::istringstream& ss);
+  void stop();
+  void ucinewgame();
+}

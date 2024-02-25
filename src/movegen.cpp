@@ -108,9 +108,9 @@ void GenPieceMoves(Board& board, MoveList& move_list) {
   while (pieces) {
     Square from = pieces.PopLsb();
     Bitboard attacks =
-        (Pt == KNIGHT ? attack::knight_attacks[from]
-                      : attack::attacks<Pt>(from, board.occupied())) -
-        friendly;
+      (Pt == KNIGHT ? attack::knight_attacks[from]
+        : attack::attacks<Pt>(from, board.occupied())) -
+      friendly;
     while (attacks) move_list.add(move::make(from, attacks.PopLsb()));
   }
 }
@@ -123,14 +123,14 @@ void GenKingMoves(Board& board, MoveList& move_list) {
   if (ksq == square::relative(C, E1)) {
     const Bitboard empty = ~board.occupied();
     constexpr Bitboard path1 =
-        C == WHITE ? kWhiteQueenSidePath : kBlackQueenSidePath;
+      C == WHITE ? kWhiteQueenSidePath : kBlackQueenSidePath;
     constexpr Bitboard path2 =
-        C == WHITE ? kWhiteKingSidePath : kBlackKingSidePath;
+      C == WHITE ? kWhiteKingSidePath : kBlackKingSidePath;
     if (board.CanCastle(C == WHITE ? WHITE_QUEEN_SIDE : BLACK_QUEEN_SIDE) &&
-        (empty & path1) == path1)
+      (empty & path1) == path1)
       move_list.add(make(ksq, square::relative(C, C1), move::CASTLING));
     if (board.CanCastle(C == WHITE ? WHITE_KING_SIDE : BLACK_KING_SIDE) &&
-        (empty & path2) == path2)
+      (empty & path2) == path2)
       move_list.add(make(ksq, square::relative(C, G1), move::CASTLING));
   }
 }
@@ -149,7 +149,8 @@ void GenMoves(Board& board, MoveList& move_list) {
       GenPieceMoves<WHITE, QUEEN>(board, move_list);
     }
     GenKingMoves<WHITE>(board, move_list);
-  } else {
+  }
+  else {
     if (!board.st->king_attack_info.double_check) {
       GenPawnMoves<BLACK>(board, move_list);
       GenPieceMoves<BLACK, KNIGHT>(board, move_list);
@@ -160,6 +161,6 @@ void GenMoves(Board& board, MoveList& move_list) {
     GenKingMoves<BLACK>(board, move_list);
   }
   move_list.last = std::ranges::remove_if(move_list, [&](const MoveData& m) {
-                    return !board.IsLegal(m.move);
-                  }).begin();
+    return !board.IsLegal(m.move);
+    }).begin();
 }

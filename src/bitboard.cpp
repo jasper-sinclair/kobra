@@ -444,20 +444,20 @@ bool Board::IsPseudoLegal(const Move m) const {
       if (const bool king_side = to > from;
         c != us ||
         !CanCastle(c == WHITE
-                     ? king_side
-                     ? WHITE_KING_SIDE
-                     : WHITE_QUEEN_SIDE
-                     : king_side
-                     ? BLACK_KING_SIDE
-                     : BLACK_QUEEN_SIDE) ||
+        ? king_side
+        ? WHITE_KING_SIDE
+        : WHITE_QUEEN_SIDE
+        : king_side
+        ? BLACK_KING_SIDE
+        : BLACK_QUEEN_SIDE) ||
         occupied_bb &
         (c == WHITE
-           ? king_side
-           ? kWhiteKingSidePath
-           : kWhiteQueenSidePath
-           : king_side
-           ? kBlackKingSidePath
-           : kBlackQueenSidePath))
+        ? king_side
+        ? kWhiteKingSidePath
+        : kWhiteQueenSidePath
+        : king_side
+        ? kBlackKingSidePath
+        : kBlackQueenSidePath))
         return false;
     }
     else {

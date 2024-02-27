@@ -302,7 +302,7 @@ inline Score evaluate(const Board& board) {
   bool is_endgame;
   if (w_queens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1
     ||
-  b_queens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1)
+    b_queens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1)
     is_endgame = false;
   else
     is_endgame = true;

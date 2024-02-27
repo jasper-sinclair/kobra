@@ -353,12 +353,12 @@ bool Board::GivesCheck(const Move m) const {
   if (move_type == move::CASTLING) {
     occ.clear(from);
     if (const Square rsq = side_to_move == WHITE
-                             ? to > from
-                             ? F1
-                             : D1
-                             : to > from
-                             ? F8
-                             : D8;
+      ? to > from
+      ? F1
+      : D1
+      : to > from
+      ? F8
+      : D8;
       attack::attacks<ROOK>(rsq, occ) & their_king_bb)
       return true;
   }

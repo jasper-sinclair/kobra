@@ -10,27 +10,27 @@
 #endif
 
 void ButterflyHistory::increase(const Board& board, const Move move,
-  const Depth d) {
+                                const Depth d) {
   auto& e = data()[board.side_to_move][move::from(move)][move::to(move)];
   e += i_a * p(d) * (max - e) / max;
   assert(std::abs(e) < MAX);
 }
 
 void ButterflyHistory::decrease(const Board& board, const Move move,
-  const Depth d) {
+                                const Depth d) {
   auto& e = data()[board.side_to_move][move::from(move)][move::to(move)];
   e -= d_a * p(d) * (max + e) / max;
   assert(std::abs(e) < MAX);
 }
 
 void CaptureHistory::increase(const Board& board, const Move move,
-  const Depth d) {
+                              const Depth d) {
   const Piece moved = board.PieceOn(move::from(move));
   const Square to =
     move::move_type(move) == move::EN_PASSANT
-    ? move::to(move) -
-    static_cast<Square>(direction::PawnPush(board.side_to_move))
-    : move::to(move);
+      ? move::to(move) -
+      static_cast<Square>(direction::PawnPush(board.side_to_move))
+      : move::to(move);
   const PieceType captured = piece_type::make(board.PieceOn(to));
   auto& e = data()[moved][to][captured];
   e += i_a * p(d) * (max - e) / max;
@@ -38,13 +38,13 @@ void CaptureHistory::increase(const Board& board, const Move move,
 }
 
 void CaptureHistory::decrease(const Board& board, const Move move,
-  const Depth d) {
+                              const Depth d) {
   const Piece moved = board.PieceOn(move::from(move));
   const Square to =
     move::move_type(move) == move::EN_PASSANT
-    ? move::to(move) -
-    static_cast<Square>(direction::PawnPush(board.side_to_move))
-    : move::to(move);
+      ? move::to(move) -
+      static_cast<Square>(direction::PawnPush(board.side_to_move))
+      : move::to(move);
   const PieceType captured = piece_type::make(board.PieceOn(to));
   auto& e = data()[moved][to][captured];
   e -= d_a * p(d) * (max + e) / max;
@@ -52,7 +52,7 @@ void CaptureHistory::decrease(const Board& board, const Move move,
 }
 
 void ContinuationHistory::increase(const Board& board, const Stack* ss,
-  const Move move, const Depth d) {
+                                   const Move move, const Depth d) {
   if ((ss - 1)->move) {
     auto& e = data()[(ss - 1)->moved][move::to((ss - 1)->move)]
       [board.PieceOn(move::from(move))][move::to(move)];
@@ -74,7 +74,7 @@ void ContinuationHistory::increase(const Board& board, const Stack* ss,
 }
 
 void ContinuationHistory::decrease(const Board& board, const Stack* ss,
-  const Move move, const Depth d) {
+                                   const Move move, const Depth d) {
   if ((ss - 1)->move) {
     auto& e = data()[(ss - 1)->moved][move::to((ss - 1)->move)]
       [board.PieceOn(move::from(move))][move::to(move)];
@@ -96,7 +96,7 @@ void ContinuationHistory::decrease(const Board& board, const Stack* ss,
 }
 
 void Histories::update(const Board& board, const Stack* ss, const Move best_move,
-  MoveList& moves, const Depth depth) {
+                       MoveList& moves, const Depth depth) {
   if (board.IsCapture(best_move)) {
     capture.increase(board, best_move, depth);
     for (const auto& [move, score] : moves) {

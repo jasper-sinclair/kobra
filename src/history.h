@@ -12,7 +12,9 @@ struct History : std::array<History<Sizes...>, Size> {
     const auto e = reinterpret_cast<HistoryEntry*>(this);
     std::fill_n(e, sizeof(*this) / sizeof(HistoryEntry), value);
   }
+
   static constexpr HistoryEntry max = 30000;
+
   static HistoryEntry p(const Depth d) {
     return static_cast<HistoryEntry>(std::min(153 * d - 133, 1525));
   }
@@ -65,6 +67,6 @@ struct Histories {
 
   void clear();
   void update(const Board& board, const Stack* ss, Move best_move,
-    MoveList& moves, Depth depth);
+              MoveList& moves, Depth depth);
   Histories() { clear(); }
 };

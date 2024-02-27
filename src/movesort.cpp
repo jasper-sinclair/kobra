@@ -12,14 +12,14 @@
 #endif
 
 MoveSort::MoveSort(Board& board, Stack* ss, Histories& histories,
-  const Move hash_move, const bool is_in_check)
+                   const Move hash_move, const bool is_in_check)
   : board(board),
-  histories(histories),
-  is_in_check(is_in_check),
-  idx{},
-  stage(HASH_MOVE),
-  hash_move(hash_move),
-  ss(ss) {
+    histories(histories),
+    is_in_check(is_in_check),
+    idx{},
+    stage(HASH_MOVE),
+    hash_move(hash_move),
+    ss(ss) {
   assert(!histories.killer[ss->ply][0] ||
     histories.killer[ss->ply][0] != histories.killer[ss->ply][1]);
 }
@@ -43,12 +43,12 @@ Move MoveSort::next() {
     ComputeScores();
     std::ranges::sort(moves, [](const MoveData& m1, const MoveData& m2) {
       return m1.score > m2.score;
-      });
+    });
     [[fallthrough]];
   case NORMAL:
     if (static_cast<size_t>(idx) == moves.size()) return Move();
     return moves.move(idx++);
-  default:;
+  default: ;
   }
   return 0;
 }
@@ -77,9 +77,9 @@ void MoveSort::ComputeScores() {
       const Piece moved = board.PieceOn(move::from(m));
       const Square to =
         move::move_type(m) == move::EN_PASSANT
-        ? move::to(m) -
-        static_cast<Square>(direction::PawnPush(board.side_to_move))
-        : move::to(m);
+          ? move::to(m) -
+          static_cast<Square>(direction::PawnPush(board.side_to_move))
+          : move::to(m);
       const PieceType captured = piece_type::make(board.PieceOn(to));
       s += 89 * eval::kPieceValues[board.PieceOn(move::to(m))] +
         histories.capture[moved][to][captured];

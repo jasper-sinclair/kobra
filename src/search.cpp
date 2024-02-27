@@ -346,10 +346,10 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
   if (!move_count) return is_in_check ? -MATE_SCORE + ss->ply : DRAW_SCORE;
   if (!SkipHashMove) {
     const NodeType node_type = best_score >= beta
-                                 ? CUT_NODE
-                                 : pv_node && best_move
-                                 ? PV_NODE
-                                 : ALL_NODE;
+      ? CUT_NODE
+      : pv_node && best_move
+      ? PV_NODE
+      : ALL_NODE;
     assert(nodeType == CUT_NODE || nodeType == PV_NODE == bool(bestMove));
     if (best_move)
       td.histories.update(board, ss, best_move, move_sorter.moves, depth);
@@ -393,10 +393,8 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
   if (!is_in_check) {
     if (best_score >= beta) {
       if (!hash_hit)
-        hash.save(key,
-                  HashTable::ScoreToHash(best_score,
-                                         static_cast<Depth>(ss->ply)),
-                  ss->static_eval, Move(), 0, CUT_NODE);
+        hash.save(key, HashTable::ScoreToHash(best_score,
+        static_cast<Depth>(ss->ply)), ss->static_eval, Move(), 0, CUT_NODE);
       return best_score;
     }
     if (pv_node && best_score > alpha) alpha = best_score;
@@ -440,10 +438,10 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
   if (!move_sorter.moves.size())
     return static_cast<Score>(is_in_check ? -MATE_SCORE + ss->ply : DRAW_SCORE);
   const NodeType node_type = best_score >= beta
-                               ? CUT_NODE
-                               : pv_node && best_move
-                               ? PV_NODE
-                               : ALL_NODE;
+    ? CUT_NODE
+    : pv_node && best_move
+    ? PV_NODE
+    : ALL_NODE;
   hash.save(key, HashTable::ScoreToHash(best_score, static_cast<Depth>(ss->ply)),
             ss->static_eval, best_move, 0, node_type);
   return best_score;

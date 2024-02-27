@@ -57,16 +57,16 @@ void HashTable::save(const Key key, const Score score,
 
 Score HashTable::ScoreToHash(const Score score, const Depth ply) {
   return static_cast<Score>(score >= MIN_MATE_SCORE
-                              ? score + ply
-                              : score <= -MIN_MATE_SCORE
-                              ? score - ply
-                              : score);
+    ? score + ply
+    : score <= -MIN_MATE_SCORE
+    ? score - ply
+    : score);
 }
 
 Score HashTable::ScoreFromHash(const Score score, const Depth ply) {
   return static_cast<Score>(score >= MIN_MATE_SCORE
-                              ? score - ply
-                              : score <= -MIN_MATE_SCORE
-                              ? score + ply
-                              : score);
+    ? score - ply
+    : score <= -MIN_MATE_SCORE
+    ? score + ply
+    : score);
 }

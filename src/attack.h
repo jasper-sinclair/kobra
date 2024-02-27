@@ -7,11 +7,15 @@
 #endif
 
 namespace attack {
-  inline Bitboard files[8] = { kFileABb, kFileBBb, kFileCBb, kFileDBb,
-                              kFileEBb, kFileFBb, kFileGBb, kFileHBb };
+  inline Bitboard files[8] = {
+    kFileABb, kFileBBb, kFileCBb, kFileDBb,
+    kFileEBb, kFileFBb, kFileGBb, kFileHBb
+  };
 
-  inline Bitboard ranks[8] = { kRank1Bb, kRank2Bb, kRank3Bb, kRank4Bb,
-                              kRank5Bb, kRank6Bb, kRank7Bb, kRank8Bb };
+  inline Bitboard ranks[8] = {
+    kRank1Bb, kRank2Bb, kRank3Bb, kRank4Bb,
+    kRank5Bb, kRank6Bb, kRank7Bb, kRank8Bb
+  };
 
   enum Directions {
     NORTHEAST,
@@ -25,13 +29,13 @@ namespace attack {
     N_DIRECTIONS
   };
 
-  inline int knight_directions[8] = { 17, 10, -6, -15, -17, -10, 6, 15 };
+  inline int knight_directions[8] = {17, 10, -6, -15, -17, -10, 6, 15};
 
-  inline int king_directions[8] = { 8, 9, 1, -7, -8, -9, -1, 7 };
+  inline int king_directions[8] = {8, 9, 1, -7, -8, -9, -1, 7};
 
-  inline int bishop_directions[4] = { 9, -7, -9, 7 };
+  inline int bishop_directions[4] = {9, -7, -9, 7};
 
-  inline int rook_directions[4] = { 8, 1, -8, -1 };
+  inline int rook_directions[4] = {8, 1, -8, -1};
 
   inline Bitboard pawn_attacks[N_COLORS][N_SQUARES];
   inline Bitboard knight_attacks[N_SQUARES];
@@ -88,14 +92,15 @@ namespace attack {
     case QUEEN:
       return DiagonalAttacks(sq, occupied) | AntiDiagonalAttacks(sq, occupied) |
         FileAttacks(sq, occupied) | RankAttacks(sq, occupied);
-    default:;
+    default: ;
     }
     return {};
   }
 
   template <Color C>
   Bitboard PawnAttacksBb(const Bitboard b) {
-    return C == WHITE ? b.shift<7>() | b.shift<9>()
+    return C == WHITE
+      ? b.shift<7>() | b.shift<9>()
       : b.shift<-9>() | b.shift<-7>();
   }
 

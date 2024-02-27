@@ -51,7 +51,7 @@ Board::Board(const std::string& fen) {
     case 'q':
       st->castlings.set(BLACK_QUEEN_SIDE);
       break;
-    default:;
+    default: ;
     }
   }
 
@@ -242,7 +242,7 @@ void Board::ApplyMove(const Move m) {
   bs.repetitions = 0;
 
   for (int i = static_cast<int>(history.size()) - 4;
-    i > static_cast<int>(history.size()) - bs.fifty_move_count - 1; i -= 2) {
+       i > static_cast<int>(history.size()) - bs.fifty_move_count - 1; i -= 2) {
     if (i <= 0) break;
     if (history[i].zobrist == st->zobrist) {
       bs.repetitions = history[i].repetitions + 1;
@@ -352,9 +352,13 @@ bool Board::GivesCheck(const Move m) const {
 
   if (move_type == move::CASTLING) {
     occ.clear(from);
-    if (const Square rsq = side_to_move == WHITE ? to > from ? F1 : D1
-      : to > from ? F8
-      : D8;
+    if (const Square rsq = side_to_move == WHITE
+                             ? to > from
+                             ? F1
+                             : D1
+                             : to > from
+                             ? F8
+                             : D8;
       attack::attacks<ROOK>(rsq, occ) & their_king_bb)
       return true;
   }
@@ -439,13 +443,21 @@ bool Board::IsPseudoLegal(const Move m) const {
       const Color c = rank::make(to) == RANK_1 ? WHITE : BLACK;
       if (const bool king_side = to > from;
         c != us ||
-        !CanCastle(c == WHITE ? king_side ? WHITE_KING_SIDE : WHITE_QUEEN_SIDE
-          : king_side ? BLACK_KING_SIDE
-          : BLACK_QUEEN_SIDE) ||
+        !CanCastle(c == WHITE
+                     ? king_side
+                     ? WHITE_KING_SIDE
+                     : WHITE_QUEEN_SIDE
+                     : king_side
+                     ? BLACK_KING_SIDE
+                     : BLACK_QUEEN_SIDE) ||
         occupied_bb &
-        (c == WHITE ? king_side ? kWhiteKingSidePath : kWhiteQueenSidePath
-          : king_side ? kBlackKingSidePath
-          : kBlackQueenSidePath))
+        (c == WHITE
+           ? king_side
+           ? kWhiteKingSidePath
+           : kWhiteQueenSidePath
+           : king_side
+           ? kBlackKingSidePath
+           : kBlackQueenSidePath))
         return false;
     }
     else {
@@ -528,9 +540,9 @@ bool Board::IsLegal(const Move m) {
   }
   else if (st->king_attack_info.check() &&
     (!st->king_attack_info.attacks.IsSet(
-      move::move_type(m) == move::EN_PASSANT
-      ? static_cast<Square>(to - direction::PawnPush(us))
-      : to) ||
+        move::move_type(m) == move::EN_PASSANT
+          ? static_cast<Square>(to - direction::PawnPush(us))
+          : to) ||
       st->king_attack_info.pinned.IsSet(from)) ||
     st->king_attack_info.double_check)
     return false;
@@ -560,6 +572,7 @@ bool Board::IsLegal(const Move m) {
   }
   return true;
 }
+
 bool Board::IsUnderAttack(const Color us, const Square sq) const {
   const Color them = !us;
   return attack::attacks<ROOK>(sq, occupied_bb) &
@@ -570,9 +583,11 @@ bool Board::IsUnderAttack(const Color us, const Square sq) const {
     attack::king_attacks[sq] & pieces(them, KING) ||
     attack::pawn_attacks[us][sq] & pieces(them, PAWN);
 }
+
 bool Board::IsInCheck() const {
   return IsUnderAttack(side_to_move, ksq(side_to_move));
 }
+
 Bitboard Board::AttackersTo(const Square sq, const Bitboard occupied) const {
   return attack::pawn_attacks[WHITE][sq] & pieces(BLACK, PAWN) |
     attack::pawn_attacks[BLACK][sq] & pieces(WHITE, PAWN) |
@@ -582,11 +597,13 @@ Bitboard Board::AttackersTo(const Square sq, const Bitboard occupied) const {
     attack::attacks<ROOK>(sq, occupied) & (pieces(ROOK) | pieces(QUEEN)) |
     attack::king_attacks[sq] & pieces(KING);
 }
+
 template <PieceType Pt>
 Bitboard Board::AttacksBy(const Color c) {
   if constexpr (Pt == PAWN)
-    return c == WHITE ? attack::PawnAttacksBb<WHITE>(pieces(c, PAWN))
-    : attack::PawnAttacksBb<BLACK>(pieces(c, PAWN));
+    return c == WHITE
+      ? attack::PawnAttacksBb<WHITE>(pieces(c, PAWN))
+      : attack::PawnAttacksBb<BLACK>(pieces(c, PAWN));
   if constexpr (Pt == KNIGHT) {
     Bitboard attackers = pieces(c, Pt);
     Bitboard threats{};
@@ -599,13 +616,15 @@ Bitboard Board::AttacksBy(const Color c) {
     threats |= attack::attacks<Pt>(attackers.PopLsb(), occupied());
   return threats;
 }
+
 template Bitboard Board::AttacksBy<PAWN>(Color c);
 template Bitboard Board::AttacksBy<KNIGHT>(Color c);
 template Bitboard Board::AttacksBy<BISHOP>(Color c);
 template Bitboard Board::AttacksBy<ROOK>(Color c);
 template Bitboard Board::AttacksBy<QUEEN>(Color c);
+
 Bitboard Board::LeastValuablePiece(const Bitboard attacking,
-  const Color attacker, Piece& pc) const {
+                                   const Color attacker, Piece& pc) const {
   for (PieceType pt = PAWN; pt <= KING; ++pt) {
     if (Bitboard subset = attacking & pieces(pt)) {
       pc = piece::make(attacker, pt);
@@ -614,6 +633,7 @@ Bitboard Board::LeastValuablePiece(const Bitboard attacking,
   }
   return {};
 }
+
 Score Board::see(const Move m) const {
   if (move::move_type(m) != move::NORMAL) return 0;
   const Square from = move::from(m);

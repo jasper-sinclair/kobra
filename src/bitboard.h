@@ -18,70 +18,73 @@
 #endif
 
 namespace color {
-constexpr Color make(const Piece pc) { return pc >> 3; }
-}  // namespace color
+  constexpr Color make(const Piece pc) { return pc >> 3; }
+} // namespace color
 
 namespace piece_type {
-constexpr PieceType make(const Piece pc) { return pc & 7; }
-}  // namespace piece_type
+  constexpr PieceType make(const Piece pc) { return pc & 7; }
+} // namespace piece_type
 
 namespace piece {
-constexpr Piece make(const Color c, const PieceType pt) {
-  return (c << 3) + pt;
-}
+  constexpr Piece make(const Color c, const PieceType pt) {
+    return (c << 3) + pt;
+  }
 
-constexpr Piece relative(const Piece pc) { return pc ? pc ^ 8 : pc; }
-inline std::string piece_to_char = " PNBRQK  pnbrqk";
-}  // namespace piece
+  constexpr Piece relative(const Piece pc) { return pc ? pc ^ 8 : pc; }
+  inline std::string piece_to_char = " PNBRQK  pnbrqk";
+} // namespace piece
 
 namespace file {
-constexpr File make(const Square sq) { return static_cast<int8_t>(sq & 7); }
+  constexpr File make(const Square sq) { return static_cast<int8_t>(sq & 7); }
 
-constexpr char kCharIdentifiers[N_FILES] = {'a', 'b', 'c', 'd',
-                                            'e', 'f', 'g', 'h'};
-}  // namespace file
+  constexpr char kCharIdentifiers[N_FILES] = {
+    'a', 'b', 'c', 'd',
+    'e', 'f', 'g', 'h'
+  };
+} // namespace file
 
 namespace rank {
-constexpr Rank make(const Square sq) { return static_cast<int8_t>(sq >> 3); }
+  constexpr Rank make(const Square sq) { return static_cast<int8_t>(sq >> 3); }
 
-constexpr char kCharIdentifiers[N_RANKS] = {'1', '2', '3', '4',
-                                            '5', '6', '7', '8'};
-}  // namespace rank
+  constexpr char kCharIdentifiers[N_RANKS] = {
+    '1', '2', '3', '4',
+    '5', '6', '7', '8'
+  };
+} // namespace rank
 
 namespace direction {
-constexpr Direction PawnPush(const Color c) { return c ? SOUTH : NORTH; }
-}  // namespace direction
+  constexpr Direction PawnPush(const Color c) { return c ? SOUTH : NORTH; }
+} // namespace direction
 
 namespace square {
+  constexpr Square make(const File file, const Rank rank) {
+    return static_cast<Square>((rank << 3) + file);
+  }
 
-constexpr Square make(const File file, const Rank rank) {
-  return static_cast<Square>((rank << 3) + file);
-}
+  constexpr Square make(const std::string_view sv) {
+    return make(static_cast<File>(sv[0] - 'a'), static_cast<Rank>(sv[1] - '1'));
+  }
 
-constexpr Square make(const std::string_view sv) {
-  return make(static_cast<File>(sv[0] - 'a'), static_cast<Rank>(sv[1] - '1'));
-}
+  constexpr void mirror(Square& sq) { sq ^= A8; }
 
-constexpr void mirror(Square& sq) { sq ^= A8; }
+  constexpr Square relative(const Color c, const Square sq) {
+    return c ? sq ^ A8 : sq;
+  }
 
-constexpr Square relative(const Color c, const Square sq) {
-  return c ? sq ^ A8 : sq;
-}
+  inline std::string ToString(const Square sq) {
+    return std::string(1, file::kCharIdentifiers[file::make(sq)]) +
+      std::string(1, rank::kCharIdentifiers[rank::make(sq)]);
+  }
 
-inline std::string ToString(const Square sq) {
-  return std::string(1, file::kCharIdentifiers[file::make(sq)]) +
-         std::string(1, rank::kCharIdentifiers[rank::make(sq)]);
-}
+  constexpr bool IsValid(const Square sq) { return sq >= A1 && sq <= H8; }
 
-constexpr bool IsValid(const Square sq) { return sq >= A1 && sq <= H8; }
-
-inline uint8_t distance(const Square s1, const Square s2) {
+  inline uint8_t distance(const Square s1, const Square s2) {
 #define GETMAX(a, b) (((a) > (b)) ? (a) : (b))
-  return static_cast<uint8_t>(
+    return static_cast<uint8_t>(
       GETMAX(std::abs(file::make(s1) - file::make(s2)),
              std::abs(rank::make(s1) - rank::make(s2))));
-}
-}  // namespace square
+  }
+} // namespace square
 
 struct Bitboard {
   uint64_t data;
@@ -96,9 +99,11 @@ struct Bitboard {
   constexpr void set(const Square sq) {
     data |= static_cast<uint64_t>(1) << sq;
   }
+
   constexpr void clear(const Square sq) {
     data &= ~(static_cast<uint64_t>(1) << sq);
   }
+
   constexpr void toggle(const Square sq) {
     data ^= static_cast<uint64_t>(1) << sq;
   }
@@ -257,40 +262,40 @@ constexpr Bitboard Bitboard::shift() const {
 }
 
 namespace move {
-enum MoveType {
-  NORMAL,
-  EN_PASSANT = 1 << 14,
-  PROMOTION = 2 << 14,
-  CASTLING = 3 << 14
-};
+  enum MoveType {
+    NORMAL,
+    EN_PASSANT = 1 << 14,
+    PROMOTION = 2 << 14,
+    CASTLING = 3 << 14
+  };
 
-constexpr Move make(const Square from, const Square to) {
-  return static_cast<Move>(from | to << 6);
-}
+  constexpr Move make(const Square from, const Square to) {
+    return static_cast<Move>(from | to << 6);
+  }
 
-constexpr Move make(const Square from, const Square to,
-                    const MoveType move_type) {
-  return static_cast<Move>(from | to << 6 | move_type);
-}
+  constexpr Move make(const Square from, const Square to,
+                      const MoveType move_type) {
+    return static_cast<Move>(from | to << 6 | move_type);
+  }
 
-template <PieceType Pt>
-constexpr Move make(const Square from, const Square to) {
-  return from | to << 6 | PROMOTION | (Pt - 2) << 12;
-}
+  template <PieceType Pt>
+  constexpr Move make(const Square from, const Square to) {
+    return from | to << 6 | PROMOTION | (Pt - 2) << 12;
+  }
 
-constexpr Square from(const Move m) { return m & 0x3f; }
-constexpr Square to(const Move m) { return m >> 6 & 0x3f; }
+  constexpr Square from(const Move m) { return m & 0x3f; }
+  constexpr Square to(const Move m) { return m >> 6 & 0x3f; }
 
-constexpr MoveType move_type(const Move m) {
-  return static_cast<MoveType>(m & 0x3 << 14);
-}
+  constexpr MoveType move_type(const Move m) {
+    return static_cast<MoveType>(m & 0x3 << 14);
+  }
 
-constexpr PieceType GetPieceType(const Move m) { return (m >> 12 & 0x3) + 2; }
+  constexpr PieceType GetPieceType(const Move m) { return (m >> 12 & 0x3) + 2; }
 
-inline std::string ToString(const Move m) {
-  std::string s = square::ToString(from(m)) + square::ToString(to(m));
-  if (move_type(m) == PROMOTION) {
-    switch (GetPieceType(m)) {
+  inline std::string ToString(const Move m) {
+    std::string s = square::ToString(from(m)) + square::ToString(to(m));
+    if (move_type(m) == PROMOTION) {
+      switch (GetPieceType(m)) {
       case KNIGHT:
         return s + 'n';
       case BISHOP:
@@ -299,15 +304,15 @@ inline std::string ToString(const Move m) {
         return s + 'r';
       case QUEEN:
         return s + 'q';
-      default:;
+      default: ;
+      }
     }
+    return s;
   }
-  return s;
-}
-}  // namespace move
+} // namespace move
 
 const std::string kStartFen =
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 constexpr Bitboard kWhiteQueenSidePath(0xe);
 constexpr Bitboard kWhiteKingSidePath(0x60);
 constexpr Bitboard kBlackQueenSidePath(0xE00000000000000);
@@ -439,14 +444,15 @@ inline Bitboard Board::NonPawnMaterial(const Color c) const {
 
 using std::chrono::milliseconds;
 
-typedef long TimeMs;
+using TimeMs = long;
 
 inline TimeMs curr_time() {
   return static_cast<long>(
-      std::chrono::duration_cast<milliseconds>(
-          std::chrono::system_clock::now().time_since_epoch())
-          .count());
+    std::chrono::duration_cast<milliseconds>(
+      std::chrono::system_clock::now().time_since_epoch())
+    .count());
 }
+
 inline std::uint32_t RandU32(const std::uint32_t low, const std::uint32_t high) {
   std::mt19937 gen(curr_time());
   std::uniform_int_distribution dis(low, high);
@@ -461,16 +467,17 @@ inline uint64_t RandU64() {
 }
 
 namespace zobrist {
-inline Key psq[16][N_SQUARES];
-inline Key side;
-inline Key castling[16];
-inline Key en_passant[N_FILES];
-inline void init() {
-  for (auto& i : psq) {
-    for (unsigned long long& j : i) j = RandU64();
+  inline Key psq[16][N_SQUARES];
+  inline Key side;
+  inline Key castling[16];
+  inline Key en_passant[N_FILES];
+
+  inline void init() {
+    for (auto& i : psq) {
+      for (unsigned long long& j : i) j = RandU64();
+    }
+    side = RandU64();
+    for (unsigned long long& i : castling) i = RandU64();
+    for (unsigned long long& i : en_passant) i = RandU64();
   }
-  side = RandU64();
-  for (unsigned long long& i : castling) i = RandU64();
-  for (unsigned long long& i : en_passant) i = RandU64();
-}
-}  // namespace zobrist
+} // namespace zobrist

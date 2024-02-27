@@ -24,7 +24,7 @@ struct MoveList {
   [[nodiscard]] Move move(const size_t idx) const { return data[idx].move; }
   [[nodiscard]] size_t size() const { return last - data; }
 
-  MoveData data[kMaxMoves], * last;
+  MoveData data[kMaxMoves], *last;
   MoveData* begin() { return data; }
 
   friend std::ostream& operator<<(std::ostream& os, const MoveList& move_list);
@@ -36,7 +36,7 @@ struct MoveList {
 
 inline void MoveList::remove(const size_t idx) {
   std::memmove(begin() + idx, begin() + idx + 1,
-    (size() - idx - 1) * sizeof(MoveData));
+               (size() - idx - 1) * sizeof(MoveData));
   --last;
 }
 

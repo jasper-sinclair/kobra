@@ -30,24 +30,26 @@ int uci::loop() {
       setoption(ss);
     else if (token == "isready") {
       std::cout << "readyok" << std::endl;
-    } else if (token == "position")
+    }
+    else if (token == "position")
       position(ss);
     else if (token == "go")
       go(ss.str());
     else if (token == "d") {
       std::cout << board;
       std::cout << board.fen() << std::endl;
-    } else if (token == "perft") {
+    }
+    else if (token == "perft") {
       Depth depth;
       ss >> depth;
       const std::chrono::steady_clock::time_point begin =
-          std::chrono::steady_clock::now();
+        std::chrono::steady_clock::now();
       const uint64_t node_cnt = perft(board, depth);
       const std::chrono::steady_clock::time_point end =
-          std::chrono::steady_clock::now();
+        std::chrono::steady_clock::now();
       std::cout << "node " << node_cnt << std::endl;
       std::cout << "time " << static_cast<double>((end - begin).count()) * 1e-9
-                << std::endl;
+        << std::endl;
     }
   }
   return ret;
@@ -57,9 +59,9 @@ int uci::uci() {
   std::cout << "id name kobra" << '\n';
   std::cout << "id author jasper" << '\n';
   std::cout << "option name Hash type spin default " << kDefaultHash
-            << " min 1 max " << kMaxHashSize << '\n';
+    << " min 1 max " << kMaxHashSize << '\n';
   std::cout << "option name Threads type spin default " << kDefaultThreads
-            << " min 1 max " << kMaxThreads << '\n';
+    << " min 1 max " << kMaxThreads << '\n';
   std::cout << "uciok" << '\n';
   return fflush(stdout);
 }
@@ -78,7 +80,8 @@ void uci::setoption(std::istringstream& ss) {
           ss >> hash_size;
           if (hash_size) search.hash.SetSize(hash_size);
         }
-      } else if (token == "Threads") {
+      }
+      else if (token == "Threads") {
         ss >> token;
         if (token == "value") {
           ss >> token;
@@ -97,9 +100,11 @@ int uci::position(std::istringstream& ss) {
   if (token == "startpos") {
     fen = kStartFen;
     ss >> token;
-  } else if (token == "fen") {
+  }
+  else if (token == "fen") {
     while (ss >> token && token != "moves") fen += token + " ";
-  } else
+  }
+  else
     return 0;
   board = {fen};
 
@@ -133,10 +138,12 @@ void uci::go(const std::string& str) {
     else if (token == "nodes") {
       search.time.use_node_limit = true;
       ss >> search.time.node_limit;
-    } else if (token == "depth") {
+    }
+    else if (token == "depth") {
       search.time.use_depth_limit = true;
       ss >> search.time.depth_limit;
-    } else if (token == "movetime") {
+    }
+    else if (token == "movetime") {
       search.time.use_move_time_limit = true;
       ss >> search.time.move_time_limit;
     }

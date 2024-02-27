@@ -89,15 +89,17 @@ Move Search::BestMove(Board& board, const ThreadId id) {
 
 template Move Search::BestMove<true>(Board& board, ThreadId id);
 template Move Search::BestMove<false>(Board& board, ThreadId id);
+
 template <SearchType St, bool SkipHashMove>
 
 Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
 
-  ThreadData& td, Stack* ss) {
+                        ThreadData& td, Stack* ss) {
   constexpr bool root_node = St == kRoot;
   constexpr bool pv_node = St != kNonPv;
 
-  if (!pv_node) assert(beta - alpha == 1);
+  if (!pv_node)
+    assert(beta - alpha == 1);
   assert(alpha < beta);
   assert(depth < MAX_DEPTH);
 
@@ -107,7 +109,7 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
   if (time.stop) return STOP_SCORE;
   if (board.IsDraw()) return DRAW_SCORE;
   if (depth <= 0)
-    return quiescence < pv_node ? PV : kNonPv >(board, alpha, beta, td, ss);
+    return quiescence<pv_node ? PV : kNonPv>(board, alpha, beta, td, ss);
 
   ++td.node_count;
   if (pv_node)
@@ -181,7 +183,7 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
 
     if (pv_node && !hash_hit) --depth;
     if (depth <= 0)
-      return quiescence < pv_node ? PV : kNonPv >(board, alpha, beta, td, ss);
+      return quiescence<pv_node ? PV : kNonPv>(board, alpha, beta, td, ss);
   }
 
   const Move hash_move = hash_hit ? he.move : Move();
@@ -250,7 +252,7 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
         ss->hash_move = m;
         score =
           AlphaBeta<kNonPv, true>(board, static_cast<Score>(singular_beta - 1),
-            singular_beta, singular_depth, td, ss);
+                                  singular_beta, singular_depth, td, ss);
         if (score < singular_beta)
           ext = 1;
         else if (hash_score >= beta)
@@ -265,9 +267,9 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
         if (is_capture) {
           const Square cap_sq =
             move::move_type(m) == move::EN_PASSANT
-            ? to - static_cast<Square>(static_cast<Score>(
-              direction::PawnPush(board.side_to_move)))
-            : to;
+              ? to - static_cast<Square>(static_cast<Score>(
+                direction::PawnPush(board.side_to_move)))
+              : to;
           const PieceType cap_pt = piece_type::make(board.PieceOn(cap_sq));
           const Score h_score = static_cast<Score>(
             td.histories.capture[ss->moved][cap_sq][cap_pt] / 21 + 43);
@@ -306,7 +308,7 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
         static_cast<Depth>(std::clamp(new_depth + ext, 0, +new_depth + 1));
       score = static_cast<Score>(
         -AlphaBeta<kNonPv>(board, static_cast<Score>(-alpha - 1),
-          static_cast<Score>(-alpha), d, td, ss + 1));
+                           static_cast<Score>(-alpha), d, td, ss + 1));
       if (ext < 0 && score > alpha)
         score = static_cast<Score>(-AlphaBeta<kNonPv>(
           board, static_cast<Score>(-alpha - 1), static_cast<Score>(-alpha),
@@ -315,12 +317,12 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
     else if (!pv_node || move_count > 1)
       score = static_cast<Score>(
         -AlphaBeta<kNonPv>(board, static_cast<Score>(-alpha - 1),
-          static_cast<Score>(-alpha), new_depth, td, ss + 1));
+                           static_cast<Score>(-alpha), new_depth, td, ss + 1));
     if (pv_node &&
       (move_count == 1 || (score > alpha && (root_node || score < beta))))
       score = static_cast<Score>(
         -AlphaBeta<PV>(board, static_cast<Score>(-beta),
-          static_cast<Score>(-alpha), new_depth, td, ss + 1));
+                       static_cast<Score>(-alpha), new_depth, td, ss + 1));
     board.UndoMove();
     if (time.stop) return STOP_SCORE;
     if (score > best_score) {
@@ -343,21 +345,23 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
   if (SkipHashMove && move_count == 1) return alpha;
   if (!move_count) return is_in_check ? -MATE_SCORE + ss->ply : DRAW_SCORE;
   if (!SkipHashMove) {
-    const NodeType node_type = best_score >= beta ? CUT_NODE
-      : pv_node && best_move ? PV_NODE
-      : ALL_NODE;
+    const NodeType node_type = best_score >= beta
+                                 ? CUT_NODE
+                                 : pv_node && best_move
+                                 ? PV_NODE
+                                 : ALL_NODE;
     assert(nodeType == CUT_NODE || nodeType == PV_NODE == bool(bestMove));
     if (best_move)
       td.histories.update(board, ss, best_move, move_sorter.moves, depth);
     hash.save(key, HashTable::ScoreToHash(best_score, static_cast<Depth>(ss->ply)),
-      ss->static_eval, best_move, depth, node_type);
+              ss->static_eval, best_move, depth, node_type);
   }
   return best_score;
 }
 
 template <SearchType St>
 Score Search::quiescence(Board& board, Score alpha, const Score beta,
-  ThreadData& td, Stack* ss) {
+                         ThreadData& td, Stack* ss) {
   constexpr bool pv_node = St == PV;
   ++td.node_count;
   assert(pvNode || beta - alpha == 1);
@@ -390,9 +394,9 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
     if (best_score >= beta) {
       if (!hash_hit)
         hash.save(key,
-          HashTable::ScoreToHash(best_score,
-            static_cast<Depth>(ss->ply)),
-          ss->static_eval, Move(), 0, CUT_NODE);
+                  HashTable::ScoreToHash(best_score,
+                                         static_cast<Depth>(ss->ply)),
+                  ss->static_eval, Move(), 0, CUT_NODE);
       return best_score;
     }
     if (pv_node && best_score > alpha) alpha = best_score;
@@ -406,7 +410,7 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
     if (!m) break;
     const bool is_capture = board.IsCapture(m);
     if (const bool is_queen_promotion =
-      board.IsPromotion(m) && move::GetPieceType(m) == QUEEN;
+        board.IsPromotion(m) && move::GetPieceType(m) == QUEEN;
       !is_in_check && !(is_capture || is_queen_promotion))
       continue;
     assert(board.isPseudoLegal(m));
@@ -435,16 +439,18 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
 
   if (!move_sorter.moves.size())
     return static_cast<Score>(is_in_check ? -MATE_SCORE + ss->ply : DRAW_SCORE);
-  const NodeType node_type = best_score >= beta ? CUT_NODE
-    : pv_node && best_move ? PV_NODE
-    : ALL_NODE;
+  const NodeType node_type = best_score >= beta
+                               ? CUT_NODE
+                               : pv_node && best_move
+                               ? PV_NODE
+                               : ALL_NODE;
   hash.save(key, HashTable::ScoreToHash(best_score, static_cast<Depth>(ss->ply)),
-    ss->static_eval, best_move, 0, node_type);
+            ss->static_eval, best_move, 0, node_type);
   return best_score;
 }
 
 std::string Search::info(const ThreadData& td, const Depth depth,
-  const Score score) const {
+                         const Score score) const {
   std::stringstream ss;
   ss << "info"
     << " depth " << depth << " seldepth " << td.sel_depth;
@@ -453,7 +459,7 @@ std::string Search::info(const ThreadData& td, const Depth depth,
     ss << " score cp " << score;
   else
     ss << " score mate "
-    << (MATE_SCORE - std::abs(score) + 1) / 2 * (score < 0 ? -1 : 1);
+      << (MATE_SCORE - std::abs(score) + 1) / 2 * (score < 0 ? -1 : 1);
 
   const Chrono::TimePoint elapsed = time.elapsed() + 1;
   const uint64_t nodes = NodeCount();
@@ -479,7 +485,7 @@ void Search::init() {
   for (int d = 1; d < kMaxDepth; ++d)
     for (int m = 1; m < kMaxMoves; ++m)
       forward_pruning_table[d][m] =
-      static_cast<Depth>(410 * log(d) * log(m) + 69 * log(m) + 35 * log(d));
+        static_cast<Depth>(410 * log(d) * log(m) + 69 * log(m) + 35 * log(d));
 }
 
 void Search::stop() { time.stop = true; }
@@ -501,8 +507,8 @@ void Search::clear() {
 
 void Search::SetNumThreads(const ThreadId threadnum) {
   this->num_threads = std::clamp(threadnum, static_cast<ThreadId>(1),
-    std::min(std::thread::hardware_concurrency(),
-      static_cast<ThreadId>(kMaxThreads)));
+                                 std::min(std::thread::hardware_concurrency(),
+                                          static_cast<ThreadId>(kMaxThreads)));
   while (!thread_data.empty()) delete thread_data.back(), thread_data.pop_back();
   for (ThreadId i = 0; i < this->num_threads; ++i)
     thread_data.push_back(new ThreadData(i));

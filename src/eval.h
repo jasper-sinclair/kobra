@@ -3,17 +3,20 @@
 #include<array>
 
 namespace eval {
-
   enum GamePhases {
-    MID_GAME, END_GAME,
+    MID_GAME,
+    END_GAME,
     N_GAME_PHASES
   };
 
-  inline std::array<std::array<std::array<std::array<Score, N_SQUARES>, N_GAME_PHASES>, N_PIECE_TYPES>, N_COLORS>psq_table;
+  inline std::array<std::array<std::array<std::array<Score, N_SQUARES>, N_GAME_PHASES>, N_PIECE_TYPES>, N_COLORS>
+  psq_table;
 
-  constexpr std::array<Score, 7>kPtValues = { 0, 100, 330, 350, 525, 1100, 8000 };
-  constexpr std::array<Score, 16>kPieceValues = { 0, kPtValues[1], kPtValues[2], kPtValues[3], kPtValues[4], kPtValues[5], kPtValues[6], 0,
-                          0, kPtValues[1], kPtValues[2], kPtValues[3], kPtValues[4], kPtValues[5], kPtValues[6], 0, };
+  constexpr std::array<Score, 7> kPtValues = {0, 100, 330, 350, 525, 1100, 8000};
+  constexpr std::array<Score, 16> kPieceValues = {
+    0, kPtValues[1], kPtValues[2], kPtValues[3], kPtValues[4], kPtValues[5], kPtValues[6], 0,
+    0, kPtValues[1], kPtValues[2], kPtValues[3], kPtValues[4], kPtValues[5], kPtValues[6], 0,
+  };
 
   inline void init() {
     psq_table[WHITE][PAWN][MID_GAME] = {
@@ -297,8 +300,9 @@ inline Score evaluate(const Board& board) {
   const bool w_queens = static_cast<bool>(board.pieces(WHITE, QUEEN));
   const bool b_queens = static_cast<bool>(board.pieces(BLACK, QUEEN));
   bool is_endgame;
-  if (w_queens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1 ||
-    b_queens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1)
+  if (w_queens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1
+    ||
+  b_queens && ((board.pieces(KNIGHT) | board.pieces(BISHOP) | board.pieces(ROOK)) & board.color(WHITE)).popcount() > 1)
     is_endgame = false;
   else
     is_endgame = true;

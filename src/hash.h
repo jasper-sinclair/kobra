@@ -15,6 +15,7 @@ enum NodeTypes { NONE_NODE, PV_NODE, CUT_NODE, ALL_NODE };
 
 struct HashEntry {
   Key key;
+
   union {
     struct {
       Score score;
@@ -23,6 +24,7 @@ struct HashEntry {
       uint8_t depth;
       NodeType node_type;
     };
+
     uint64_t data;
   };
 };
@@ -45,6 +47,6 @@ struct HashTable {
 
   void clear() const;
   void save(Key key, Score score, Score static_eval, Move move, Depth depth,
-    NodeType node_type);
+            NodeType node_type);
   void SetSize(uint64_t mb);
 };

@@ -35,8 +35,7 @@ struct MoveList {
 };
 
 inline void MoveList::remove(const size_t idx) {
-  std::memmove(begin() + idx, begin() + idx + 1,
-               (size() - idx - 1) * sizeof(MoveData));
+  std::memmove(begin() + idx, begin() + idx + 1, (size() - idx - 1) * sizeof(MoveData));
   --last;
 }
 

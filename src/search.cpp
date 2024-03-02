@@ -101,7 +101,7 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
   if (!pv_node)
     assert(beta - alpha == 1);
   assert(alpha < beta);
-  assert(depth < MAX_DEPTH);
+  assert(depth < kMaxDepth);
 
   const bool main_thread = td.id == 0;
 
@@ -196,8 +196,8 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
   for (;;) {
     const Move m = move_sorter.next();
     if (!m) break;
-    assert(board.isPseudoLegal(m));
-    assert(board.isLegal(m));
+    assert(board.IsPseudoLegal(m));
+    assert(board.IsLegal(m));
     if (pv_node) (ss + 1)->pv_size = 0;
     ++move_count;
 
@@ -350,7 +350,7 @@ Score Search::AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
       : pv_node && best_move
       ? PV_NODE
       : ALL_NODE;
-    assert(nodeType == CUT_NODE || nodeType == PV_NODE == bool(bestMove));
+    assert(node_type == CUT_NODE || node_type == PV_NODE == static_cast<bool>(best_move));
     if (best_move)
       td.histories.update(board, ss, best_move, move_sorter.moves, depth);
     hash.save(key, HashTable::ScoreToHash(best_score, static_cast<Depth>(ss->ply)),
@@ -364,7 +364,7 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
                          ThreadData& td, Stack* ss) {
   constexpr bool pv_node = St == PV;
   ++td.node_count;
-  assert(pvNode || beta - alpha == 1);
+  assert(pv_node || beta - alpha == 1);
   assert(alpha < beta);
   if (time.stop) return STOP_SCORE;
   if (board.IsDraw()) return DRAW_SCORE;
@@ -411,8 +411,8 @@ Score Search::quiescence(Board& board, Score alpha, const Score beta,
         board.IsPromotion(m) && move::GetPieceType(m) == QUEEN;
       !is_in_check && !(is_capture || is_queen_promotion))
       continue;
-    assert(board.isPseudoLegal(m));
-    assert(board.isLegal(m));
+    assert(board.IsPseudoLegal(m));
+    assert(board.IsLegal(m));
     if (is_capture && !is_in_check) {
       if (const Score see = board.see(m);
         see < eval::kPtValues[KNIGHT] - eval::kPtValues[BISHOP])

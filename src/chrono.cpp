@@ -18,14 +18,14 @@ void Chrono::InitTimeToUse(const Color side_to_move) {
   match_time_limit = time[side_to_move];
   if (match_time_limit) {
     use_match_time_limit = true;
+    constexpr TimePoint timefactor = static_cast<TimePoint>(0.05);
     constexpr TimePoint overhead = 50;
-    time_to_use =
-      (match_time_limit < inc[side_to_move]
+    time_to_use = (match_time_limit < inc[side_to_move]
          ? match_time_limit
-         : 0.05
+         : timefactor
          * (match_time_limit - inc[side_to_move])
          + inc[side_to_move])
-      - overhead;
+         - overhead;
     time_to_use = std::max(time_to_use, static_cast<TimePoint>(10));
   }
   else

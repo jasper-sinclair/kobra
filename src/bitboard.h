@@ -443,13 +443,9 @@ inline Bitboard Board::NonPawnMaterial(const Color c) const {
   return color(c) - pieces(PAWN) - pieces(KING);
 }
 
-using std::chrono::milliseconds;
-
-using TimeMs = long;
-
 inline TimeMs curr_time() {
   return static_cast<long>(
-    std::chrono::duration_cast<milliseconds>(
+    std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::system_clock::now().time_since_epoch())
     .count());
 }

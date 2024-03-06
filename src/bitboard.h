@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "main.h"
+
 #if defined(_MSC_VER)
 #include <intrin.h>
 #endif

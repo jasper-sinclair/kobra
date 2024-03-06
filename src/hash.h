@@ -10,7 +10,6 @@
 #endif
 
 using NodeType = uint8_t;
-
 enum NodeTypes { NONE_NODE, PV_NODE, CUT_NODE, ALL_NODE };
 
 struct HashEntry {

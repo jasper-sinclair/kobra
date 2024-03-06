@@ -1,6 +1,7 @@
+#include "attack.h"
+
 #include "bitboard.h"
 #include "main.h"
-#include "attack.h"
 
 namespace attack {
   void init() {

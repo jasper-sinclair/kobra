@@ -455,10 +455,10 @@ namespace anonymous {
 
 int nnue_init(const char* eval_file) {
   if (anonymous::load_eval_file(eval_file)) {
-    printf("%s", eval_file, "loaded\n");
+    std::cout << eval_file << " loaded" << std::endl;
     return fflush(stdout);
   }
-  printf("NNUE not found\n");
+  std::cout << eval_file << " not found" << std::endl;
   return fflush(stdout);
 }
 

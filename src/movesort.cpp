@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+
 #include "bitboard.h"
 #include "eval.h"
 #include "search.h"

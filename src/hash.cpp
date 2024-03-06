@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <memory>
+
 #include "main.h"
 
 void HashTable::SetSize(const uint64_t mb) {

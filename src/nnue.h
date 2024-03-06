@@ -1,8 +1,9 @@
 #pragma once
+
 #ifdef _WIN32
-#include <Windows.h>
 #include <bit>
 #include <string>
+#include <Windows.h>
 #else
 #include <sys/mman.h>
 #include <unistd.h>

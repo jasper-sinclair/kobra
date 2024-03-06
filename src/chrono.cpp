@@ -1,6 +1,8 @@
 #include "chrono.h"
+
 #include <algorithm>
 #include <cstring>
+
 #include "main.h"
 
 Chrono::Chrono() { std::memset(this, 0, sizeof(Chrono)); }

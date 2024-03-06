@@ -4,33 +4,25 @@
 #include <bit>
 #include <string>
 #include <Windows.h>
+using Fd = HANDLE;
+using MapT = HANDLE;
+#define FD_ERR INVALID_HANDLE_VALUE
 #else
 #include <sys/mman.h>
 #include <unistd.h>
-#endif
-
-#include <immintrin.h>
-
-#include "main.h"
-
-#ifdef _WIN32
-using Fd = HANDLE;
-#define FD_ERR INVALID_HANDLE_VALUE
-using MapT = HANDLE;
-#else
 typedef int Fd;
 #define FD_ERR -1
 typedef size_t MapT;
 #endif
 
+#include <immintrin.h>
+#include "main.h"
+
 #ifdef _MSC_VER
 #else
 #pragma GCC diagnostic ignored "-Wcast-qual"
-#endif
-
-#if defined(__GNUC__) && (__GNUC__ < 9) && defined(_WIN32) && \
-    !defined(__clang__) && !defined(__INTEL_COMPILER) && defined(USE_AVX2)
-#define ALIGNMENT_HACK
+#define NNUE_EMBEDDED
+#define NNUE_EVAL_FILE "kobra_1.0.nnue"
 #endif
 
 #if defined(_MSC_VER)
@@ -39,31 +31,13 @@ inline int popcnt(const uint64_t bb) { return std::popcount(bb); }
 inline Square Lsb(const uint64_t bb) {
   return static_cast<Square>(std::countr_zero(bb));
 }
-
-inline Square Msb(const uint64_t bb) {
-  unsigned long idx;
-  _BitScanReverse64(&idx, bb);
-  return static_cast<Square>(idx);
-}
-
-inline void prefetch(void* address) {
-  _mm_prefetch(static_cast<char*>(address), _MM_HINT_T0);
-}
-
 #elif defined(__GNUC__)
 inline int popcnt(uint64_t bb) { return __builtin_popcountll(bb); }
 inline Square Lsb(uint64_t bb) {
   return static_cast<Square>(__builtin_ctzll(bb));
 }
-inline Square Msb
-(uint64_t bb) {
-  return static_cast<Square>(63 ^ __builtin_clzll(bb));
-}
-inline void prefetch(void* address) { __builtin_prefetch(address); }
 #endif
 
-#define KING(c) ((c) ? kBking : kWking)
-#define IS_KING(p) (((p) == kWking) || ((p) == kBking))
 #ifdef _MSC_VER
 #define USE_AVX2 1
 #define USE_SSE41 1
@@ -72,19 +46,16 @@ inline void prefetch(void* address) { __builtin_prefetch(address); }
 #define USE_SSE 1
 #define IS_64_BIT 1
 #endif
+
 #define TILE_HEIGHT (kNumRegs * kSimdWidth / 16)
-#define CLAMP(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
+#define CLAMP(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))µ
+#define KING(c) ((c) ? kBking : kWking)
+#define IS_KING(p) (((p) == kWking) || ((p) == kBking))
 
 #define VEC_ADD_16(a, b) _mm256_add_epi16(a, b)
 #define VEC_SUB_16(a, b) _mm256_sub_epi16(a, b)
 #define VEC_PACKS(a, b) _mm256_packs_epi16(a, b)
-#define VEC_MASK_POS(a) \
-  _mm256_movemask_epi8(_mm256_cmpgt_epi8(a, _mm256_setzero_si256()))
-
-#if !defined(_MSC_VER)
-#define NNUE_EMBEDDED
-#define NNUE_EVAL_FILE "kobra_1.0.nnue"
-#endif
+#define VEC_MASK_POS(a) _mm256_movemask_epi8(_mm256_cmpgt_epi8(a, _mm256_setzero_si256()))
 
 enum NnuePieces {
   kBlank = 0,

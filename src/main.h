@@ -12,6 +12,7 @@ using PieceType = int32_t;
 using Rank = int8_t;
 using Score = int16_t;
 using Square = uint8_t;
+using TimeMs = int32_t;
 
 inline constexpr int kMaxDepth = 256;
 inline constexpr int kMaxPly = kMaxDepth;

@@ -122,20 +122,13 @@ struct Bitboard {
   [[nodiscard]] Bitboard mirrored() const { return _byteswap_uint64(data); }
 
   [[nodiscard]] int popcount() const {
-    return static_cast<int>(_mm_popcnt_u64(data));
+    return std::popcount(data);
   }
 
   [[nodiscard]] Square Lsb() const {
-    unsigned long idx;
-    _BitScanForward64(&idx, data);
-    return static_cast<Square>(idx);
+    return static_cast<Square>(std::countr_zero(data));
   }
 
-  [[nodiscard]] Square Msb() const {
-    unsigned long idx;
-    _BitScanReverse64(&idx, data);
-    return static_cast<Square>(idx);
-  }
 #else
   void mirror() {
     constexpr static uint64_t k1 = 0x00ff00ff00ff00ff;
@@ -160,12 +153,6 @@ struct Bitboard {
 
   Square PopLsb() {
     const Square sq = Lsb();
-    data &= data - 1;
-    return sq;
-  }
-
-  Square PopMsb() {
-    const Square sq = Msb();
     data &= data - 1;
     return sq;
   }

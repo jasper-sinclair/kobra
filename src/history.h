@@ -13,7 +13,7 @@ struct History : std::array<History<Sizes...>, Size> {
     std::fill_n(e, sizeof(*this) / sizeof(HistoryEntry), value);
   }
 
-  static constexpr HistoryEntry max = 30000;
+  static constexpr HistoryEntry Max = 30000;
 
   static HistoryEntry p(const Depth d) {
     return static_cast<HistoryEntry>(std::min(153 * d - 133, 1525));

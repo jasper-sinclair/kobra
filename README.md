@@ -17,7 +17,10 @@ kobra is a work in progress...
 - threads
 - random
 - perft
+- nnue
 ---------
+
+powered by https://github.com/dshawul/nnue-probe
 
 [license-badge]:https://img.shields.io/github/license/jasper-sinclair/kobra?style=for-the-badge&label=license&color=success
 [license-link]:https://github.com/jasper-sinclair/kobra/blob/main/LICENSE

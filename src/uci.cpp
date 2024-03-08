@@ -2,9 +2,12 @@
 
 #include <ostream>
 
+#include "eval.h"
 #include "movegen.h"
 
 int uci::loop() {
+  const char* filename = evalfile.c_str();
+  nnue_init(filename);
   constexpr int ret = 0;
   board = Board(kStartFen);
   search.SetHashSize(kDefaultHash);
@@ -56,7 +59,7 @@ int uci::loop() {
 }
 
 int uci::uci() {
-  std::cout << "id name kobra" << '\n';
+  std::cout << "id name kobra 1.0" << '\n';
   std::cout << "id author jasper" << '\n';
   std::cout << "option name Hash type spin default " << kDefaultHash
     << " min 1 max " << kMaxHashSize << '\n';

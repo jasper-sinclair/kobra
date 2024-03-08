@@ -7,17 +7,16 @@ UCI chess engine
   ![Downloads][downloads-badge]
   [![License][license-badge]][license-link]
   
-kobra is a work in progress...
-
+features:
 - windows
 - 64 bit
-- c++17
+- c++20
+- alpha-beta
+- nnue
 - bitboards
 - hash
 - threads
-- random
 - perft
-- nnue
 ---------
 
 powered by https://github.com/dshawul/nnue-probe

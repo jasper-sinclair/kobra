@@ -19,7 +19,6 @@ features:
 - hash
 - threads
 - perft
----------
 
 powered by https://github.com/dshawul/nnue-probe
 

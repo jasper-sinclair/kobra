@@ -131,13 +131,12 @@
     <ClCompile Include="attack.cpp" />
     <ClCompile Include="bitboard.cpp" />
     <ClCompile Include="chrono.cpp" />
+    <ClCompile Include="eval.cpp" />
     <ClCompile Include="hash.cpp" />
     <ClCompile Include="history.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="movegen.cpp" />
     <ClCompile Include="movesort.cpp" />
-    <ClCompile Include="nnue\misc.cpp" />
-    <ClCompile Include="nnue\nnue.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="uci.cpp" />
   </ItemGroup>
@@ -151,8 +150,6 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="movegen.h" />
     <ClInclude Include="movesort.h" />
-    <ClInclude Include="nnue\misc.h" />
-    <ClInclude Include="nnue\nnue.h" />
     <ClInclude Include="search.h" />
     <ClInclude Include="uci.h" />
   </ItemGroup>

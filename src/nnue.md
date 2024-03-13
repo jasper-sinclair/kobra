@@ -1,7 +1,8 @@
 Kobra_1.0.nnue was created from the many millions of self-play games created during development and testing.
 
 The 'convert_bin' & 'learn' functions from nodchip's NNUE repo were used.
-https://github.com/nodchip/Stockfish/releases/tag/stockfish-nnue-2020-08-30
+
+See: https://github.com/nodchip/Stockfish/releases/tag/stockfish-nnue-2020-08-30
 
 The 'convert_bin' function converts .pgn(text) files to binary format.
 

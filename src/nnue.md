@@ -1,28 +1,13 @@
-# What is it
+Kobra_1.0.nnue was created from the many millions of self-play games created during development and testing.
 
-nnue-probe is library for probing NNUE neural networks for chess.
-The core nnue probing code is taken from [CFish](https://github.com/syzygy1/Cfish) and modified a bit.
+The 'convert_bin' & 'learn' functions from nodchip's NNUE repo were used.
+https://github.com/nodchip/Stockfish/releases/tag/stockfish-nnue-2020-08-30
 
-# How to build
+The 'convert_bin' function converts .pgn(text) files to binary format.
 
-To compile
+for ex: "convert_bin output_file_name kobra_1.0.bin kobra_1.0.txt"
 
-    make clean; make COMP=gcc 
+The 'learn' function loads the resulting binary data to train and create the NNUE net.
 
-Cross-compiling for windows from linux using mingw is possible by setting `COMP=win`
-
-# Probing from python
-
-    from __future__ import print_function
-    from ctypes import *
-    nnue = cdll.LoadLibrary("libnnueprobe.so")
-    nnue.nnue_init(b"nn-04cf2b4ed1da.nnue")
-    score = nnue.nnue_evaluate_fen(b"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-    print("Score = ", score)
-
-The result
-
-    Loading NNUE : nn-04cf2b4ed1da.nnue
-    NNUE loaded !
-    Score =  42
-
+for ex: "learn targetdir traindata loop 100 batchsize 1000000 eta 1.0 lambda 0.5 eval_limit 32000 nn_batch_size 1000 newbob_decay
+0.5 eval_save_interval 10000000 loss_output_interval 1000000 mirror_percentage 50 validation_set_file_name valdata\kobra-val.bin"

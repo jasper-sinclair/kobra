@@ -20,7 +20,7 @@ void Chrono::InitTimeToUse(const Color side_to_move) {
   match_time_limit = time[side_to_move];
   if (match_time_limit) {
     use_match_time_limit = true;
-    constexpr double timefactor = 0.05;
+    constexpr double timefactor = 0.02;
     constexpr TimePoint overhead = 50;
     time_to_use = (match_time_limit < inc[side_to_move]
          ? match_time_limit

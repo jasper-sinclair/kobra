@@ -20,6 +20,8 @@ features:
 - threads
 - perft
 
+![alt tag](https://raw.githubusercontent.com/jasper-sinclair/kobra/main/src/kobra-perft-7.png)
+
 powered by https://github.com/dshawul/nnue-probe
 
 [license-badge]:https://img.shields.io/github/license/jasper-sinclair/kobra?style=for-the-badge&label=license&color=success

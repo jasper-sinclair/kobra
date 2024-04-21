@@ -5,6 +5,11 @@
 
 #include "main.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable : 4244)
+#else
+#endif
+
 Chrono::Chrono() { std::memset(this, 0, sizeof(Chrono)); }
 
 Chrono::TimePoint Chrono::now() {

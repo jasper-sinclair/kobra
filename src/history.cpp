@@ -12,14 +12,14 @@
 void ButterflyHistory::increase(const Board& board, const Move move,
                                 const Depth d) {
   auto& e = data()[board.side_to_move][move::from(move)][move::to(move)];
-  e += i_a * p(d) * (Max - e) / Max;
+  e += i_a * p(d) * (max_entry - e) / max_entry;
   assert(std::abs(e) < max);
 }
 
 void ButterflyHistory::decrease(const Board& board, const Move move,
                                 const Depth d) {
   auto& e = data()[board.side_to_move][move::from(move)][move::to(move)];
-  e -= d_a * p(d) * (Max + e) / Max;
+  e -= d_a * p(d) * (max_entry + e) / max_entry;
   assert(std::abs(e) < max);
 }
 
@@ -33,7 +33,7 @@ void CaptureHistory::increase(const Board& board, const Move move,
       : move::to(move);
   const PieceType captured = piece_type::make(board.PieceOn(to));
   auto& e = data()[moved][to][captured];
-  e += i_a * p(d) * (Max - e) / Max;
+  e += i_a * p(d) * (max_entry - e) / max_entry;
   assert(std::abs(e) < max);
 }
 
@@ -47,7 +47,7 @@ void CaptureHistory::decrease(const Board& board, const Move move,
       : move::to(move);
   const PieceType captured = piece_type::make(board.PieceOn(to));
   auto& e = data()[moved][to][captured];
-  e -= d_a * p(d) * (Max + e) / Max;
+  e -= d_a * p(d) * (max_entry + e) / max_entry;
   assert(std::abs(e) < max);
 }
 
@@ -56,17 +56,17 @@ void ContinuationHistory::increase(const Board& board, const Stack* ss,
   if ((ss - 1)->move) {
     auto& e = data()[(ss - 1)->moved][move::to((ss - 1)->move)]
       [board.PieceOn(move::from(move))][move::to(move)];
-    e += i_a1 * p(d) * (Max - e) / Max;
+    e += i_a1 * p(d) * (max_entry - e) / max_entry;
     assert(std::abs(e) < max);
     if ((ss - 2)->move) {
       e = data()[(ss - 2)->moved][move::to((ss - 2)->move)]
         [board.PieceOn(move::from(move))][move::to(move)];
-      e += i_a2 * p(d) * (Max - e) / Max;
+      e += i_a2 * p(d) * (max_entry - e) / max_entry;
       assert(std::abs(e) < max);
       if ((ss - 4)->move) {
         e = data()[(ss - 4)->moved][move::to((ss - 4)->move)]
           [board.PieceOn(move::from(move))][move::to(move)];
-        e += i_a4 * p(d) * (Max - e) / Max;
+        e += i_a4 * p(d) * (max_entry - e) / max_entry;
         assert(std::abs(e) < max);
       }
     }
@@ -78,17 +78,17 @@ void ContinuationHistory::decrease(const Board& board, const Stack* ss,
   if ((ss - 1)->move) {
     auto& e = data()[(ss - 1)->moved][move::to((ss - 1)->move)]
       [board.PieceOn(move::from(move))][move::to(move)];
-    e -= d_a1 * p(d) * (Max + e) / Max;
+    e -= d_a1 * p(d) * (max_entry + e) / max_entry;
     assert(std::abs(e) < max);
     if ((ss - 2)->move) {
       e = data()[(ss - 2)->moved][move::to((ss - 2)->move)]
         [board.PieceOn(move::from(move))][move::to(move)];
-      e -= d_a2 * p(d) * (Max + e) / Max;
+      e -= d_a2 * p(d) * (max_entry + e) / max_entry;
       assert(std::abs(e) < max);
       if ((ss - 4)->move) {
         e = data()[(ss - 4)->moved][move::to((ss - 4)->move)]
           [board.PieceOn(move::from(move))][move::to(move)];
-        e -= d_a4 * p(d) * (Max + e) / Max;
+        e -= d_a4 * p(d) * (max_entry + e) / max_entry;
         assert(std::abs(e) < max);
       }
     }

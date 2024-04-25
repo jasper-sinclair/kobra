@@ -18,9 +18,32 @@ features:
 - bitboards
 - hash
 - threads
-- perft
 
-![alt tag](https://raw.githubusercontent.com/jasper-sinclair/kobra/main/src/kobra-perft-7.png)
+|       |       |
+|-------|------ |
+|perft 7||  
+|a2a3|1067431060|
+|b2b3|1332339750|
+|c2c3|1440749440|
+|d2d3|2275986920|
+|e2e3|3061384100|
+|f2f3|1020210080|
+|g2g3|1359876510|
+|h2h3|1066784230|
+|a2a4|1370773370|
+|b2b4|1340874760|
+|c2c4|1577564430|
+|d2d4|2696055990|
+|e2e4|3094782630|
+|f2f4|1196148410|
+|g2g4|1302930180|
+|h2h4|1384952900|
+|b1a3|1201421440|
+|b1c3|1485271610|
+|g1f3|1476785540|
+|g1h3|1206695250|
+|nodes|3195901860|
+|time|25.2002|
 
 powered by https://github.com/dshawul/nnue-probe
 

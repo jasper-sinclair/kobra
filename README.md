@@ -45,7 +45,10 @@ features:
 |nodes|3195901860|
 |time|25.2002|
 
-powered by https://github.com/dshawul/nnue-probe
+Kobra's strength & unique play results from the use of a NNUE evaluation created & trained from millions of self-play games.
+The data used is available here: https://github.com/jasper-sinclair/kobra-data
+
+Kobra NNUE is powered by https://github.com/dshawul/nnue-probe
 
 [license-badge]:https://img.shields.io/github/license/jasper-sinclair/kobra?style=for-the-badge&label=license&color=success
 [license-link]:https://github.com/jasper-sinclair/kobra/blob/main/LICENSE

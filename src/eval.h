@@ -30,7 +30,7 @@ typedef size_t MapT;
 #else
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #define NNUE_EMBEDDED
-#define NNUE_EVAL_FILE "kobra_1.1.nnue"
+#define NNUE_EVAL_FILE "kobra_1.2.nnue"
 #endif
 
 #if defined(_MSC_VER)
@@ -321,7 +321,7 @@ using IndexList = struct {
   unsigned values[30];
 };
 
-inline std::string nnue_evalfile = "kobra_1.1.nnue";
+inline std::string nnue_evalfile = "kobra_1.2.nnue";
 inline const char* nnue_file = nnue_evalfile.c_str();
 inline constexpr uint32_t kNnueVersion = 0x7AF32F16u;
 

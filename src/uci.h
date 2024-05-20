@@ -9,7 +9,7 @@ namespace uci {
 
   inline Board board;
   inline Search search;
-  inline std::string evalfile = "kobra_1.1.nnue";
+  inline std::string evalfile = "kobra_1.2.nnue";
   inline std::thread thread;
 
   int loop();

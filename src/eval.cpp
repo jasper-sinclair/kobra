@@ -396,7 +396,7 @@ struct NetData {
 
 int nnue_evaluate_pos(const NnueBoard* pos) {
   alignas(8) MaskT input_mask[kFtOutDims / (8 * sizeof(MaskT))];
-  alignas(8) MaskT hidden1_mask[8 / sizeof(MaskT)] = { 0 };
+  alignas(8) MaskT hidden1_mask[8 / sizeof(MaskT)] = {};
   NetData buf;
 #define B(x) (buf.x)
   transform(pos, B(input), input_mask);

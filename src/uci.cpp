@@ -59,7 +59,7 @@ int uci::loop() {
 }
 
 int uci::uci() {
-  std::cout << "id name kobra 1.1" << '\n';
+  std::cout << "id name kobra 1.2" << '\n';
   std::cout << "id author jasper" << '\n';
   std::cout << "option name Hash type spin default " << kDefaultHash
     << " min 1 max " << kMaxHashSize << '\n';

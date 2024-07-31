@@ -109,7 +109,7 @@ int uci::position(std::istringstream& ss) {
   }
   else
     return 0;
-  board = {fen};
+  board = { fen };
 
   while (ss >> token) {
     const Move move = ToMove(token, board);

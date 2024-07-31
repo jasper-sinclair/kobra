@@ -46,6 +46,6 @@ struct HashTable {
 
   void clear() const;
   void save(Key key, Score score, Score static_eval, Move move, Depth depth,
-            NodeType node_type);
+    NodeType node_type);
   void SetSize(uint64_t mb);
 };

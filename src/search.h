@@ -1,9 +1,19 @@
+// search.h
 #pragma once
+
 #include <thread>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <cstring>
+#include <iostream>
+#include <sstream>
 
 #include "chrono.h"
 #include "hash.h"
 #include "movesort.h"
+#include "eval.h"
 
 using ThreadId = uint32_t;
 constexpr int kMinDisplayTime = 5000;
@@ -13,10 +23,8 @@ enum SearchType { kNonPv, PV, kRoot };
 
 struct Stack {
   Move pv[kMaxDepth];
-
   int ply;
   int pv_size;
-
   Move hash_move;
   Move move;
   Piece moved;
@@ -26,21 +34,18 @@ struct Stack {
 struct ThreadData {
   Depth root_depth;
   Depth sel_depth;
-
   Histories histories;
   Stack stack[kMaxPly + kContinuationPly];
   std::vector<Move> pv;
   ThreadId id;
   uint64_t node_count;
-  ThreadData() : root_depth(0), sel_depth(0), stack{}, id(0), node_count(0) {}
 
-  explicit ThreadData(const ThreadId id)
-    : root_depth(0), sel_depth(0), stack{}, id(id), node_count(0) {}
+  ThreadData() : root_depth(0), sel_depth(0), stack{}, id(0), node_count(0) {}
+  explicit ThreadData(const ThreadId id) : root_depth(0), sel_depth(0), stack{}, id(id), node_count(0) {}
 };
 
 struct Search {
-  [[nodiscard]] std::string info(const ThreadData& td, Depth depth,
-                                 Score score) const;
+  [[nodiscard]] std::string info(const ThreadData& td, Depth depth, Score score) const;
   [[nodiscard]] uint64_t NodeCount() const;
 
   Chrono time;
@@ -57,12 +62,12 @@ struct Search {
 
   template <bool MainThread = true>
   Move BestMove(Board& board, ThreadId id = 0);
+
   template <SearchType St, bool SkipHashMove = false>
-  Score AlphaBeta(Board& board, Score alpha, Score beta, Depth depth,
-                  ThreadData& td, Stack* ss);
+  Score AlphaBeta(Board& board, Score alpha, Score beta, Depth depth, ThreadData& td, Stack* ss);
+
   template <SearchType St>
-  Score quiescence(Board& board, Score alpha, Score beta, ThreadData& td,
-                   Stack* ss);
+  Score quiescence(Board& board, Score alpha, Score beta, ThreadData& td, Stack* ss);
 
   ThreadId num_threads = 1;
   HashTable hash;

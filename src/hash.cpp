@@ -40,8 +40,8 @@ bool HashTable::probe(const Key key, HashEntry& hash_entry) {
 }
 
 void HashTable::save(const Key key, const Score score,
-                     const Score static_eval, const Move move,
-                     const Depth depth, const NodeType node_type) {
+  const Score static_eval, const Move move,
+  const Depth depth, const NodeType node_type) {
   HashEntry tmp;
   tmp.score = score;
   tmp.static_eval = static_eval;

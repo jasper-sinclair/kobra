@@ -67,6 +67,6 @@ struct Histories {
 
   void clear();
   void update(const Board& board, const Stack* ss, Move best_move,
-              MoveList& moves, Depth depth);
+    MoveList& moves, Depth depth);
   Histories() { clear(); }
 };

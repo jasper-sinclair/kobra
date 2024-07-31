@@ -84,7 +84,7 @@ namespace square {
 #define GETMAX(a, b) (((a) > (b)) ? (a) : (b))
     return static_cast<uint8_t>(
       GETMAX(std::abs(file::make(s1) - file::make(s2)),
-             std::abs(rank::make(s1) - rank::make(s2))));
+      std::abs(rank::make(s1) - rank::make(s2))));
   }
 } // namespace square
 
@@ -95,7 +95,7 @@ struct Bitboard {
   constexpr Bitboard(const uint64_t data) : data(data) {}
 
   constexpr static Bitboard FromSquare(const Square sq) {
-    return {static_cast<uint64_t>(1) << sq};
+    return { static_cast<uint64_t>(1) << sq };
   }
 
   constexpr void set(const Square sq) {
@@ -263,7 +263,7 @@ namespace move {
   }
 
   constexpr Move make(const Square from, const Square to,
-                      const MoveType move_type) {
+    const MoveType move_type) {
     return static_cast<Move>(from | to << 6 | move_type);
   }
 
@@ -293,7 +293,7 @@ namespace move {
         return s + 'r';
       case QUEEN:
         return s + 'q';
-      default: ;
+      default:;
       }
     }
     return s;
@@ -301,7 +301,7 @@ namespace move {
 } // namespace move
 
 const std::string kStartFen =
-  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 constexpr Bitboard kWhiteQueenSidePath(0xe);
 constexpr Bitboard kWhiteKingSidePath(0x60);
 constexpr Bitboard kBlackQueenSidePath(0xE00000000000000);
@@ -359,7 +359,7 @@ struct Board {
 
   Bitboard color_bb[N_COLORS];
   Bitboard LeastValuablePiece(Bitboard attacking, Color attacker,
-                              Piece& pc) const;
+    Piece& pc) const;
   Bitboard occupied_bb = 0;
   Bitboard piece_bb[N_PIECE_TYPES]{};
 
@@ -434,7 +434,7 @@ inline Bitboard Board::NonPawnMaterial(const Color c) const {
 inline TimeMs curr_time() {
   return static_cast<long>(
     std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::system_clock::now().time_since_epoch())
+    std::chrono::system_clock::now().time_since_epoch())
     .count());
 }
 

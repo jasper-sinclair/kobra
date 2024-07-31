@@ -109,8 +109,8 @@ void GenPieceMoves(Board& board, MoveList& move_list) {
     Square from = pieces.PopLsb();
     Bitboard attacks =
       (Pt == KNIGHT
-         ? attack::knight_attacks[from]
-         : attack::attacks<Pt>(from, board.occupied())) -
+      ? attack::knight_attacks[from]
+      : attack::attacks<Pt>(from, board.occupied())) -
       friendly;
     while (attacks) move_list.add(move::make(from, attacks.PopLsb()));
   }
@@ -163,5 +163,5 @@ void GenMoves(Board& board, MoveList& move_list) {
   }
   move_list.last = std::ranges::remove_if(move_list, [&](const MoveData& m) {
     return !board.IsLegal(m.move);
-  }).begin();
+    }).begin();
 }

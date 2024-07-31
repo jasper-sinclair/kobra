@@ -73,7 +73,7 @@ Score evaluate(const Board& pos) {
       squares[index] = i;
       index++;
     }
-}
+  }
   const int nnue_score = nnue_evaluate(pos.side_to_move, pieces, squares);
   return static_cast<Score>(nnue_score);
 }
@@ -320,7 +320,7 @@ inline bool update_accumulator(const NnueBoard* pos) {
   if ((!pos->nnue[1] ||
     !(prev_acc = &pos->nnue[1]->accumulator)->computed_accumulation) &&
     (!pos->nnue[2] ||
-      !(prev_acc = &pos->nnue[2]->accumulator)->computed_accumulation))
+    !(prev_acc = &pos->nnue[2]->accumulator)->computed_accumulation))
     return false;
 
   IndexList removed_indices[2], added_indices[2];

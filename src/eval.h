@@ -1,6 +1,8 @@
 #pragma once
 #include <array>
-
+#include <climits>
+#include <immintrin.h>
+#include "main.h"
 #include "movegen.h"
 
 #ifdef _MSC_VER
@@ -23,9 +25,6 @@ typedef int Fd;
 typedef size_t MapT;
 #endif
 
-#include <immintrin.h>
-#include "main.h"
-
 #ifdef _MSC_VER
 #else
 #pragma GCC diagnostic ignored "-Wcast-qual"
@@ -46,6 +45,158 @@ inline Square Lsb(uint64_t bb) {
 }
 #endif
 
+namespace eval {
+  enum GamePhase { MID_GAME, END_GAME, N_GAME_PHASES };
+
+  enum Ptype : uint8_t {
+    kNoPiece,
+    kWKing = 1,
+    kWPawn = 2,
+    kWKnight = 3,
+    kWBishop = 4,
+    kWRook = 5,
+    kWQueen = 6,
+    kBKing = 9,
+    kBPawn = 10,
+    kBKnight = 11,
+    kBBishop = 12,
+    kBRook = 13,
+    kBQueen = 14,
+  };
+
+  constexpr std::array<Score, 7> kPtValues = { 0, 100, 330, 350, 525, 1100, 8000 };
+
+  constexpr std::array<Score, 16> kPieceValues = {
+      0,
+      kPtValues[1],
+      kPtValues[2],
+      kPtValues[3],
+      kPtValues[4],
+      kPtValues[5],
+      kPtValues[6],
+      0,
+      0,
+      kPtValues[1],
+      kPtValues[2],
+      kPtValues[3],
+      kPtValues[4],
+      kPtValues[5],
+      kPtValues[6],
+      0,
+  };
+}
+
+enum NnuePieces {
+  kBlank = 0,
+  kWking,
+  kWqueen,
+  kWrook,
+  kWbishop,
+  kWknight,
+  kWpawn,
+  kBking,
+  kBqueen,
+  kBrook,
+  kBbishop,
+  kBknight,
+  kBpawn
+};
+
+enum {
+  kPsWPawn = 1,
+  kPsBPawn = 1 * 64 + 1,
+  kPsWKnight = 2 * 64 + 1,
+  kPsBKnight = 3 * 64 + 1,
+  kPsWBishop = 4 * 64 + 1,
+  kPsBBishop = 5 * 64 + 1,
+  kPsWRook = 6 * 64 + 1,
+  kPsBRook = 7 * 64 + 1,
+  kPsWQueen = 8 * 64 + 1,
+  kPsBQueen = 9 * 64 + 1,
+  kPsEnd = 10 * 64 + 1
+};
+
+enum { kFvScale = 16, kShift = 6 };
+
+enum {
+  kHalfDimensions = 256,
+  kFtInDims = 64 * kPsEnd,
+  kFtOutDims = kHalfDimensions * 2
+};
+
+enum { kNumRegs = 16, kSimdWidth = 256 };
+
+using DirtyPiece = struct DirtyPiece {
+  int dirty_num;
+  int pc[3];
+  int from[3];
+  int to[3];
+};
+
+using Accumulator = struct Accumulator {
+  alignas(64) int16_t accumulation[2][256];
+  int computed_accumulation;
+};
+
+using NnueData = struct NnueData {
+  Accumulator accumulator;
+  DirtyPiece dirty_piece;
+};
+
+using NnueBoard = struct NnueBoard {
+  int player;
+  int* pieces;
+  int* squares;
+  NnueData* nnue[3];
+};
+
+using Vec16T = __m256i;
+using Vec8T = __m256i;
+using MaskT = uint32_t;
+using Mask2T = uint64_t;
+using ClippedT = int8_t;
+using WeightT = int8_t;
+
+using IndexList = struct {
+  size_t size;
+  unsigned values[30];
+};
+
+inline std::string nnue_evalfile = "kobra_1.2.nnue";
+inline const char* nnue_file = nnue_evalfile.c_str();
+inline constexpr uint32_t kNnueVersion = 0x7AF32F16u;
+
+inline int32_t hidden1_biases alignas(64)[32];
+inline int32_t hidden2_biases alignas(64)[32];
+inline int32_t output_biases[1];
+
+inline WeightT hidden1_weights alignas(64)[64 * 512];
+inline WeightT hidden2_weights alignas(64)[64 * 32];
+inline WeightT output_weights alignas(64)[1 * 32];
+
+inline uint32_t piece_to_index[2][14] = {
+  {
+    0, 0, kPsWQueen, kPsWRook, kPsWBishop, kPsWKnight, kPsWPawn, 0,
+    kPsBQueen, kPsBRook, kPsBBishop, kPsBKnight, kPsBPawn, 0
+  },
+  {
+    0, 0, kPsBQueen, kPsBRook, kPsBBishop, kPsBKnight, kPsBPawn, 0,
+    kPsWQueen, kPsWRook, kPsWBishop, kPsWKnight, kPsWPawn, 0
+  }
+};
+
+Score evaluate(const Board& pos);
+int nnue_evaluate_pos(const NnueBoard* pos);
+int nnue_evaluate(int player, int* pieces, int* squares);
+int nnue_init(const char* eval_file);
+
+size_t file_size(Fd fd);
+
+const void* map_file(Fd fd, MapT* map);
+Fd open_file(const char* name);
+void close_file(Fd fd);
+void unmap_file(const void* data, MapT map);
+
 #ifdef _MSC_VER
 #define USE_AVX2 1
 #define USE_SSE41 1
@@ -64,9 +215,6 @@ inline Square Lsb(uint64_t bb) {
 #define VEC_SUB_16(a, b) _mm256_sub_epi16(a, b)
 #define VEC_PACKS(a, b) _mm256_packs_epi16(a, b)
 #define VEC_MASK_POS(a) _mm256_movemask_epi8(_mm256_cmpgt_epi8(a, _mm256_setzero_si256()))
-
-#pragma once
-#include <climits>
 
 #if defined(__AVX512BW__) || defined(__AVX512CD__) || defined(__AVX512DQ__) || \
     defined(__AVX512ER__) || defined(__AVX512PF__) || defined(__AVX512VL__) || \
@@ -203,155 +351,3 @@ INCBIN_INT INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRI
 INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(DATA) "\n" INCBIN_ALIGN_HOST ".text\n"); \
 INCBIN_EXTERN(NAME)
 #endif
-
-namespace eval {
-enum GamePhase { MID_GAME, END_GAME, N_GAME_PHASES };
-
-enum Ptype : uint8_t {
-  kNoPiece,
-  kWKing = 1,
-  kWPawn = 2,
-  kWKnight = 3,
-  kWBishop = 4,
-  kWRook = 5,
-  kWQueen = 6,
-  kBKing = 9,
-  kBPawn = 10,
-  kBKnight = 11,
-  kBBishop = 12,
-  kBRook = 13,
-  kBQueen = 14,
-};
-
-constexpr std::array<Score, 7> kPtValues = {0, 100, 330, 350, 525, 1100, 8000};
-
-constexpr std::array<Score, 16> kPieceValues = {
-    0,
-    kPtValues[1],
-    kPtValues[2],
-    kPtValues[3],
-    kPtValues[4],
-    kPtValues[5],
-    kPtValues[6],
-    0,
-    0,
-    kPtValues[1],
-    kPtValues[2],
-    kPtValues[3],
-    kPtValues[4],
-    kPtValues[5],
-    kPtValues[6],
-    0,
-};
-}    
-
-enum NnuePieces {
-  kBlank = 0,
-  kWking,
-  kWqueen,
-  kWrook,
-  kWbishop,
-  kWknight,
-  kWpawn,
-  kBking,
-  kBqueen,
-  kBrook,
-  kBbishop,
-  kBknight,
-  kBpawn
-};
-
-enum {
-  kPsWPawn = 1,
-  kPsBPawn = 1 * 64 + 1,
-  kPsWKnight = 2 * 64 + 1,
-  kPsBKnight = 3 * 64 + 1,
-  kPsWBishop = 4 * 64 + 1,
-  kPsBBishop = 5 * 64 + 1,
-  kPsWRook = 6 * 64 + 1,
-  kPsBRook = 7 * 64 + 1,
-  kPsWQueen = 8 * 64 + 1,
-  kPsBQueen = 9 * 64 + 1,
-  kPsEnd = 10 * 64 + 1
-};
-
-enum { kFvScale = 16, kShift = 6 };
-
-enum {
-  kHalfDimensions = 256,
-  kFtInDims = 64 * kPsEnd,
-  kFtOutDims = kHalfDimensions * 2
-};
-
-enum { kNumRegs = 16, kSimdWidth = 256 };
-
-using DirtyPiece = struct DirtyPiece {
-  int dirty_num;
-  int pc[3];
-  int from[3];
-  int to[3];
-};
-
-using Accumulator = struct Accumulator {
-  alignas(64) int16_t accumulation[2][256];
-  int computed_accumulation;
-};
-
-using NnueData = struct NnueData {
-  Accumulator accumulator;
-  DirtyPiece dirty_piece;
-};
-
-using NnueBoard = struct NnueBoard {
-  int player;
-  int* pieces;
-  int* squares;
-  NnueData* nnue[3];
-};
-
-using Vec16T = __m256i;
-using Vec8T = __m256i;
-using MaskT = uint32_t;
-using Mask2T = uint64_t;
-using ClippedT = int8_t;
-using WeightT = int8_t;
-
-using IndexList = struct {
-  size_t size;
-  unsigned values[30];
-};
-
-inline std::string nnue_evalfile = "kobra_1.2.nnue";
-inline const char* nnue_file = nnue_evalfile.c_str();
-inline constexpr uint32_t kNnueVersion = 0x7AF32F16u;
-
-inline int32_t hidden1_biases alignas(64)[32];
-inline int32_t hidden2_biases alignas(64)[32];
-inline int32_t output_biases[1];
-
-inline WeightT hidden1_weights alignas(64)[64 * 512];
-inline WeightT hidden2_weights alignas(64)[64 * 32];
-inline WeightT output_weights alignas(64)[1 * 32];
-
-inline uint32_t piece_to_index[2][14] = {
-  {
-    0, 0, kPsWQueen, kPsWRook, kPsWBishop, kPsWKnight, kPsWPawn, 0,
-    kPsBQueen, kPsBRook, kPsBBishop, kPsBKnight, kPsBPawn, 0
-  },
-  {
-    0, 0, kPsBQueen, kPsBRook, kPsBBishop, kPsBKnight, kPsBPawn, 0,
-    kPsWQueen, kPsWRook, kPsWBishop, kPsWKnight, kPsWPawn, 0
-  }
-};
-
-Score evaluate(const Board& pos);
-int nnue_evaluate_pos(const NnueBoard* pos);
-int nnue_evaluate(int player, int* pieces, int* squares);
-int nnue_init(const char* eval_file);
-
-size_t file_size(Fd fd);
-
-const void* map_file(Fd fd, MapT* map);
-Fd open_file(const char* name);
-void close_file(Fd fd);
-void unmap_file(const void* data, MapT map);

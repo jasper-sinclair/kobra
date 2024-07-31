@@ -51,7 +51,7 @@ Board::Board(const std::string& fen) {
     case 'q':
       st->castlings.set(BLACK_QUEEN_SIDE);
       break;
-    default: ;
+    default:;
     }
   }
 
@@ -242,7 +242,7 @@ void Board::ApplyMove(const Move m) {
   bs.repetitions = 0;
 
   for (int i = static_cast<int>(history.size()) - 4;
-       i > static_cast<int>(history.size()) - bs.fifty_move_count - 1; i -= 2) {
+    i > static_cast<int>(history.size()) - bs.fifty_move_count - 1; i -= 2) {
     if (i <= 0) break;
     if (history[i].zobrist == st->zobrist) {
       bs.repetitions = history[i].repetitions + 1;
@@ -409,7 +409,7 @@ bool Board::IsPseudoLegal(const Move m) const {
   else if (pt == QUEEN) {
     if (color(us).IsSet(to) ||
       !(attack::rook_attacks[from].IsSet(to) ||
-        attack::bishop_attacks[from].IsSet(to)) ||
+      attack::bishop_attacks[from].IsSet(to)) ||
       attack::in_between_squares[from][to] & occupied_bb)
       return false;
   }
@@ -477,14 +477,14 @@ void Board::GenKingAttackInfo(KingAttackInfo& k) const {
 
   k.attacks =
     their_team & (attack::pawn_attacks[side_to_move][ksq] & pieces(PAWN) |
-      attack::knight_attacks[ksq] & pieces(KNIGHT));
+    attack::knight_attacks[ksq] & pieces(KNIGHT));
   int attacker_count = k.attacks.popcount();
 
   Bitboard slider_attackers =
     their_team &
     (attack::attacks<BISHOP>(ksq, their_team) &
-      (pieces(BISHOP) | pieces(QUEEN)) |
-      attack::attacks<ROOK>(ksq, their_team) & (pieces(ROOK) | pieces(QUEEN)));
+    (pieces(BISHOP) | pieces(QUEEN)) |
+    attack::attacks<ROOK>(ksq, their_team) & (pieces(ROOK) | pieces(QUEEN)));
 
   while (slider_attackers) {
     const Square s = slider_attackers.PopLsb();
@@ -514,10 +514,10 @@ bool Board::IsLegal(const Move m) {
       if (st->king_attack_info.check() ||
         to == square::relative(us, C1) &&
         (IsUnderAttack(us, square::relative(us, D1)) ||
-          IsUnderAttack(us, square::relative(us, C1))) ||
+        IsUnderAttack(us, square::relative(us, C1))) ||
         to == square::relative(us, G1) &&
         (IsUnderAttack(us, square::relative(us, F1)) ||
-          IsUnderAttack(us, square::relative(us, G1))))
+        IsUnderAttack(us, square::relative(us, G1))))
         return false;
     }
     else {
@@ -540,10 +540,10 @@ bool Board::IsLegal(const Move m) {
   }
   else if (st->king_attack_info.check() &&
     (!st->king_attack_info.attacks.IsSet(
-        move::move_type(m) == move::EN_PASSANT
-          ? static_cast<Square>(to - direction::PawnPush(us))
-          : to) ||
-      st->king_attack_info.pinned.IsSet(from)) ||
+    move::move_type(m) == move::EN_PASSANT
+    ? static_cast<Square>(to - direction::PawnPush(us))
+    : to) ||
+    st->king_attack_info.pinned.IsSet(from)) ||
     st->king_attack_info.double_check)
     return false;
   else {
@@ -602,8 +602,8 @@ template <PieceType Pt>
 Bitboard Board::AttacksBy(const Color c) {
   if constexpr (Pt == PAWN)
     return c == WHITE
-      ? attack::PawnAttacksBb<WHITE>(pieces(c, PAWN))
-      : attack::PawnAttacksBb<BLACK>(pieces(c, PAWN));
+    ? attack::PawnAttacksBb<WHITE>(pieces(c, PAWN))
+    : attack::PawnAttacksBb<BLACK>(pieces(c, PAWN));
   if constexpr (Pt == KNIGHT) {
     Bitboard attackers = pieces(c, Pt);
     Bitboard threats{};
@@ -624,7 +624,7 @@ template Bitboard Board::AttacksBy<ROOK>(Color c);
 template Bitboard Board::AttacksBy<QUEEN>(Color c);
 
 Bitboard Board::LeastValuablePiece(const Bitboard attacking,
-                                   const Color attacker, Piece& pc) const {
+  const Color attacker, Piece& pc) const {
   for (PieceType pt = PAWN; pt <= KING; ++pt) {
     if (Bitboard subset = attacking & pieces(pt)) {
       pc = piece::make(attacker, pt);
@@ -656,12 +656,12 @@ Score Board::see(const Move m) const {
     attacking |=
       occ &
       (attack::attacks<BISHOP>(to, occ) & (pieces(BISHOP) | pieces(QUEEN)) |
-        attack::attacks<ROOK>(to, occ) & (pieces(ROOK) | pieces(QUEEN)));
+      attack::attacks<ROOK>(to, occ) & (pieces(ROOK) | pieces(QUEEN)));
     from_set = LeastValuablePiece(attacking, attacker, from_pc);
     if (!from_set) break;
   }
   while (--d)
     gain[d - 1] = static_cast<Score>(
-      -std::max(static_cast<Score>(-gain[d - 1]), gain[d]));
+    -std::max(static_cast<Score>(-gain[d - 1]), gain[d]));
   return gain[0];
 }

@@ -149,7 +149,6 @@ struct Bitboard {
 
   Square Lsb() { return Square(__builtin_ctzll(data)); }
 
-  Square Msb() { return Square(__builtin_clzll(data) ^ 63); }
 #endif
 
   Square PopLsb() {

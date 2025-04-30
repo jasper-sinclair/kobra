@@ -1,166 +1,150 @@
-#include "attack.h"
-
 #include "bitboard.h"
 #include "main.h"
+#include "attack.h"
 
-namespace attack {
-  void init() {
-    for (Square from = A1; from < N_SQUARES; ++from) {
-      auto attacks = Bitboard();
-      for (const auto& d : knight_directions) {
-        if (const Square to = from + static_cast<Square>(d);
-          square::IsValid(to) && square::distance(from, to) <= 2)
-          attacks.set(to);
+namespace attack{
+  void init(){
+    for(u8 from=a1;from<n_sqs;++from){
+      auto atts=bitboard();
+      for(const auto& d:knight_dir){
+        if(const u8 to=from+SCU8(d);is_valid(to)&&distance(from,to)<=2) atts.set(to);
       }
-      knight_attacks[from] = attacks;
+      knight_att[from]=atts;
     }
-
-    for (Square from = A1; from < N_SQUARES; ++from) {
-      auto attacks = Bitboard();
-      for (const auto& d : king_directions) {
-        if (const Square to = from + static_cast<Square>(d);
-          square::IsValid(to) && square::distance(from, to) == 1)
-          attacks.set(to);
+    for(u8 from=a1;from<n_sqs;++from){
+      auto atts=bitboard();
+      for(const auto& d:king_dir){
+        if(const u8 to=from+SCU8(d);is_valid(to)&&distance(from,to)==1) atts.set(to);
       }
-      king_attacks[from] = attacks;
+      king_att[from]=atts;
     }
-
-    diagonals[0] = Bitboard(0x8040201008040201);
-    for (int i = 1; i < 8; ++i) {
-      diagonals[i] = diagonals[0] << static_cast<uint8_t>(i);
-      for (int j = 0; j < i - 1; ++j) diagonals[i] -= ranks[7 - j];
+    diag[0]=bitboard(0x8040201008040201);
+    for(int i=1;i<8;++i){
+      diag[i]=diag[0]<<SCU8(i);
+      for(int j=0;j<i-1;++j) diag[i]-=ranks[7-j];
     }
-
-    for (int i = 1; i < 8; ++i) {
-      diagonals[i + 7] = diagonals[0] >> static_cast<uint8_t>(i);
-      for (int j = 0; j < i - 1; ++j) diagonals[i + 7] -= ranks[j];
+    for(int i=1;i<8;++i){
+      diag[i+7]=diag[0]>>SCU8(i);
+      for(int j=0;j<i-1;++j) diag[i+7]-=ranks[j];
     }
-
-    for (int i = 0; i < 15; ++i) anti_diagonals[i] = diagonals[i].mirrored();
-    for (Square sq = A1; sq < N_SQUARES; ++sq) {
-      Bitboard attacks = {};
-      for (auto& b : diagonals) {
-        if (b.IsSet(sq)) {
-          attacks = b;
+    for(int i=0;i<15;++i) anti_diag[i]=mirrored(diag[i]);
+    for(u8 sq=a1;sq<n_sqs;++sq){
+      bitboard atts={};
+      for(auto& b:diag){
+        if(b.is_set(sq)){
+          atts=b;
           break;
         }
       }
-      for (auto& b : anti_diagonals) {
-        if (b.IsSet(sq)) {
-          attacks ^= b;
+      for(auto& b:anti_diag){
+        if(b.is_set(sq)){
+          atts^=b;
           break;
         }
       }
-      bishop_attacks[sq] = attacks;
+      bishop_att[sq]=atts;
     }
-
-    for (Square sq = A1; sq < N_SQUARES; ++sq) {
-      Bitboard attacks = {};
-      for (auto& b : files) {
-        if (b.IsSet(sq)) {
-          attacks = b;
+    for(u8 sq=a1;sq<n_sqs;++sq){
+      bitboard atts={};
+      for(auto& b:files){
+        if(b.is_set(sq)){
+          atts=b;
           break;
         }
       }
-      for (auto& b : ranks) {
-        if (b.IsSet(sq)) {
-          attacks ^= b;
+      for(auto& b:ranks){
+        if(b.is_set(sq)){
+          atts^=b;
           break;
         }
       }
-      rook_attacks[sq] = attacks;
+      rook_att[sq]=atts;
     }
-
-    for (Square sq = A1; sq < N_SQUARES; ++sq) {
-      const File file = file::make(sq);
-      const Rank rank = rank::make(sq);
-      ray_attacks[NORTH][sq] = Bitboard(0x101010101010100) << sq;
-      ray_attacks[SOUTH][sq] = Bitboard(0x80808080808080) >> (63 - sq);
-      ray_attacks[EAST][sq] = Bitboard(0xfe) << sq;
-      if (rank < RANK_8) ray_attacks[EAST][sq] -= ranks[rank + 1];
-      ray_attacks[WEST][sq] = Bitboard(0x7f00000000000000) >> (sq ^ 7 ^ 56);
-      if (rank > RANK_1) ray_attacks[WEST][sq] -= ranks[rank - 1];
-      ray_attacks[NORTHEAST][sq] = Bitboard(0x8040201008040200) << sq;
-      for (int i = 0; i < file - rank - 1; ++i)
-        ray_attacks[NORTHEAST][sq] -= ranks[7 - i];
-      ray_attacks[NORTHWEST][sq] =
-        Bitboard(0x102040810204000) >> file::make(sq ^ 7) << 8 * rank;
-      for (int i = 7; i > file; --i) ray_attacks[NORTHWEST][sq] -= files[i];
-      ray_attacks[SOUTHEAST][sq ^ 56] = ray_attacks[NORTHEAST][sq].mirrored();
-      ray_attacks[SOUTHWEST][sq ^ 56] = ray_attacks[NORTHWEST][sq].mirrored();
+    for(u8 sq=a1;sq<n_sqs;++sq){
+      const i8 file=fmake(sq);
+      const i8 rank=rmake(sq);
+      ray_att[north][sq]=sq<64?bitboard(0x101010101010100ULL<<sq):bitboard(0);
+      ray_att[northeast][sq]=sq<64?bitboard(0x8040201008040200ULL<<sq):bitboard(0);
+      ray_att[south][sq]=bitboard(0x80808080808080)>>(63-sq);
+      ray_att[east][sq]=bitboard(0xfe)<<sq;
+      if(rank<rank_8) ray_att[east][sq]-=ranks[rank+1];
+      ray_att[west][sq]=bitboard(0x7f00000000000000)>>(sq^7^56);
+      if(rank>rank_1) ray_att[west][sq]-=ranks[rank-1];
+      for(int i=0;i<file-rank-1;++i) ray_att[northeast][sq]-=ranks[7-i];
+      ray_att[northwest][sq]=
+        bitboard(0x102040810204000)>>fmake(sq^7)<<8*rank;
+      for(int i=7;i>file;--i) ray_att[northwest][sq]-=files[i];
+      ray_att[southeast][sq^56]=mirrored(ray_att[northeast][sq]);
+      ray_att[southwest][sq^56]=mirrored(ray_att[northwest][sq]);
     }
-
-    for (Square sq = A1; sq < N_SQUARES; ++sq) {
-      Bitboard b = Bitboard::FromSquare(sq);
-      pawn_attacks[WHITE][sq] |= b.shift<7>() | b.shift<9>();
-      pawn_attacks[BLACK][sq] |= b.shift<-9>() | b.shift<-7>();
+    for(u8 sq=a1;sq<n_sqs;++sq){
+      bitboard b=bitboard::from_sq(sq);
+      pawn_att[white][sq]|=b.shift<7>()|b.shift<9>();
+      pawn_att[black][sq]|=b.shift<-9>()|b.shift<-7>();
     }
-
-    for (Square i = A1; i < N_SQUARES; ++i) {
-      for (Square j = A1; j < N_SQUARES; ++j) {
-        const Bitboard b = Bitboard::FromSquare(j);
-        for (const auto& arr : ray_attacks) {
-          if (arr[i] & b) {
-            in_between_squares[i][j] = arr[i] - arr[j] - b;
+    for(u8 i=a1;i<n_sqs;++i){
+      for(u8 j=a1;j<n_sqs;++j){
+        const bitboard b=bitboard::from_sq(j);
+        for(const auto& arr:ray_att){
+          if(arr[i]&b){
+            in_between_sqs[i][j]=arr[i]-arr[j]-b;
             break;
           }
         }
       }
     }
-
-    for (Square i = 0; i < 64; ++i) {
-      const Bitboard b = Bitboard::FromSquare(i);
-      for (const auto& d : diagonals) {
-        if (d & b) {
-          diagonals_by_square[i] = d - b;
+    for(u8 i=0;i<64;++i){
+      const bitboard b=bitboard::from_sq(i);
+      for(const auto& d:diag){
+        if(d&b){
+          diag_by_sq[i]=d-b;
           break;
         }
       }
-      for (const auto& d : anti_diagonals) {
-        if (d & b) {
-          anti_diagonals_by_square[i] = d - b;
+      for(const auto& d:anti_diag){
+        if(d&b){
+          anti_diag_by_sq[i]=d-b;
           break;
         }
       }
-      for (const auto& d : files) {
-        if (d & b) {
-          files_by_square[i] = d - b;
+      for(const auto& d:files){
+        if(d&b){
+          files_by_sq[i]=d-b;
           break;
         }
       }
-      for (const auto& d : ranks) {
-        if (d & b) {
-          ranks_by_square[i] = d - b;
+      for(const auto& d:ranks){
+        if(d&b){
+          ranks_by_sq[i]=d-b;
           break;
         }
       }
     }
-
-    for (Square i = 0; i < 8; ++i) {
-      for (int j = 0; j < 64; ++j) {
-        Bitboard occ = Bitboard(j << 1) - Bitboard::FromSquare(i);
-        for (int k = i - 1;; --k) {
-          if (k < 0) break;
-          first_rank_attacks[i][j].set(static_cast<Square>(k));
-          if (occ.IsSet(static_cast<Square>(k))) break;
+    for(u8 i=0;i<8;++i){
+      for(int j=0;j<64;++j){
+        bitboard occ=bitboard(SCU64(j)<<1)-bitboard::from_sq(i);
+        for(int k=i-1;;--k){
+          if(k<0) break;
+          first_rank_att[i][j].set(SCU8(k));
+          if(occ.is_set(SCU8(k))) break;
         }
-        for (int k = i + 1;; ++k) {
-          if (k > 7) break;
-          first_rank_attacks[i][j].set(static_cast<Square>(k));
-          if (occ.IsSet(static_cast<Square>(k))) break;
+        for(int k=i+1;;++k){
+          if(k>7) break;
+          first_rank_att[i][j].set(SCU8(k));
+          if(occ.is_set(SCU8(k))) break;
         }
-        fill_up_attacks[i][j] = kFileABb * first_rank_attacks[i][j];
-        const Square r = i ^ 7;
-        occ = Bitboard(j << 1) - Bitboard::FromSquare(r);
-        for (int k = r - 1;; --k) {
-          if (k < 0) break;
-          a_file_attacks[i][j].set(static_cast<Square>(8 * (k ^ 7)));
-          if (occ.IsSet(static_cast<Square>(k))) break;
+        fill_up_att[i][j]=filea*first_rank_att[i][j];
+        const u8 r=i^7;
+        occ=bitboard(SCU64(j)<<1)-bitboard::from_sq(r);
+        for(int k=r-1;;--k){
+          if(k<0) break;
+          a_file_att[i][j].set(SCU8(8*(k^7)));
+          if(occ.is_set(SCU8(k))) break;
         }
-        for (int k = r + 1;; ++k) {
-          if (k > 7) break;
-          a_file_attacks[i][j].set(static_cast<Square>(8 * (k ^ 7)));
-          if (occ.IsSet(static_cast<Square>(k))) break;
+        for(int k=r+1;;++k){
+          if(k>7) break;
+          a_file_att[i][j].set(SCU8(8*(k^7)));
+          if(occ.is_set(SCU8(k))) break;
         }
       }
     }

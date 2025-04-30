@@ -1,104 +1,83 @@
 #pragma once
 #include "bitboard.h"
 
-#ifdef _MSC_VER
-#pragma warning(disable : 4244)
-#else
-#endif
-
-namespace attack {
-  inline Bitboard files[8] = {
-    kFileABb, kFileBBb, kFileCBb, kFileDBb,
-    kFileEBb, kFileFBb, kFileGBb, kFileHBb
+namespace attack{
+  inline bitboard files[8]={
+  filea,fileb,filec,filed,
+  filee,filef,fileg,fileh
+  };
+  inline bitboard ranks[8]={
+  rank1,rank2,rank3,rank4,
+  rank5,rank6,rank7,rank8
   };
 
-  inline Bitboard ranks[8] = {
-    kRank1Bb, kRank2Bb, kRank3Bb, kRank4Bb,
-    kRank5Bb, kRank6Bb, kRank7Bb, kRank8Bb
+  enum directions : u8{
+    northeast,north,northwest,east,
+    southeast,south,southwest,west,
+    n_dirs
   };
 
-  enum Directions {
-    NORTHEAST,
-    NORTH,
-    NORTHWEST,
-    EAST,
-    SOUTHEAST,
-    SOUTH,
-    SOUTHWEST,
-    WEST,
-    N_DIRECTIONS
-  };
+  inline int king_dir[8]={8,9,1,-7,-8,-9,-1,7};
+  inline int knight_dir[8]={17,10,-6,-15,-17,-10,6,15};
+  inline int bishop_dir[4]={9,-7,-9,7};
+  inline int rook_dir[4]={8,1,-8,-1};
 
-  inline int knight_directions[8] = { 17, 10, -6, -15, -17, -10, 6, 15 };
-  inline int king_directions[8] = { 8, 9, 1, -7, -8, -9, -1, 7 };
-  inline int bishop_directions[4] = { 9, -7, -9, 7 };
-  inline int rook_directions[4] = { 8, 1, -8, -1 };
+  inline bitboard a_file_att[8][64];
+  inline bitboard anti_diag_by_sq[n_sqs];
+  inline bitboard anti_diag[15];
+  inline bitboard bishop_att[n_sqs];
+  inline bitboard diag_by_sq[n_sqs];
+  inline bitboard diag[15];
+  inline bitboard files_by_sq[n_sqs];
+  inline bitboard fill_up_att[8][64];
+  inline bitboard first_rank_att[8][64];
+  inline bitboard in_between_sqs[n_sqs][n_sqs];
+  inline bitboard king_att[n_sqs];
+  inline bitboard knight_att[n_sqs];
+  inline bitboard pawn_att[n_colors][n_sqs];
+  inline bitboard ranks_by_sq[n_sqs];
+  inline bitboard ray_att[n_dirs][n_sqs];
+  inline bitboard rook_att[n_sqs];
 
-  inline Bitboard pawn_attacks[N_COLORS][N_SQUARES];
-  inline Bitboard knight_attacks[N_SQUARES];
-  inline Bitboard king_attacks[N_SQUARES];
-
-  inline Bitboard diagonals[15];
-  inline Bitboard anti_diagonals[15];
-
-  inline Bitboard bishop_attacks[N_SQUARES];
-  inline Bitboard rook_attacks[N_SQUARES];
-  inline Bitboard ray_attacks[N_DIRECTIONS][N_SQUARES];
-
-  inline Bitboard in_between_squares[N_SQUARES][N_SQUARES];
-  inline Bitboard diagonals_by_square[N_SQUARES];
-  inline Bitboard anti_diagonals_by_square[N_SQUARES];
-  inline Bitboard files_by_square[N_SQUARES];
-  inline Bitboard ranks_by_square[N_SQUARES];
-
-  inline Bitboard first_rank_attacks[8][64];
-  inline Bitboard fill_up_attacks[8][64];
-  inline Bitboard a_file_attacks[8][64];
-
-  inline Bitboard DiagonalAttacks(const Square sq, Bitboard occ) {
-    occ = diagonals_by_square[sq] & occ;
-    occ = occ * kFileBBb >> 58;
-    return fill_up_attacks[file::make(sq)][occ.data] & diagonals_by_square[sq];
+  inline bitboard diag_att(const u8 sq,bitboard occ){
+    occ=diag_by_sq[sq]&occ;
+    occ=occ*fileb>>58;
+    return fill_up_att[fmake(sq)][occ.data]&diag_by_sq[sq];
   }
 
-  inline Bitboard AntiDiagonalAttacks(const Square sq, Bitboard occ) {
-    occ = anti_diagonals_by_square[sq] & occ;
-    occ = occ * kFileBBb >> 58;
-    return fill_up_attacks[file::make(sq)][occ.data] & anti_diagonals_by_square[sq];
+  inline bitboard anti_diag_att(const u8 sq,bitboard occ){
+    occ=anti_diag_by_sq[sq]&occ;
+    occ=occ*fileb>>58;
+    return fill_up_att[fmake(sq)][occ.data]&anti_diag_by_sq[sq];
   }
 
-  inline Bitboard RankAttacks(const Square sq, Bitboard occ) {
-    occ = ranks_by_square[sq] & occ;
-    occ = occ * kFileBBb >> 58;
-    return fill_up_attacks[file::make(sq)][occ.data] & ranks_by_square[sq];
+  inline bitboard rank_att(const u8 sq,bitboard occ){
+    occ=ranks_by_sq[sq]&occ;
+    occ=occ*fileb>>58;
+    return fill_up_att[fmake(sq)][occ.data]&ranks_by_sq[sq];
   }
 
-  inline Bitboard FileAttacks(const Square sq, Bitboard occ) {
-    occ = kFileABb & occ >> file::make(sq);
-    occ = occ * kDiagC2H7 >> 58;
-    return a_file_attacks[rank::make(sq)][occ.data] << file::make(sq);
+  inline bitboard file_att(const u8 sq,bitboard occ){
+    occ=filea&occ>>fmake(sq);
+    occ=occ*diag_c2_h7>>58;
+    return a_file_att[rmake(sq)][occ.data]<<fmake(sq);
   }
 
-  template <PieceType Pt>
-  Bitboard attacks(const Square sq, const Bitboard occupied) {
-    switch (Pt) {
-    case BISHOP:
-      return DiagonalAttacks(sq, occupied) | AntiDiagonalAttacks(sq, occupied);
-    case ROOK:
-      return FileAttacks(sq, occupied) | RankAttacks(sq, occupied);
-    case QUEEN:
-      return DiagonalAttacks(sq, occupied) | AntiDiagonalAttacks(sq, occupied) |
-        FileAttacks(sq, occupied) | RankAttacks(sq, occupied);
+  template<i32 Pt> bitboard atts(const u8 sq,const bitboard occupied){
+    switch(Pt){
+    case bishop: return diag_att(sq,occupied)|anti_diag_att(sq,occupied);
+    case rook: return file_att(sq,occupied)|rank_att(sq,occupied);
+    case queen: return diag_att(sq,occupied)|anti_diag_att(sq,occupied)|
+        file_att(sq,occupied)|rank_att(sq,occupied);
     default:;
     }
     return {};
   }
 
-  template <Color C>
-  Bitboard PawnAttacksBb(const Bitboard b) {
-    return C == WHITE
-      ? b.shift<7>() | b.shift<9>()
-      : b.shift<-9>() | b.shift<-7>();
+  template<bool C> bitboard pawn_att_bb(const bitboard b){
+    return C==white
+      ?b.shift<7>()|b.shift<9>()
+      :b.shift<-9>()|b.shift<-7>();
   }
 
   void init();

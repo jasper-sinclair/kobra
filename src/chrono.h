@@ -1,29 +1,27 @@
 #pragma once
 #include <chrono>
-
 #include "main.h"
 
-struct Chrono {
-  using TimePoint = std::chrono::milliseconds::rep;
+struct chrono{
   bool stop;
-  bool use_match_time_limit;
-  bool use_node_limit;
   bool use_depth_limit;
-  bool use_move_time_limit;
+  bool use_match_limit;
+  bool use_move_limit;
+  bool use_node_limit;
 
-  uint64_t node_limit;
-  Depth depth_limit;
+  chrono();
+  i32 depth_limit;
 
-  TimePoint begin;
-  TimePoint time_to_use;
-  TimePoint match_time_limit;
-  TimePoint move_time_limit;
-  TimePoint time[N_COLORS], inc[N_COLORS];
+  time_point begin;
+  time_point match_time_limit;
+  time_point move_time_limit;
+  time_point time_to_use;
+  time_point time[n_colors],inc[n_colors];
+  [[nodiscard]] time_point elapsed() const;
+  static time_point now();
+  u64 node_limit;
 
-  Chrono();
+  void init_time(bool side_to_move);
   void start();
-  static TimePoint now();
-  void InitTimeToUse(Color side_to_move);
-  void update(uint64_t node_cnt);
-  [[nodiscard]] TimePoint elapsed() const;
+  void update(u64 node_cnt);
 };

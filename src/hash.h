@@ -1,51 +1,42 @@
 #pragma once
 #include <memory>
-
-#include "bitboard.h"
 #include "main.h"
 
-#ifdef _MSC_VER
-#pragma warning(disable : 4201)
-#else
-#endif
-
-using NodeType = uint8_t;
-enum NodeTypes { NONE_NODE, PV_NODE, CUT_NODE, ALL_NODE };
-
-struct HashEntry {
-  Key key;
-
-  union {
-    struct {
-      Score score;
-      Score static_eval;
-      Move move;
-      uint8_t depth;
-      NodeType node_type;
-    };
-
-    uint64_t data;
-  };
+enum node : u8{
+  none_node,pvnode,cutnode,allnode
 };
 
-constexpr size_t kMaxHashSize = 1 << 20;
+struct hash_entry{
+  u64 key;
 
-struct HashTable {
-  [[nodiscard]] double usage() const;
-  bool probe(Key key, HashEntry& hash_entry);
+  union data_union{
+    struct entry_data{
+      i32 depth;
+      int eval;
+      int score;
+      node_type nt;
+      u16 move;
+    } entry_data;
 
-  static Score ScoreFromHash(Score score, Depth ply);
-  static Score ScoreToHash(Score score, Depth ply);
+    u64 data;
+  } data_union;
+};
 
-  std::unique_ptr<HashEntry[]> entries;
+constexpr size_t max_hash_size=1<<20;
 
-  HashEntry* get(const Key key) { return &entries[key & mask]; }
+struct hash_table{
+  hash_entry* get(const u64 key){
+    return &entries[key&mask];
+  }
 
-  uint64_t mask = 0;
-  uint64_t size = 0;
-
+  bool probe(u64 key,hash_entry& entry);
+  static int score_from_hash(int score,i32 ply);
+  static int score_to_hash(int score,i32 ply);
+  std::unique_ptr<hash_entry[]> entries;
+  u64 mask=0;
+  u64 size=0;
   void clear() const;
-  void save(Key key, Score score, Score static_eval, Move move, Depth depth,
-    NodeType node_type);
-  void SetSize(uint64_t mb);
+  void save(u64 key,int score,int static_eval,u16 move,i32 depth,
+    node_type nt);
+  void set_size(u64 mb);
 };

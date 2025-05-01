@@ -1,353 +1,153 @@
 #pragma once
-#include <array>
-#include <climits>
-#include <immintrin.h>
-#include "main.h"
-#include "movegen.h"
+#include<array>
 
-#ifdef _MSC_VER
-#define NOMINMAX
-#endif
+namespace eval{
+  int hce(const board& pos);
+  int evaluate(const board& pos);
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <bit>
-#include <string>
-#include <Windows.h>
-using Fd = HANDLE;
-using MapT = HANDLE;
-#define FD_ERR INVALID_HANDLE_VALUE
-#else
-#include <sys/mman.h>
-#include <unistd.h>
-typedef int Fd;
-#define FD_ERR -1
-typedef size_t MapT;
-#endif
-
-#ifdef _MSC_VER
-#else
-#pragma GCC diagnostic ignored "-Wcast-qual"
-#define NNUE_EMBEDDED
-#define NNUE_EVAL_FILE "kobra_1.2.nnue"
-#endif
-
-#if defined(_MSC_VER)
-inline int popcnt(const uint64_t bb) { return std::popcount(bb); }
-
-inline Square Lsb(const uint64_t bb) {
-  return static_cast<Square>(std::countr_zero(bb));
-}
-#elif defined(__GNUC__)
-inline int popcnt(uint64_t bb) { return __builtin_popcountll(bb); }
-inline Square Lsb(uint64_t bb) {
-  return static_cast<Square>(__builtin_ctzll(bb));
-}
-#endif
-
-namespace eval {
-  enum GamePhase { MID_GAME, END_GAME, N_GAME_PHASES };
-
-  enum Ptype : uint8_t {
-    kNoPiece,
-    kWKing = 1,
-    kWPawn = 2,
-    kWKnight = 3,
-    kWBishop = 4,
-    kWRook = 5,
-    kWQueen = 6,
-    kBKing = 9,
-    kBPawn = 10,
-    kBKnight = 11,
-    kBBishop = 12,
-    kBRook = 13,
-    kBQueen = 14,
+  enum game_phase : u8{
+    midgame,endgame,n_phases
   };
 
-  constexpr std::array<Score, 7> kPtValues = { 0, 100, 330, 350, 525, 1100, 8000 };
-
-  constexpr std::array<Score, 16> kPieceValues = {
-      0,
-      kPtValues[1],
-      kPtValues[2],
-      kPtValues[3],
-      kPtValues[4],
-      kPtValues[5],
-      kPtValues[6],
-      0,
-      0,
-      kPtValues[1],
-      kPtValues[2],
-      kPtValues[3],
-      kPtValues[4],
-      kPtValues[5],
-      kPtValues[6],
-      0,
+  inline std::array<std::array<std::array<std::array<int,n_sqs>,n_phases>,n_piece_types>,n_colors>
+  psq_table;
+  constexpr std::array pt_values={0,100,330,350,525,1100,8000};
+  constexpr std::array piece_values={
+  0,pt_values[1],pt_values[2],pt_values[3],pt_values[4],pt_values[5],pt_values[6],0,
+  0,pt_values[1],pt_values[2],pt_values[3],pt_values[4],pt_values[5],pt_values[6],0,
   };
-}
 
-enum NnuePieces {
-  kBlank = 0,
-  kWking,
-  kWqueen,
-  kWrook,
-  kWbishop,
-  kWknight,
-  kWpawn,
-  kBking,
-  kBqueen,
-  kBrook,
-  kBbishop,
-  kBknight,
-  kBpawn
-};
-
-enum {
-  kPsWPawn = 1,
-  kPsBPawn = 1 * 64 + 1,
-  kPsWKnight = 2 * 64 + 1,
-  kPsBKnight = 3 * 64 + 1,
-  kPsWBishop = 4 * 64 + 1,
-  kPsBBishop = 5 * 64 + 1,
-  kPsWRook = 6 * 64 + 1,
-  kPsBRook = 7 * 64 + 1,
-  kPsWQueen = 8 * 64 + 1,
-  kPsBQueen = 9 * 64 + 1,
-  kPsEnd = 10 * 64 + 1
-};
-
-enum { kFvScale = 16, kShift = 6 };
-
-enum {
-  kHalfDimensions = 256,
-  kFtInDims = 64 * kPsEnd,
-  kFtOutDims = kHalfDimensions * 2
-};
-
-enum { kNumRegs = 16, kSimdWidth = 256 };
-
-using DirtyPiece = struct DirtyPiece {
-  int dirty_num;
-  int pc[3];
-  int from[3];
-  int to[3];
-};
-
-using Accumulator = struct Accumulator {
-  alignas(64) int16_t accumulation[2][256];
-  int computed_accumulation;
-};
-
-using NnueData = struct NnueData {
-  Accumulator accumulator;
-  DirtyPiece dirty_piece;
-};
-
-using NnueBoard = struct NnueBoard {
-  int player;
-  int* pieces;
-  int* squares;
-  NnueData* nnue[3];
-};
-
-using Vec16T = __m256i;
-using Vec8T = __m256i;
-using MaskT = uint32_t;
-using Mask2T = uint64_t;
-using ClippedT = int8_t;
-using WeightT = int8_t;
-
-using IndexList = struct {
-  size_t size;
-  unsigned values[30];
-};
-
-inline std::string nnue_evalfile = "kobra_1.2.nnue";
-inline const char* nnue_file = nnue_evalfile.c_str();
-inline constexpr uint32_t kNnueVersion = 0x7AF32F16u;
-
-inline int32_t hidden1_biases alignas(64)[32];
-inline int32_t hidden2_biases alignas(64)[32];
-inline int32_t output_biases[1];
-
-inline WeightT hidden1_weights alignas(64)[64 * 512];
-inline WeightT hidden2_weights alignas(64)[64 * 32];
-inline WeightT output_weights alignas(64)[1 * 32];
-
-inline uint32_t piece_to_index[2][14] = {
-  {
-    0, 0, kPsWQueen, kPsWRook, kPsWBishop, kPsWKnight, kPsWPawn, 0,
-    kPsBQueen, kPsBRook, kPsBBishop, kPsBKnight, kPsBPawn, 0
-  },
-  {
-    0, 0, kPsBQueen, kPsBRook, kPsBBishop, kPsBKnight, kPsBPawn, 0,
-    kPsWQueen, kPsWRook, kPsWBishop, kPsWKnight, kPsWPawn, 0
+  inline void init(){
+    psq_table[white][pawn][midgame]={
+    0,0,0,0,0,0,0,0,
+    -35,-1,-20,-23,-15,24,38,-22,
+    -26,-4,-4,-10,3,3,33,-12,
+    -27,-2,-5,12,17,6,10,-25,
+    -14,13,6,21,23,12,17,-23,
+    -6,7,26,31,65,56,25,-20,
+    98,134,61,95,68,126,34,-11,
+    0,0,0,0,0,0,0,0,
+    };
+    psq_table[white][pawn][endgame]={
+    0,0,0,0,0,0,0,0,
+    13,8,8,10,13,0,2,-7,
+    4,7,-6,1,0,-5,-1,-8,
+    13,9,-3,-7,-7,-8,3,-1,
+    32,24,13,5,-2,4,17,17,
+    94,100,85,67,56,53,82,84,
+    178,173,158,134,147,132,165,187,
+    0,0,0,0,0,0,0,0,
+    };
+    psq_table[white][knight][midgame]={
+    -105,-21,-58,-33,-17,-28,-19,-23,
+    -29,-53,-12,-3,-1,18,-14,-19,
+    -23,-9,12,10,19,17,25,-16,
+    -13,4,16,13,28,19,21,-8,
+    -9,17,19,53,37,69,18,22,
+    -47,60,37,65,84,129,73,44,
+    -73,-41,72,36,23,62,7,-17,
+    -167,-89,-34,-49,61,-97,-15,-107,
+    };
+    psq_table[white][knight][endgame]={
+    -29,-51,-23,-15,-22,-18,-50,-64,
+    -42,-20,-10,-5,-2,-20,-23,-44,
+    -23,-3,-1,15,10,-3,-20,-22,
+    -18,-6,16,25,16,17,4,-18,
+    -17,3,22,22,22,11,8,-18,
+    -24,-20,10,9,-1,-9,-19,-41,
+    -25,-8,-25,-2,-9,-25,-24,-52,
+    -58,-38,-13,-28,-31,-27,-63,-99,
+    };
+    psq_table[white][bishop][midgame]={
+    -33,-3,-14,-21,-13,-12,-39,-21,
+    4,15,16,0,7,21,33,1,
+    0,15,15,15,14,27,18,10,
+    -6,13,13,26,34,12,10,4,
+    -4,5,19,50,37,37,7,-2,
+    -16,37,43,40,35,50,37,-2,
+    -26,16,-18,-13,30,59,18,-47,
+    -29,4,-82,-37,-25,-42,7,-8,
+    };
+    psq_table[white][bishop][endgame]={
+    -23,-9,-23,-5,-9,-16,-5,-17,
+    -14,-18,-7,-1,4,-9,-15,-27,
+    -12,-3,8,10,13,3,-7,-15,
+    -6,3,13,19,7,10,-3,-9,
+    -3,9,12,9,14,10,3,2,
+    2,-8,0,-1,-2,6,0,4,
+    -8,-4,7,-12,-3,-13,-4,-14,
+    -14,-21,-11,-8,-7,-9,-17,-24,
+    };
+    psq_table[white][rook][midgame]={
+    -19,-13,1,17,16,7,-37,-26,
+    -44,-16,-20,-9,-1,11,-6,-71,
+    -45,-25,-16,-17,3,0,-5,-33,
+    -36,-26,-12,-1,9,-7,6,-23,
+    -24,-11,7,26,24,35,-8,-20,
+    -5,19,26,36,17,45,61,16,
+    27,32,58,62,80,67,26,44,
+    32,42,32,51,63,9,31,43,
+    };
+    psq_table[white][rook][endgame]={
+    -9,2,3,-1,-5,-13,4,-20,
+    -6,-6,0,2,-9,-9,-11,-3,
+    -4,0,-5,-1,-7,-12,-8,-16,
+    3,5,8,4,-5,-6,-8,-11,
+    4,3,13,1,2,1,-1,2,
+    7,7,7,5,4,-3,-5,-3,
+    11,13,13,11,-3,3,8,3,
+    13,10,18,15,12,12,8,5,
+    };
+    psq_table[white][queen][midgame]={
+    -1,-18,-9,10,-15,-25,-31,-50,
+    -35,-8,11,2,8,15,-3,1,
+    -14,2,-11,-2,-5,2,14,5,
+    -9,-26,-9,-10,-2,-4,3,-3,
+    -27,-27,-16,-16,-1,17,-2,1,
+    -13,-17,7,8,29,56,47,57,
+    -24,-39,-5,1,-16,57,28,54,
+    -28,0,29,12,59,44,43,45,
+    };
+    psq_table[white][queen][endgame]={
+    -33,-28,-22,-43,-5,-32,-20,-41,
+    -22,-23,-30,-16,-16,-23,-36,-32,
+    -16,-27,15,6,9,17,10,5,
+    -18,28,19,47,31,34,39,23,
+    3,22,24,45,57,40,57,36,
+    -20,6,9,49,47,35,19,9,
+    -17,20,32,41,58,25,30,0,
+    -9,22,22,27,27,19,10,20,
+    };
+    psq_table[white][king][midgame]={
+    -15,36,12,-54,8,-28,24,14,
+    1,7,-8,-64,-43,-16,9,8,
+    -14,-14,-22,-46,-44,-30,-15,-27,
+    -49,-1,-27,-39,-46,-44,-33,-51,
+    -17,-20,-12,-27,-30,-25,-14,-36,
+    -9,24,2,-16,-20,6,22,-22,
+    29,-1,-20,-7,-8,-4,-38,-29,
+    -65,23,16,-15,-56,-34,2,13,
+    };
+    psq_table[white][king][endgame]={
+    -53,-34,-21,-11,-28,-14,-24,-43,
+    -27,-11,4,13,14,4,-5,-17,
+    -19,-3,11,21,23,16,7,-9,
+    -18,-4,21,24,27,23,9,-11,
+    -8,22,24,27,26,33,26,3,
+    10,17,23,15,20,45,44,13,
+    -12,17,14,17,17,38,23,11,
+    -74,-35,-18,-18,-11,15,4,-17,
+    };
+    for(int piece=pawn;piece<n_piece_types;++piece){
+      for(int phase=midgame;phase<n_phases;++phase){
+        for(int rank=0;rank<8;++rank){
+          for(int file=0;file<8;++file){
+            const int mirrored_rank=7-rank;
+            psq_table[black][piece][phase][rank*8+file]=
+              psq_table[white][piece][phase][mirrored_rank*8+file];
+          }
+        }
+      }
+    }
   }
-};
-
-Score evaluate(const Board& pos);
-int nnue_evaluate_pos(const NnueBoard* pos);
-int nnue_evaluate(int player, int* pieces, int* squares);
-int nnue_init(const char* eval_file);
-
-size_t file_size(Fd fd);
-
-const void* map_file(Fd fd, MapT* map);
-Fd open_file(const char* name);
-void close_file(Fd fd);
-void unmap_file(const void* data, MapT map);
-
-#ifdef _MSC_VER
-#define USE_AVX2 1
-#define USE_SSE41 1
-#define USE_SSE3 1
-#define USE_SSE2 1
-#define USE_SSE 1
-#define IS_64_BIT 1
-#endif
-
-#define TILE_HEIGHT (kNumRegs * kSimdWidth / 16)
-#define CLAMP(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))µ
-#define KING(c) ((c) ? kBking : kWking)
-#define IS_KING(p) (((p) == kWking) || ((p) == kBking))
-
-#define VEC_ADD_16(a, b) _mm256_add_epi16(a, b)
-#define VEC_SUB_16(a, b) _mm256_sub_epi16(a, b)
-#define VEC_PACKS(a, b) _mm256_packs_epi16(a, b)
-#define VEC_MASK_POS(a) _mm256_movemask_epi8(_mm256_cmpgt_epi8(a, _mm256_setzero_si256()))
-
-#if defined(__AVX512BW__) || defined(__AVX512CD__) || defined(__AVX512DQ__) || \
-    defined(__AVX512ER__) || defined(__AVX512PF__) || defined(__AVX512VL__) || \
-    defined(__AVX512F__)
-#define INCBIN_ALIGNMENT_INDEX 6
-#elif defined(__AVX__) || defined(__AVX2__)
-#define INCBIN_ALIGNMENT_INDEX 5
-#elif defined(__SSE__) || defined(__SSE2__) || defined(__SSE3__) || \
-    defined(__SSSE3__) || defined(__SSE4_1__) || defined(__SSE4_2__) || \
-    defined(__neon__)
-#define INCBIN_ALIGNMENT_INDEX 4
-#elif ULONG_MAX != 0xffffffffu
-#define INCBIN_ALIGNMENT_INDEX 3
-#else
-#define INCBIN_ALIGNMENT_INDEX 2
-#endif
-
-#define INCBIN_ALIGN_SHIFT_0 1
-#define INCBIN_ALIGN_SHIFT_1 2
-#define INCBIN_ALIGN_SHIFT_2 4
-#define INCBIN_ALIGN_SHIFT_3 8
-#define INCBIN_ALIGN_SHIFT_4 16
-#define INCBIN_ALIGN_SHIFT_5 32
-#define INCBIN_ALIGN_SHIFT_6 64
-
-#define INCBIN_ALIGNMENT                                        \
-  INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_ALIGN_SHIFT, _), \
-                     INCBIN_ALIGNMENT_INDEX)
-#define INCBIN_STR(X) #X
-#define INCBIN_STRINGIZE(X) INCBIN_STR(X)
-#define INCBIN_CAT(X, Y) X##Y
-#define INCBIN_CONCATENATE(X, Y) INCBIN_CAT(X, Y)
-#define INCBIN_EVAL(X) X
-#define INCBIN_INVOKE(N, ...) INCBIN_EVAL(N(__VA_ARGS__))
-
-#define INCBIN_MACRO ".incbin"
-
-#ifndef _MSC_VER
-#define INCBIN_ALIGN __attribute__((aligned(INCBIN_ALIGNMENT)))
-#else
-#define INCBIN_ALIGN __declspec(align(INCBIN_ALIGNMENT))
-#endif
-
-#ifdef __GNUC__
-#define INCBIN_ALIGN_HOST ".balign " INCBIN_STRINGIZE(INCBIN_ALIGNMENT) "\n"
-#define INCBIN_ALIGN_BYTE ".balign 1\n"
-#elif defined(INCBIN_ARM)
-#define INCBIN_ALIGN_HOST ".align " INCBIN_STRINGIZE(INCBIN_ALIGNMENT_INDEX) "\n"
-#define INCBIN_ALIGN_BYTE ".align 0\n"
-#else
-#define INCBIN_ALIGN_HOST ".align " INCBIN_STRINGIZE(INCBIN_ALIGNMENT) "\n"
-#define INCBIN_ALIGN_BYTE ".align 1\n"
-#endif
-
-#if defined(__cplusplus)
-#define INCBIN_EXTERNAL extern "C"
-#define INCBIN_CONST extern const
-#else
-#define INCBIN_EXTERNAL extern
-#define INCBIN_CONST const
-#endif
-
-#if !defined(INCBIN_OUTPUT_SECTION)
-#if defined(__APPLE__)
-#define INCBIN_OUTPUT_SECTION ".const_data"
-#else
-#define INCBIN_OUTPUT_SECTION ".rodata"
-#endif
-#endif
-
-#define INCBIN_SECTION ".section " INCBIN_OUTPUT_SECTION "\n"
-#define INCBIN_GLOBAL(NAME) ".global " INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME "\n"
-
-#define INCBIN_INT ".int "
-
-#if defined(__USER_LABEL_PREFIX__)
-#define INCBIN_MANGLE INCBIN_STRINGIZE(__USER_LABEL_PREFIX__)
-#else
-#define INCBIN_MANGLE ""
-#endif
-
-#if defined(__MINGW32__) || defined(__MINGW64__)
-#define INCBIN_TYPE(NAME)
-#else
-#define INCBIN_TYPE(NAME) ".type " INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME ", @object\n"
-#endif
-
-#define INCBIN_BYTE ".byte "
-
-#define INCBIN_STYLE_CAMEL 0
-#define INCBIN_STYLE_SNAKE 1
-
-#if !defined(INCBIN_PREFIX)
-#define INCBIN_PREFIX g
-#endif
-
-#if !defined(INCBIN_STYLE)
-#define INCBIN_STYLE INCBIN_STYLE_CAMEL
-#endif
-
-#define INCBIN_STYLE_0_DATA Data
-#define INCBIN_STYLE_0_END End
-#define INCBIN_STYLE_0_SIZE Size
-#define INCBIN_STYLE_1_DATA _data
-#define INCBIN_STYLE_1_END _end
-#define INCBIN_STYLE_1_SIZE _size
-
-#define INCBIN_STYLE_IDENT(TYPE)  \
-  INCBIN_CONCATENATE(INCBIN_STYLE_, INCBIN_CONCATENATE(INCBIN_EVAL(INCBIN_STYLE), INCBIN_CONCATENATE(_, TYPE)))
-
-#define INCBIN_STYLE_STRING(TYPE) INCBIN_STRINGIZE(INCBIN_STYLE_IDENT(TYPE))
-
-#define INCBIN_GLOBAL_LABELS(NAME, TYPE) \
-  INCBIN_INVOKE(INCBIN_GLOBAL, INCBIN_CONCATENATE(NAME, INCBIN_INVOKE(INCBIN_STYLE_IDENT, TYPE))) \
-  INCBIN_INVOKE(INCBIN_TYPE, INCBIN_CONCATENATE(NAME, INCBIN_INVOKE(INCBIN_STYLE_IDENT, TYPE)))
-
-#define INCBIN_EXTERN(NAME) INCBIN_EXTERNAL const INCBIN_ALIGN unsigned char INCBIN_CONCATENATE( \
-  INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), INCBIN_STYLE_IDENT(DATA))[]; \
-  INCBIN_EXTERNAL const INCBIN_ALIGN unsigned char *const INCBIN_CONCATENATE( \
-  INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), INCBIN_STYLE_IDENT(END)); \
-  INCBIN_EXTERNAL const unsigned int INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), \
-  INCBIN_STYLE_IDENT(SIZE))
-
-#ifdef _MSC_VER
-#define INCBIN(NAME, FILENAME) INCBIN_EXTERN(NAME)
-#else
-#define INCBIN(NAME, FILENAME) \
-__asm__(INCBIN_SECTION INCBIN_GLOBAL_LABELS(NAME, DATA) INCBIN_ALIGN_HOST INCBIN_MANGLE \
-INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(DATA) ":\n" INCBIN_MACRO " \"" FILENAME "\"\n" \
-INCBIN_GLOBAL_LABELS(NAME, END) INCBIN_ALIGN_BYTE INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME \
-INCBIN_STYLE_STRING(END) ":\n" INCBIN_BYTE "1\n" INCBIN_GLOBAL_LABELS(NAME, SIZE) \
-INCBIN_ALIGN_HOST INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(SIZE) ":\n" \
-INCBIN_INT INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(END) " - " \
-INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(DATA) "\n" INCBIN_ALIGN_HOST ".text\n"); \
-INCBIN_EXTERN(NAME)
-#endif
+}

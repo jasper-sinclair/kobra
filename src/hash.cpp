@@ -1,73 +1,61 @@
 #include "hash.h"
-
 #include <cstring>
 #include <memory>
-
 #include "main.h"
 
-void HashTable::SetSize(const uint64_t mb) {
-  const uint64_t bytes = mb * 1024 * 1024;
-  const uint64_t max_size = bytes / sizeof(HashEntry);
-  size = 1;
-  for (;;) {
-    const uint64_t new_size = 2 * size;
-    if (new_size > max_size) break;
-    size = new_size;
+void hash_table::set_size(const u64 mb){
+  const u64 bytes=mb*1024*1024;
+  const u64 max_size=bytes/sizeof(hash_entry);
+  size=1;
+  for(;;){
+    const u64 new_size=2*size;
+    if(new_size>max_size) break;
+    size=new_size;
   }
-  mask = size - 1;
-  entries = std::make_unique<HashEntry[]>(size);
+  mask=size-1;
+  entries=std::make_unique<hash_entry[]>(size);
   clear();
 }
 
-void HashTable::clear() const {
-  std::memset(entries.get(), 0, size * sizeof(HashEntry));
+void hash_table::clear() const{
+  std::memset(entries.get(),0,size*sizeof(hash_entry));
 }
 
-double HashTable::usage() const {
-  int cnt = 0;
-  constexpr int n = 1000;
-  for (int i = 1; i < n + 1; ++i) {
-    if (entries[i].key) cnt += 1;
-  }
-  return static_cast<double>(cnt) / n;
-}
-
-bool HashTable::probe(const Key key, HashEntry& hash_entry) {
-  hash_entry = *get(key);
-  if ((hash_entry.key ^ hash_entry.data) == key) return true;
-  hash_entry = {};
+bool hash_table::probe(const u64 key,hash_entry& entry){
+  entry=*get(key);
+  if((entry.key^entry.data_union.data)==key) return true;
+  entry={};
   return false;
 }
 
-void HashTable::save(const Key key, const Score score,
-  const Score static_eval, const Move move,
-  const Depth depth, const NodeType node_type) {
-  HashEntry tmp;
-  tmp.score = score;
-  tmp.static_eval = static_eval;
-  tmp.move = move;
-  tmp.depth = static_cast<uint8_t>(depth);
-  tmp.node_type = node_type;
-  tmp.key = key ^ tmp.data;
-  if (HashEntry* hash_entry = get(key); node_type == PV_NODE ||
-    key != (hash_entry->key ^ hash_entry->data) ||
-    depth + 4 > hash_entry->depth) {
-    *hash_entry = tmp;
+void hash_table::save(const u64 key,const int score,const int static_eval,const u16 move,
+  const i32 depth,const node_type nt){
+  hash_entry tmp;
+  tmp.data_union.entry_data.score=score;
+  tmp.data_union.entry_data.eval=static_eval;
+  tmp.data_union.entry_data.move=move;
+  tmp.data_union.entry_data.depth=SCU8(depth);
+  tmp.data_union.entry_data.nt=nt;
+  tmp.key=key^tmp.data_union.data;
+  if(hash_entry* entry=get(key);nt==pvnode||
+    key!=(entry->key^entry->data_union.data)||
+    depth+4>entry->data_union.entry_data.depth){
+    *entry=tmp;
   }
 }
 
-Score HashTable::ScoreToHash(const Score score, const Depth ply) {
-  return static_cast<Score>(score >= MIN_MATE_SCORE
-    ? score + ply
-    : score <= -MIN_MATE_SCORE
-    ? score - ply
-    : score);
+int hash_table::score_to_hash(const int score,const i32 ply){
+  return score>=min_mate_score
+    ?score+ply
+    :score<=-min_mate_score
+    ?score-ply
+    :score;
 }
 
-Score HashTable::ScoreFromHash(const Score score, const Depth ply) {
-  return static_cast<Score>(score >= MIN_MATE_SCORE
-    ? score - ply
-    : score <= -MIN_MATE_SCORE
-    ? score + ply
-    : score);
+int hash_table::score_from_hash(const int score,const i32 ply){
+  return score>=min_mate_score
+    ?score-ply
+    :score<=-min_mate_score
+    ?score+ply
+    :score;
 }

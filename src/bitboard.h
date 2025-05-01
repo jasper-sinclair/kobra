@@ -132,7 +132,6 @@ template<i32 D> constexpr bitboard bitboard::shift() const{
   else if constexpr(D==south) return b>>north;
   else if constexpr(D==2*north) return b<<2*north;
   else if constexpr(D==2*south) return b>>2*north;
-
   else if constexpr(D==northeast) return (b<<northeast)-filea;
   else if constexpr(D==northwest) return (b<<northwest)-fileh;
   else if constexpr(D==southeast) return (b>>northwest)-filea;
@@ -232,35 +231,35 @@ struct board_state{
   u8 ep_sq=0;
 };
 
-struct board {
-  ~board()=default;
+struct board{
+  ~board() = default;
   bitboard color_bb[n_colors]{};
-  bitboard least_valuable_piece(bitboard attacking, bool attacker, i32& pc) const;
+  bitboard least_valuable_piece(bitboard attacking,bool attacker,i32& pc) const;
   bitboard occupied_bb{};
   bitboard piece_bb[n_piece_types]{};
   board_state* bs(int idx);
   board_state* get_board_status();
   board_state* st=nullptr;
 
-  board()=default;
-  board(board&& other) noexcept=default;
+  board() = default;
+  board(board&& other) noexcept = default;
   board(const board& other);
 
-  board& operator=(board&& other) noexcept=default;
+  board& operator=(board&& other) noexcept = default;
   board& operator=(const board& other);
 
   bool is_legal(u16 m);
   bool side_to_move=white;
 
   explicit board(const std::string& fen);
-  friend std::ostream& operator<<(std::ostream& os, const board& pos);
+  friend std::ostream& operator<<(std::ostream& os,const board& pos);
   i32 pos[n_sqs]{};
   static bool is_promotion(u16 m);
   std::vector<board_state> board_status{};
 
-  template<bool UpdateZobrist=true> void move_piece(u8 from, u8 to);
+  template<bool UpdateZobrist=true> void move_piece(u8 from,u8 to);
   template<bool UpdateZobrist=true> void remove_piece(u8 sq);
-  template<bool UpdateZobrist=true> void set_piece(i32 pc, u8 sq);
+  template<bool UpdateZobrist=true> void set_piece(i32 pc,u8 sq);
   template<i32 Pt> bitboard atts_by(bool c);
 
   void apply_move(u16 m);
@@ -269,9 +268,9 @@ struct board {
   void undo_move();
   void undo_null_move();
 
-  [[nodiscard]] bitboard attackers_to(u8 sq, bitboard occupied) const;
+  [[nodiscard]] bitboard attackers_to(u8 sq,bitboard occupied) const;
   [[nodiscard]] bitboard get_color(bool c) const;
-  [[nodiscard]] bitboard get_pieces(bool c, i32 pt) const;
+  [[nodiscard]] bitboard get_pieces(bool c,i32 pt) const;
   [[nodiscard]] bitboard get_pieces(i32 pt) const;
   [[nodiscard]] bitboard non_pawn_material(bool c) const;
   [[nodiscard]] bitboard occupied() const;
@@ -282,7 +281,7 @@ struct board {
   [[nodiscard]] bool is_draw() const;
   [[nodiscard]] bool is_in_check() const;
   [[nodiscard]] bool is_pseudo_legal(u16 m) const;
-  [[nodiscard]] bool is_under_attack(bool us, u8 sq) const;
+  [[nodiscard]] bool is_under_attack(bool us,u8 sq) const;
   [[nodiscard]] i32 piece_on(u8 sq) const;
   [[nodiscard]] int see(u16 m) const;
   [[nodiscard]] std::string fen() const;

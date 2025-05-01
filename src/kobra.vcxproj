@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
-    <ProjectGuid>{02037193-FC4E-4287-8548-0672F0628895}</ProjectGuid>
+    <ProjectGuid>{1C186920-C771-EC4B-1D02-E477D4D9FBD0}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -75,8 +75,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Platform)\</OutDir>
-    <IntDir>$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -118,7 +116,6 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -133,10 +130,10 @@
     <ClCompile Include="chrono.cpp" />
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="hash.cpp" />
-    <ClCompile Include="history.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="movegen.cpp" />
     <ClCompile Include="movesort.cpp" />
+    <ClCompile Include="nnue.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="uci.cpp" />
   </ItemGroup>
@@ -146,10 +143,10 @@
     <ClInclude Include="chrono.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="hash.h" />
-    <ClInclude Include="history.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="movegen.h" />
     <ClInclude Include="movesort.h" />
+    <ClInclude Include="nnue.h" />
     <ClInclude Include="search.h" />
     <ClInclude Include="uci.h" />
   </ItemGroup>

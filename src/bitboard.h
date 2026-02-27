@@ -16,9 +16,8 @@ struct bitboard{
   constexpr bitboard(
     const u64 data) : data(data){}
 
-  constexpr static bitboard from_sq(
-    const u8 sq){
-    return bitboard(SCU64(1) << sq);
+  constexpr static bitboard from_sq(const u8 sq) {
+    return { SCU64(1) << sq };
   }
 
   constexpr void set(

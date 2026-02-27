@@ -5,7 +5,7 @@
 int main(){
   attack::init();
   eval::init();
-  search_info::init();
+  search::init();
   zobrist::init();
   uci::init();
 }

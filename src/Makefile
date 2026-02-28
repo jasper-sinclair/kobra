@@ -1,65 +1,64 @@
-# Project name
-PROJECT = kobra
-
-# Executable name
-EXE = $(PROJECT)
+# ============================================
+#   Kobra MinGW Static Embedded Build
+# ============================================
 
 ifeq ($(OS),Windows_NT)
-	EXE += $(.exe)
-endif
-
-# Source files
-SRC = $(wildcard *.cpp)
-
-# Object files
-OBJS = $(subst .cpp,.o,$(SRC))
-
-# Paths
-THIS_PATH := $(strip $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST)))))
-ROOT_PATH = $(dir $(THIS_PATH))
-
-# High-level configuration
-debug = no
-optimize = yes
-native = yes
-
-# Low-level configuration
-COMP = gcc
-CXX = g++
-CXXFLAGS = -std=c++20 -static
-
-# Debugging
-ifeq ($(debug),no)
-	CXXFLAGS += -DNDEBUG
+    EXE := kobra_mingw.exe
 else
-	CXXFLAGS += -g
+    EXE := kobra_mingw
 endif
 
-# Optimization
+# ---- Source files ----
+SRC  := $(wildcard *.cpp)
+OBJS := $(SRC:.cpp=.o)
+DEPS := $(OBJS:.o=.d)
+
+# ---- Compiler ----
+CXX := g++
+
+# ---- Build Options ----
+debug    := no
+optimize := yes
+native   := yes
+
+# ---- Compiler Flags ----
+CXXFLAGS := -std=c++20 -static -DEMBED_NNUE
+
+ifeq ($(debug),no)
+    CXXFLAGS += -DNDEBUG
+else
+    CXXFLAGS += -g
+endif
+
 ifeq ($(optimize),yes)
-	CXXFLAGS += -O3
+    CXXFLAGS += -O3
 endif
 
 ifeq ($(native),yes)
-	CXXFLAGS += -march=native
+    CXXFLAGS += -march=native
 endif
 
-# Targets
-.PHONY: build clean
+# ---- Linker Flags ----
+LDFLAGS := -s
 
-build: $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(EXE) $(OBJS)
+# ============================================
 
+all: $(EXE)
+
+$(EXE): $(OBJS)
+	$(CXX) $(OBJS) -o $@ $(CXXFLAGS) $(LDFLAGS)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
+
+# ---- Clean only objects (keep exe) ----
+clean-obj:
+	rm -f *.o *.d
+
+# ---- Full clean (remove exe too) ----
 clean:
-	rm -f *.o
+	rm -f *.o *.d $(EXE)
 
-depend: .depend
+-include $(DEPS)
 
-.depend: $(SRC)
-	rm -f ./.depend
-	$(CXX) $(CXXFLAGS) -MM $^>>./.depend;
-
-dist-clean: clean
-	rm -f *~ .depend
-
-include .depend
+.PHONY: all clean clean-obj

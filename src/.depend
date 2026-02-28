@@ -1,17 +1,16 @@
-attack.o: attack.cpp bitboard.h main.h attack.h
-bitboard.o: bitboard.cpp bitboard.h main.h attack.h eval.h
+attack.o: attack.cpp attack.h bitboard.h main.h
+bitboard.o: bitboard.cpp bitboard.h main.h attack.h eval.h nnue.h
 chrono.o: chrono.cpp chrono.h main.h uci.h search.h hash.h movesort.h \
  movegen.h bitboard.h
-eval.o: eval.cpp bitboard.h main.h eval.h attack.h nnue.h uci.h search.h \
- chrono.h hash.h movesort.h movegen.h
+eval.o: eval.cpp bitboard.h main.h eval.h nnue.h
 hash.o: hash.cpp hash.h main.h
-main.o: main.cpp attack.h bitboard.h main.h eval.h uci.h search.h \
+main.o: main.cpp attack.h bitboard.h main.h nnue.h uci.h search.h \
  chrono.h hash.h movesort.h movegen.h
 movegen.o: movegen.cpp movegen.h bitboard.h main.h attack.h
 movesort.o: movesort.cpp movesort.h main.h movegen.h bitboard.h eval.h \
  search.h chrono.h hash.h
 nnue.o: nnue.cpp nnue.h main.h bitboard.h
 search.o: search.cpp search.h chrono.h main.h hash.h movesort.h movegen.h \
- bitboard.h eval.h
+ bitboard.h eval.h nnue.h
 uci.o: uci.cpp uci.h search.h chrono.h main.h hash.h movesort.h movegen.h \
  bitboard.h nnue.h

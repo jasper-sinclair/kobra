@@ -21,7 +21,7 @@ features:
 
 |       |       |
 |-------|------ |
-|perft 7|kobra_20_64_ja_avx2_zen2.exe|  
+|perft 7||  
 |a2a3|1067431060|
 |b2b3|1332339750|
 |c2c3|1440749440|
@@ -43,7 +43,7 @@ features:
 |g1f3|1476785540|
 |g1h3|1206695250|
 |nodes|3195901860|
-|time|17.4971|
+|time|16.3729|
 
 Kobra's strength & unique play results from the use of an original NNUE evaluation created & trained from millions of Kobra vs Kobra self-play games.
 The data used is available here: https://github.com/jasper-sinclair/kobra-data

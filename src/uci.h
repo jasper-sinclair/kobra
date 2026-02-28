@@ -1,46 +1,97 @@
 #pragma once
 #include <mutex>
+#include <string>
 #include <thread>
+#include <unordered_map>
 #include "search.h"
 
-struct option{
+constexpr auto engine_name = "kobra";
+constexpr auto engine_version = "2.1";
+constexpr auto engine_author = "Jasper";
+
+enum class option_type : uint8_t{
+  spin, check
+};
+
+struct uci_option{
   std::string name;
-  std::string type;
-  int default_value;
-  int min_value;
-  int max_value;
+  option_type type;
+  int min = 0;
+  int max = 0;
+  int spin_value = 0;
+  bool check_value = false;
+
+  static uci_option spin(
+    const std::string& name,
+    const int def,
+    const int min,
+    const int max){
+    uci_option o;
+    o.name = name;
+    o.type = option_type::spin;
+    o.spin_value = def;
+    o.min = min;
+    o.max = max;
+    return o;
+  }
+
+  static uci_option check(
+    const std::string& name,
+    const bool def){
+    uci_option o;
+    o.name = name;
+    o.type = option_type::check;
+    o.check_value = def;
+    return o;
+  }
 };
 
 namespace uci{
-  inline bool use_nnue=true;
-  constexpr int default_contempt=1;
-  constexpr size_t default_hash=256;
-  constexpr thread_id default_threads=1;
-  inline board pos;
-  inline const std::string start_fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  inline int contempt=default_contempt;
-  inline search_info search;
-  inline std::jthread thread;
-  inline std::mutex search_mutex;
-  inline std::vector<option> ucioptions={
-  {.name="Hash",.type="spin",.default_value=default_hash,.min_value=1,.max_value=max_hash_size},
-  {.name="Threads",.type="spin",.default_value=default_threads,.min_value=1,.max_value=max_threads},
-  {.name="Contempt",.type="spin",.default_value=default_contempt,.min_value=-100,.max_value=100},
-  {.name="UseNNUE",.type="check",.default_value=true,.min_value=0,.max_value=1}
-  };
-  u16 to_move(const std::string& str,board& b);
+  constexpr int default_contempt = 1;
+  constexpr size_t default_hash = 256;
+  constexpr thread_id default_threads = 1;
+  extern bool use_nnue;
+  extern bool verbose;
+  extern board pos;
+  extern std::string start_fen;
+  extern int contempt;
+  extern search search_info;
+  extern std::jthread thread;
+  extern std::mutex search_mutex;
+  extern std::unordered_map<std::string, uci_option> options;
+  extern std::vector<std::string> option_order;
+
+  void apply_option(
+    const std::string& name);
+
+  u16 to_move(
+    const std::string& str,
+    board& b);
+
   void get_bestmove();
-  void go(const std::string& str);
+
   void info();
+
   void init();
+
   void loop();
+
   void newgame();
-  void perft(std::istringstream& ss);
-  void position(std::istringstream& ss);
-  void setoption(std::istringstream& ss);
+
+  void go(
+    std::istringstream& ss);
+
+  void perft(
+    std::istringstream& ss);
+
+  void bench(
+    std::istringstream& ss);
+
+  void position(
+    std::istringstream& ss);
+
+  void setoption(
+    std::istringstream& ss);
+
   void stop();
 }
-
-inline std::string engname="kobra";
-inline std::string version="2.0";
-inline std::string author="jasper";

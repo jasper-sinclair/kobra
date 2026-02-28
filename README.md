@@ -1,6 +1,6 @@
 # kobra
 
-![alt tag](https://raw.githubusercontent.com/jasper-sinclair/kobra/main/src/docs/kobra.png)
+![alt tag](https://raw.githubusercontent.com/jasper-sinclair/kobra/main/docs/kobra.png)
 
 UCI chess engine
 

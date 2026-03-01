@@ -4,7 +4,6 @@
 #include <thread>
 #include <unordered_map>
 #include "search.h"
-
 constexpr auto engine_name = "kobra";
 constexpr auto engine_version = "2.1";
 constexpr auto engine_author = "Jasper";

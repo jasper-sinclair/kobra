@@ -2,7 +2,6 @@
 #include <array>
 #include "main.h"
 #include "movegen.h"
-
 struct search_stack;
 
 template <size_t Size, size_t... Sizes> struct hist : std::array<hist<Sizes...>, Size>{

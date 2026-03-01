@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include "bitboard.h"
-
 constexpr int max_moves = 256;
 
 struct move_info{

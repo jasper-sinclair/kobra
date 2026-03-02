@@ -54,13 +54,10 @@
     <ClCompile Include="decrypt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\shared\crypto\aes.c">
+    <ClCompile Include="..\..\crypto\aes.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\shared\crypto\sha256.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\shared\crypto_key.cpp">
+    <ClCompile Include="..\..\crypto\key.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,7 +104,7 @@
     <ClInclude Include="defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="crypto_key.h">
+    <ClInclude Include="key.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

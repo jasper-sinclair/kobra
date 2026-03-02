@@ -127,9 +127,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\shared\crypto\aes.c" />
-    <ClCompile Include="..\..\shared\crypto\sha256.c" />
-    <ClCompile Include="..\..\shared\crypto_key.cpp" />
+    <ClCompile Include="..\..\crypto\aes.c" />
+    <ClCompile Include="..\..\crypto\key.cpp" />
     <ClCompile Include="attack.cpp" />
     <ClCompile Include="bitboard.cpp" />
     <ClCompile Include="decrypt.cpp" />
@@ -147,7 +146,7 @@
   <ItemGroup>
     <ClInclude Include="attack.h" />
     <ClInclude Include="bitboard.h" />
-    <ClInclude Include="crypto_key.h" />
+    <ClInclude Include="key.h" />
     <ClInclude Include="decrypt.h" />
     <ClInclude Include="defs.h" />
     <ClInclude Include="eval.h" />

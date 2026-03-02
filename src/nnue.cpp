@@ -14,12 +14,31 @@ alignas(64) weight_t nnue::hidden2_weights[64 * 32];
 alignas(64) weight_t nnue::output_weights[32];
 int32_t nnue::output_biases[1];
 
-nnue& nnue::instance(){
-  #ifdef EMBED_NNUE
-  static nnue engine;
-  #else
-  static nnue engine("network.bin");
-  #endif
+nnue& nnue::instance() {
+#ifdef EMBED_NNUE
+  static nnue engine(
+    g_embedded_nnue_data,
+    g_embedded_nnue_size);
+#else
+  map_t mapping;
+  const fd file=open_file("network.bin");
+
+  if (file == FD_ERR) {
+    std::cerr << "Failed to open network.bin\n";
+    std::abort();
+  }
+
+  const void* file_data=map_file(file, &mapping);
+  const size_t size=file_size(file);
+  close_file(file);
+
+  static nnue engine(
+    static_cast<const uint8_t*>(file_data),
+    size);
+
+  if (mapping)
+    unmap_file(file_data, mapping);
+#endif
   return engine;
 }
 
@@ -400,51 +419,14 @@ void nnue::init_weights(
   permute_biases(hidden1_biases);
   permute_biases(hidden2_biases);
 }
-#ifdef EMBED_NNUE
-nnue::nnue() {
-  const unsigned char* raw=g_embedded_nnue_data;
-  const size_t size=g_embedded_nnue_size;
-  auto decrypted_vec=decrypt_blob(raw, size);
-  const void* data=decrypted_vec.data();
-  const size_t final_size=decrypted_vec.size();
 
-  if (!verify_net(data, final_size)) {
-    std::cerr << "Invalid embedded NNUE\n";
-    std::abort();
-  }
-  init_weights(data);
-  SO << "NNUE loaded (embedded)\n";
-}
-
-#else
-
-nnue::nnue(const char* net_path) {
-
-  map_t mapping;
-  const fd file=open_file(net_path);
-
-  if (file == FD_ERR) {
-    std::cerr << "Failed to open " << net_path << SE;
-    return;
-  }
-
-  const void* file_data=map_file(file, &mapping);
-  const size_t file_bytes=file_size(file);
-  close_file(file);
-
-  const auto blob=decrypt_blob(
-    static_cast<const uint8_t*>(file_data),
-    file_bytes);
+nnue::nnue(const uint8_t* raw, const size_t size) {
+  const auto blob=decrypt(raw, size);
 
   if (!verify_net(blob.data(), blob.size())) {
-    std::cerr << "Invalid NNUE file\n";
-    if (mapping) unmap_file(file_data, mapping);
-    return;
+    std::cerr << "Invalid NNUE\n";
+    std::abort();
   }
-
   init_weights(blob.data());
-
-  if (mapping) unmap_file(file_data, mapping);
-  SO << "NNUE loaded (from disk)\n";
+  SO << "NNUE loaded\n";
 }
-#endif

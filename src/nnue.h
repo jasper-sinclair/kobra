@@ -130,14 +130,8 @@ public:
   ~nnue()=default;
 
 private:
-  #ifdef EMBED_NNUE
-  nnue();
-  #else
-  #ifndef EMBED_NNUE
-  explicit nnue(
-    const char* net_path);
-  #endif
-  #endif
+  nnue(const uint8_t* raw, size_t size);
+
   static bool next_idx(
     unsigned*,
     unsigned*,

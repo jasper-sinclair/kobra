@@ -51,6 +51,18 @@
     <ClCompile Include="selfplay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="decrypt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\crypto\aes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\crypto\sha256.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\crypto_key.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitboard.h">
@@ -87,6 +99,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="selfplay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decrypt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto_key.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

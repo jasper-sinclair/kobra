@@ -9,21 +9,18 @@ else
 endif
 
 # ---- Paths ----
-SHARED_DIR := ../../shared
-CRYPTO_DIR := $(SHARED_DIR)/crypto
+CRYPTO_DIR := ../../crypto
 
 # ---- Engine sources (local) ----
 LOCAL_CPP := $(wildcard *.cpp)
 
 # ---- Shared C sources ----
-SHARED_C := $(CRYPTO_DIR)/aes.c \
-            $(CRYPTO_DIR)/sha256.c
+SHARED_C := $(CRYPTO_DIR)/aes.c
 
 # ---- Object files (all local output) ----
 OBJS := $(LOCAL_CPP:.cpp=.o) \
-        crypto_key.o \
-        aes.o \
-        sha256.o
+        key.o \
+        aes.o 
 
 DEPS := $(OBJS:.o=.d)
 
@@ -37,7 +34,6 @@ native   := yes
 
 # ---- Compiler Flags ----
 CXXFLAGS := -std=c++20 -static -DEMBED_NNUE
-CXXFLAGS += -I$(SHARED_DIR)
 CXXFLAGS += -I$(CRYPTO_DIR)
 
 ifeq ($(debug),no)
@@ -68,15 +64,12 @@ $(EXE): $(OBJS)
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
 # ---- Compile shared crypto_key.cpp ----
-crypto_key.o:
-	$(CXX) $(CXXFLAGS) -MMD -MP -c $(SHARED_DIR)/crypto_key.cpp -o $@
+key.o:
+	$(CXX) $(CXXFLAGS) -MMD -MP -c $(CRYPTO_DIR)/key.cpp -o $@
 
 # ---- Compile shared C files ----
 aes.o:
 	gcc -O3 -I$(CRYPTO_DIR) -c $(CRYPTO_DIR)/aes.c -o $@
-
-sha256.o:
-	gcc -O3 -I$(CRYPTO_DIR) -c $(CRYPTO_DIR)/sha256.c -o $@
 
 # ---- Clean ----
 clean:

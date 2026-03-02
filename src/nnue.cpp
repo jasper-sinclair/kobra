@@ -1,6 +1,7 @@
 #include "nnue.h"
 #include <iostream>
 #include "bitboard.h"
+#include "decrypt.h"
 #include "defs.h"
 #include "main.h"
 
@@ -17,7 +18,7 @@ nnue& nnue::instance(){
   #ifdef EMBED_NNUE
   static nnue engine;
   #else
-  static nnue engine("kobra.nnue");
+  static nnue engine("network.bin");
   #endif
   return engine;
 }
@@ -400,28 +401,18 @@ void nnue::init_weights(
   permute_biases(hidden2_biases);
 }
 #ifdef EMBED_NNUE
-
 nnue::nnue() {
-
   const unsigned char* raw=g_embedded_nnue_data;
   const size_t size=g_embedded_nnue_size;
-
-#ifdef PROTECTED_NNUE
   auto decrypted_vec=decrypt_blob(raw, size);
   const void* data=decrypted_vec.data();
   const size_t final_size=decrypted_vec.size();
-#else
-  const void* data=raw;
-  const size_t final_size=size;
-#endif
 
   if (!verify_net(data, final_size)) {
     std::cerr << "Invalid embedded NNUE\n";
     std::abort();
   }
-
   init_weights(data);
-
   SO << "NNUE loaded (embedded)\n";
 }
 
@@ -437,27 +428,23 @@ nnue::nnue(const char* net_path) {
     return;
   }
 
-  const void* eval_data=map_file(file, &mapping);
-  const size_t size=file_size(file);
+  const void* file_data=map_file(file, &mapping);
+  const size_t file_bytes=file_size(file);
   close_file(file);
 
-#ifdef PROTECTED_NNUE
-  auto decrypted_vec=
-    decrypt_blob((const uint8_t*)eval_data, size);
-  eval_data=decrypted_vec.data();
-#endif
+  const auto blob=decrypt_blob(
+    static_cast<const uint8_t*>(file_data),
+    file_bytes);
 
-  if (!verify_net(eval_data, size)) {
-    std::cerr << "Invalid NNUE file: " << net_path << SE;
-    if (mapping) unmap_file(eval_data, mapping);
+  if (!verify_net(blob.data(), blob.size())) {
+    std::cerr << "Invalid NNUE file\n";
+    if (mapping) unmap_file(file_data, mapping);
     return;
   }
 
-  init_weights(eval_data);
+  init_weights(blob.data());
 
-  if (mapping) unmap_file(eval_data, mapping);
-
-  SO << "NNUE loaded: " << net_path << SE;
+  if (mapping) unmap_file(file_data, mapping);
+  SO << "NNUE loaded (from disk)\n";
 }
-
 #endif

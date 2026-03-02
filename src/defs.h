@@ -2,7 +2,7 @@
 #ifndef EMBED_NNUE
 #include <fcntl.h>
 #include <sys/stat.h>
-#include "crypto_key.h"
+#include "key.h"
 
 #ifdef _WIN64
 #include <Windows.h>
@@ -82,8 +82,7 @@ inline void unmap_file(
 #include "decrypt.h"
 #include <vector>
 extern "C"{
-#include "../../shared/crypto/aes.h"
-#include "../../shared/crypto/sha256.h"
+#include "../../crypto/aes.h"
 }
 #ifndef INCBIN_PREFIX
 #define INCBIN_PREFIX g_

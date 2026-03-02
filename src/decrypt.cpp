@@ -2,18 +2,17 @@
 #include <vector>
 
 extern "C" {
-#include "../../shared/crypto/aes.h"
+#include "../../crypto/aes.h"
 }
 
 #include "decrypt.h"
-#include "crypto_key.h"
+#include "key.h"
 
-std::vector<uint8_t> decrypt_blob(
+std::vector<uint8_t> decrypt(
   const uint8_t* blob,
   const size_t blob_size) {
   uint8_t key[32];
   derive_key(key);
-
   const uint8_t* iv=blob;
   const uint8_t* ciphertext=blob + 16;
   const size_t size=blob_size - 16;

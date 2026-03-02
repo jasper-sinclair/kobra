@@ -81,9 +81,6 @@ inline void unmap_file(
 #else
 #include "decrypt.h"
 #include <vector>
-extern "C"{
-#include "../../crypto/aes.h"
-}
 #ifndef INCBIN_PREFIX
 #define INCBIN_PREFIX g_
 #endif

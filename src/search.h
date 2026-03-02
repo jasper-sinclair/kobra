@@ -3,6 +3,7 @@
 #include "chrono.h"
 #include "hash.h"
 #include "movesort.h"
+
 constexpr int min_display_time = 5000;
 constexpr int max_threads = 256;
 inline constexpr int continuation_ply = 6;

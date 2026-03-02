@@ -5,6 +5,7 @@ namespace attack{
   int knight_dir[8] = {17,10,-6,-15,-17,-10,6,15};
   int bishop_dir[4] = {9,-7,-9,7};
   int rook_dir[4] = {8,1,-8,-1};
+
   bitboard a_file_att[8][64];
   bitboard anti_diag_by_sq[n_sqs];
   bitboard anti_diag[15];

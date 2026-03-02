@@ -13,21 +13,17 @@ void derive_key(uint8_t key[32]) {
       0x25, 0xca, 0xab, 0xa3,
       0xf0, 0x65, 0x2c, 0x66
   };
-
   memcpy(key, seed, 32);
 }
 
 void xor_stream(uint8_t* data, size_t size, const uint8_t key[32]) {
   uint64_t s[4];
   std::memcpy(s, key, 32);
-
   uint64_t state=s[0] ^ s[1] ^ s[2] ^ s[3];
-
   for (size_t i=0; i < size; ++i) {
     state^=state << 13;
     state^=state >> 7;
     state^=state << 17;
-
     data[i]^=static_cast<uint8_t>(state);
   }
 }

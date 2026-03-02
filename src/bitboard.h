@@ -4,10 +4,12 @@
 #include <string>
 #include <vector>
 #include "main.h"
+
 #ifdef _MSC_VER
 #pragma warning(disable : 4324) //'board_state': structure was padded due to alignment specifier
 #else
 #endif
+
 struct bitboard{
   u64 data;
 

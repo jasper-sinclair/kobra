@@ -5,13 +5,10 @@
 
 std::vector<uint8_t> decrypt(
   const uint8_t* blob,
-  size_t blob_size) {
+  const size_t blob_size) {
   uint8_t key[32];
   derive_key(key);
-
-  std::vector<uint8_t> decrypted(blob, blob + blob_size);
-
+  std::vector decrypted(blob, blob + blob_size);
   xor_stream(decrypted.data(), decrypted.size(), key);
-
   return decrypted;
 }

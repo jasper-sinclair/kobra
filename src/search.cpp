@@ -5,6 +5,7 @@
 #include "hash.h"
 #include "nnue.h"
 #include "uci.h"
+
 i32 search::forward_pruning_table[max_depth][max_moves];
 i32 search::log_reduction_table[max_depth][max_moves];
 i32 search::move_count_pruning_table[max_depth];

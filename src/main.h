@@ -2,10 +2,12 @@
 #include <chrono>
 #include <cstdint>
 #include <random>
+
 #ifdef _MSC_VER
 #pragma warning(disable : 4127)
 #else
 #endif
+
 #define	SC	static_cast
 #define	SCI	static_cast<int>
 #define	SCB	static_cast<bool>
@@ -19,10 +21,12 @@
 #define	SCSZ	static_cast<size_t>
 #define	SCTI	static_cast<thread_id>
 #define	SCTP	static_cast<time_point>
+
 #define SO std::cout
 #define SE std::endl
 #define NL "\n"
 #define FL NL << std::flush
+
 using i8 = int8_t;
 using i16 = int16_t;
 using i32 = int32_t;
@@ -37,6 +41,7 @@ using thread_id = u32;
 using std::log;
 using std::chrono::milliseconds;
 using time_point = milliseconds::rep;
+
 inline constexpr int max_depth = 256;
 inline constexpr int max_ply = 256;
 

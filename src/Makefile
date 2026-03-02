@@ -36,7 +36,7 @@ optimize := yes
 native   := yes
 
 # ---- Compiler Flags ----
-CXXFLAGS := -std=c++20 -static -DEMBED_NNUE -DPROTECTED_NNUE
+CXXFLAGS := -std=c++20 -static -DEMBED_NNUE
 CXXFLAGS += -I$(SHARED_DIR)
 CXXFLAGS += -I$(CRYPTO_DIR)
 

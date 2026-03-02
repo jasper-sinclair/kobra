@@ -54,10 +54,7 @@
     <ClCompile Include="decrypt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\crypto\aes.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\crypto\key.cpp">
+    <ClCompile Include="key.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

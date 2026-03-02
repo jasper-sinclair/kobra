@@ -127,12 +127,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\crypto\aes.c" />
-    <ClCompile Include="..\..\crypto\key.cpp" />
     <ClCompile Include="attack.cpp" />
     <ClCompile Include="bitboard.cpp" />
     <ClCompile Include="decrypt.cpp" />
     <ClCompile Include="eval.cpp" />
+    <ClCompile Include="key.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="movegen.cpp" />
     <ClCompile Include="movesort.cpp" />
@@ -146,10 +145,10 @@
   <ItemGroup>
     <ClInclude Include="attack.h" />
     <ClInclude Include="bitboard.h" />
-    <ClInclude Include="key.h" />
     <ClInclude Include="decrypt.h" />
     <ClInclude Include="defs.h" />
     <ClInclude Include="eval.h" />
+    <ClInclude Include="key.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="movegen.h" />
     <ClInclude Include="movesort.h" />

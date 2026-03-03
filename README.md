@@ -49,10 +49,10 @@ Kobra's strength & unique play results from the use of an original NNUE evaluati
 The data used is available here: https://github.com/jasper-sinclair/kobra-data
 
 NNUE features:
-https://github.com/jasper-sinclair/kobra/tree/main/docs/nnue-features.md
+https://github.com/jasper-sinclair/kobra/blob/main/docs/nnue-features.md
 
 NNUE creation:
-https://github.com/jasper-sinclair/kobra/tree/main/docs/nnue-creation.md
+https://github.com/jasper-sinclair/kobra/blob/main/docs/nnue-creation.md
 
 NNUE probe:
 Kobra NNUE is powered by a highly optimized custom adaptation of https://github.com/dshawul/nnue-probe

@@ -1,3 +1,9 @@
+# train.py
+# jasper sinclair
+#
+# Trains a simple NNUE-style chess evaluation network using sparse binary data.
+# Exports quantized weights for use inside a chess engine.
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -12,9 +18,14 @@ import random
 import time
 import logging
 
+
+# =========================
+# Logging Setup
+# =========================
+# Logs to both file and stdout for persistent training history.
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-
 logger.handlers.clear()
 
 fh = logging.FileHandler("training.log", delay=False)
@@ -27,31 +38,29 @@ logger.addHandler(fh)
 logger.addHandler(ch)
 
 
+# =========================
+# Constants
+# =========================
+
+# 6 piece types × 64 squares × 2 colors (us/them)
 INPUT_SIZE = 768
+
 WHITE = 0
 BLACK = 1
 
+# Piece type mapping (color handled separately)
 PIECE_TO_INDEX = {
-    "P": 0,
-    "N": 1,
-    "B": 2,
-    "R": 3,
-    "Q": 4,
-    "K": 5,
-    "p": 0,
-    "n": 1,
-    "b": 2,
-    "r": 3,
-    "q": 4,
-    "k": 5,
+    "P": 0, "N": 1, "B": 2, "R": 3, "Q": 4, "K": 5,
+    "p": 0, "n": 1, "b": 2, "r": 3, "q": 4, "k": 5,
 }
+
 
 # =========================
 # Utilities
 # =========================
 
-
 def load_config(path="config.json"):
+    """Load JSON config file if present."""
     if not os.path.exists(path):
         logger.info("Config file not found, using defaults.")
         return {}
@@ -60,6 +69,7 @@ def load_config(path="config.json"):
 
 
 def set_seed(seed):
+    """Ensure deterministic behavior."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -70,8 +80,12 @@ def set_seed(seed):
 # Feature Builder
 # =========================
 
-
 def build_features(fen, perspective):
+    """
+    Convert FEN string into 768-length NNUE-style binary feature vector.
+    Board is flipped for black perspective.
+    """
+
     board_part = fen.split()[0]
     features = np.zeros(INPUT_SIZE, dtype=np.float32)
 
@@ -109,17 +123,26 @@ def build_features(fen, perspective):
 
 
 # =========================
-# Dataset
+# Sparse Dataset
 # =========================
 
-INPUT_SIZE = 768
-
-
 class SparseDataset(Dataset):
+    """
+    Memory-mapped sparse dataset.
+
+    Record layout:
+        uint8  n_white
+        uint8  n_black
+        uint16 white_indices[n_white]
+        uint16 black_indices[n_black]
+        float32 result
+    """
+
     def __init__(self, path):
         self.path = path
         self.offsets = []
 
+        # Build offset table
         with open(path, "rb") as f:
             offset = 0
             size = f.seek(0, 2)
@@ -134,9 +157,9 @@ class SparseDataset(Dataset):
 
                 record_size = (
                     2
-                    + 2 * n_white  # two uint8 counts
-                    + 2 * n_black  # white indices
-                    + 4  # black indices  # float32 result
+                    + 2 * n_white
+                    + 2 * n_black
+                    + 4
                 )
 
                 offset += record_size
@@ -151,12 +174,10 @@ class SparseDataset(Dataset):
 
     def __getitem__(self, idx):
         offset = self.offsets[idx]
-
         ptr = offset
 
         n_white = self.mm[ptr]
         ptr += 1
-
         n_black = self.mm[ptr]
         ptr += 1
 
@@ -183,11 +204,18 @@ class SparseDataset(Dataset):
 
 
 # =========================
-# Model
+# NNUE Model
 # =========================
 
-
 class NNUE(nn.Module):
+    """
+    Simple NNUE-style architecture:
+        shared first layer
+        clipped squared activation
+        concatenation
+        final linear output
+    """
+
     def __init__(self, l1_size):
         super().__init__()
         self.fc1 = nn.Linear(INPUT_SIZE, l1_size)
@@ -207,11 +235,14 @@ class NNUE(nn.Module):
 
 
 # =========================
-# Export
+# Export Quantized Model
 # =========================
 
-
 def export_model(model, path, scale):
+    """
+    Export weights as int16 scaled values.
+    """
+
     fc1_w = model.fc1.weight.detach().cpu().numpy()
     fc1_b = model.fc1.bias.detach().cpu().numpy()
     fc2_w = model.fc2.weight.detach().cpu().numpy()
@@ -248,7 +279,6 @@ def export_model(model, path, scale):
 # Training
 # =========================
 
-
 def main():
 
     config_path = sys.argv[1] if len(sys.argv) > 1 else "config.json"
@@ -259,7 +289,6 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger.info("Using device: %s", device)
 
-    # Only enable AMP if CUDA is available
     use_amp = config.get("use_amp", True) and device.type == "cuda"
 
     dataset = SparseDataset("training_sparse.bin")
@@ -278,25 +307,24 @@ def main():
     )
 
     val_loader = DataLoader(
-        val_set, batch_size=config.get("batch_size", 256), shuffle=False
+        val_set,
+        batch_size=config.get("batch_size", 256),
+        shuffle=False,
     )
 
     model = NNUE(config.get("l1_size", 128)).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=config.get("learning_rate", 1e-3))
-
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=3)
 
     criterion = nn.BCEWithLogitsLoss()
-
-    # NEW AMP API (future-proof)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
     start_epoch = 0
     best_val_loss = float("inf")
 
-    # Resume
     checkpoint_path = config.get("checkpoint_path", "checkpoint.pt")
+
     if os.path.exists(checkpoint_path):
         logger.info("Resuming from checkpoint...")
         checkpoint = torch.load(checkpoint_path, map_location=device)
@@ -308,7 +336,6 @@ def main():
         best_val_loss = checkpoint["best_val_loss"]
 
     epochs = config.get("epochs", 10)
-
     log_every = config.get("log_every", 5000)
     mid_checkpoint_every = config.get("mid_checkpoint_every", 10000)
 
@@ -342,41 +369,30 @@ def main():
 
             train_loss += loss.item()
 
-            # progress logging
-            # Determine triggers
             log_trigger = log_every > 0 and batch_idx % log_every == 0 and batch_idx > 0
-
             checkpoint_trigger = (
                 mid_checkpoint_every > 0
                 and batch_idx % mid_checkpoint_every == 0
                 and batch_idx > 0
             )
 
-            # Only proceed if either event happens
             if log_trigger or checkpoint_trigger:
 
                 message = ""
 
-                # Build full progress line only if it's a log interval
                 if log_trigger:
                     elapsed = time.time() - start_time
                     rate = batch_idx / elapsed
                     remaining = (len(train_loader) - batch_idx) / rate
-
-                    elapsed_h = int(elapsed // 3600)
-                    elapsed_m = int((elapsed % 3600) // 60)
-                    elapsed_s = int(elapsed % 60)
 
                     message = (
                         f"Epoch {epoch+1} | "
                         f"{batch_idx}/{len(train_loader)} "
                         f"({100*batch_idx/len(train_loader):.1f}%) | "
                         f"{rate:.1f} it/s | "
-                        f"Elapsed {elapsed_h:02d}:{elapsed_m:02d}:{elapsed_s:02d} | "
                         f"ETA {remaining/60:.1f} min"
                     )
 
-                # Run checkpoint independently
                 if checkpoint_trigger:
                     state = {
                         "epoch": epoch,
@@ -391,14 +407,11 @@ def main():
                     os.replace(tmp_path, "checkpoint_mid_epoch.pt")
 
                     if not message:
-                        # If checkpoint fires without log firing,
-                        # build minimal message so formatting stays clean
                         message = f"Epoch {epoch+1} | {batch_idx}/{len(train_loader)}"
 
                     message += " | checkpoint saved"
 
                 logger.info(message)
-        # ---- end batch loop ----
 
         train_loss /= len(train_loader)
 
@@ -417,7 +430,6 @@ def main():
                 val_loss += loss.item()
 
         val_loss /= len(val_loader)
-
         scheduler.step(val_loss)
 
         logger.info("\nEpoch %d/%d", epoch + 1, epochs)
@@ -425,7 +437,7 @@ def main():
         logger.info("Train Loss: %.6f", train_loss)
         logger.info("Val Loss:   %.6f", val_loss)
 
-        # Save best
+        # Save best model
         if val_loss < best_val_loss:
             best_val_loss = val_loss
 
@@ -435,7 +447,6 @@ def main():
             os.replace(tmp_path, best_path)
 
             export_model(model, "kobra_best.bin", config.get("scale", 128))
-
             logger.info("Saved best model and exported kobra_best.bin")
 
         state = {

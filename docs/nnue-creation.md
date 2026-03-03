@@ -1,4 +1,4 @@
-Kobra_1.0.nnue was created from the many millions of self-play games created during development and testing.
+Kobra nnue was created from the many millions of self-play games created during development and testing.
 
 The 'convert_bin' & 'learn' functions from nodchip's NNUE repo were used.
 

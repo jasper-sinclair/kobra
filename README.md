@@ -46,7 +46,7 @@ features:
 |time|16.3729|
 
 Kobra's strength & unique play results from the use of an original NNUE evaluation created & trained from millions of Kobra vs Kobra self-play games.
-The data used is available here: https://github.com/jasper-sinclair/kobra-data
+Much of the data used is available here: https://github.com/jasper-sinclair/kobra-data
 
 NNUE features:
 https://github.com/jasper-sinclair/kobra/blob/main/docs/nnue-features.md

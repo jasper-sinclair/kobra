@@ -1,0 +1,20 @@
+{
+  "training_file": "training.txt",
+  "batch_size": 256,
+  "epochs": 20,
+  "learning_rate": 0.001,
+  "num_workers": 0,
+  "scale": 128,
+  "l1_size": 128,
+  "export_path": "network.bin",
+
+  "validation_split": 0.05,
+  "save_every": 1,
+  "checkpoint_path": "checkpoint.pt",
+  "best_model_path": "best_model.pt",
+  "use_amp": true,
+  "seed": 42,
+
+  "log_every": 1000,
+  "mid_checkpoint_every": 5000
+}

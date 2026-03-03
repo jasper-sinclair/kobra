@@ -1,5 +1,4 @@
-The scripts in this folder are for a minimal 768-input piece-square NNUE,
-to possibly be used in kobra 3.0 (or something bigger like 768-256-1)
+The scripts in this folder are for building a minimal 768-input piece-square NNUE.
 
 Feature Encoding:
 6 piece types × 64 squares × 2 perspectives
@@ -23,3 +22,9 @@ Concatenate white & black accumulators
 Final linear layer → evaluation
 Parameter Count
 ~100,000 parameters
+
+This is the 1st step towards replacing the halfkp nnue-probe code that Kobra is currently using. 
+The newly created 768-128-1 nets are testing at around 2300 elo at this time, and I'll hopefully
+be enlarging and improving them in months ahead.
+
+

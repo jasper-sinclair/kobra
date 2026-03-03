@@ -57,7 +57,6 @@ https://github.com/jasper-sinclair/kobra/blob/main/docs/nnue-creation.md
 NNUE train:
 https://github.com/jasper-sinclair/kobra-train
 
-NNUE probe:
 Kobra NNUE is powered by a highly optimized custom adaptation of https://github.com/dshawul/nnue-probe
 
 [license-badge]:https://img.shields.io/github/license/jasper-sinclair/kobra?style=for-the-badge&label=license&color=success

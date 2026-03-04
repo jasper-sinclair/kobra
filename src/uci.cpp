@@ -199,8 +199,9 @@ namespace uci{
         "selfplay",[](
         std::istringstream& ss){
           int games = 0;
-          int movetime = 50;
+          int movetime = 0;
           int depth = 0;
+          int nodes = 0;
           ss >> games;
           std::string arg;
           while (ss >> arg){
@@ -208,12 +209,15 @@ namespace uci{
               ss >> movetime;
             else if (arg == "depth")
               ss >> depth;
+            else if (arg == "nodes")
+              ss >> nodes;
           }
-          if (depth <= 0 && movetime <= 0){
-            std::cout << "Error: specify movetime or depth\n";
+
+          if (nodes <= 0 && depth <= 0 && movetime <= 0){
+            std::cout << "Error: specify nodes, depth, or movetime\n";
             return;
           }
-          run_selfplay(games,movetime,depth);
+          run_selfplay(games,movetime,depth,nodes);
         }
       },
     };

@@ -3,5 +3,6 @@ namespace uci{
   void run_selfplay(
     int games,
     int movetime,
-    int depth);
+    int depth,
+    int nodes);
 }

@@ -51,6 +51,9 @@ Much of the data used is available here: https://github.com/jasper-sinclair/kobr
 NNUE features:
 https://github.com/jasper-sinclair/kobra/blob/main/docs/nnue-features.md
 
+NNUE training:
+https://github.com/jasper-sinclair/kobra/blob/main/docs/nnue-train.md
+
 NNUE creation:
 https://github.com/jasper-sinclair/kobra/blob/main/docs/nnue-creation.md
 

@@ -50,14 +50,25 @@ BLACK = 1
 
 # Piece type mapping (color handled separately)
 PIECE_TO_INDEX = {
-    "P": 0, "N": 1, "B": 2, "R": 3, "Q": 4, "K": 5,
-    "p": 0, "n": 1, "b": 2, "r": 3, "q": 4, "k": 5,
+    "P": 0,
+    "N": 1,
+    "B": 2,
+    "R": 3,
+    "Q": 4,
+    "K": 5,
+    "p": 0,
+    "n": 1,
+    "b": 2,
+    "r": 3,
+    "q": 4,
+    "k": 5,
 }
 
 
 # =========================
 # Utilities
 # =========================
+
 
 def load_config(path="config.json"):
     """Load JSON config file if present."""
@@ -79,6 +90,7 @@ def set_seed(seed):
 # =========================
 # Feature Builder
 # =========================
+
 
 def build_features(fen, perspective):
     """
@@ -126,6 +138,9 @@ def build_features(fen, perspective):
 # Sparse Dataset
 # =========================
 
+INPUT_SIZE = 768
+
+
 class SparseDataset(Dataset):
     """
     Memory-mapped sparse dataset.
@@ -157,9 +172,9 @@ class SparseDataset(Dataset):
 
                 record_size = (
                     2
-                    + 2 * n_white
-                    + 2 * n_black
-                    + 4
+                    + 2 * n_white  # two uint8 counts
+                    + 2 * n_black  # white indices
+                    + 4  # black indices  # float32 result
                 )
 
                 offset += record_size
@@ -207,6 +222,7 @@ class SparseDataset(Dataset):
 # NNUE Model
 # =========================
 
+
 class NNUE(nn.Module):
     """
     Simple NNUE-style architecture:
@@ -222,6 +238,7 @@ class NNUE(nn.Module):
         self.fc2 = nn.Linear(l1_size * 2, 1)
 
     def forward(self, xw, xb):
+
         hw = torch.clamp(self.fc1(xw), 0, 1)
         hb = torch.clamp(self.fc1(xb), 0, 1)
 
@@ -238,6 +255,7 @@ class NNUE(nn.Module):
 # Export Quantized Model
 # =========================
 
+
 def export_model(model, path, scale):
     """
     Export weights as int16 scaled values.
@@ -252,23 +270,28 @@ def export_model(model, path, scale):
 
     tmp_path = path + ".tmp"
     with open(tmp_path, "wb") as f:
+
+        # fc1 weights
         for i in range(INPUT_SIZE):
             for j in range(l1_size):
-                val = int(fc1_w[j][i] * scale)
+                val = int(round(fc1_w[j][i] * scale))
                 val = max(-32768, min(32767, val))
                 f.write(struct.pack("<h", val))
 
+        # fc1 bias (none in model → write zeros)
         for j in range(l1_size):
-            val = int(fc1_b[j] * scale)
+            val = int(round(fc1_b[j] * scale))
             val = max(-32768, min(32767, val))
             f.write(struct.pack("<h", val))
 
+        # fc2 weights
         for j in range(l1_size * 2):
-            val = int(fc2_w[0][j] * scale)
+            val = int(round(fc2_w[0][j] * scale))
             val = max(-32768, min(32767, val))
             f.write(struct.pack("<h", val))
 
-        val = int(fc2_b[0] * scale)
+        # fc2 bias
+        val = int(round(fc2_b[0] * scale))
         val = max(-32768, min(32767, val))
         f.write(struct.pack("<h", val))
 
@@ -279,6 +302,7 @@ def export_model(model, path, scale):
 # Training
 # =========================
 
+
 def main():
 
     config_path = sys.argv[1] if len(sys.argv) > 1 else "config.json"
@@ -288,10 +312,12 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger.info("Using device: %s", device)
+    use_gpu = device.type == "cuda"
 
+    # Only enable AMP if CUDA is available
     use_amp = config.get("use_amp", True) and device.type == "cuda"
 
-    dataset = SparseDataset("training_sparse.bin")
+    dataset = SparseDataset(config.get("training_file", "training_sparse.bin"))
 
     val_split = config.get("validation_split", 0.05)
     val_size = int(len(dataset) * val_split)
@@ -304,25 +330,28 @@ def main():
         batch_size=config.get("batch_size", 256),
         shuffle=True,
         num_workers=config.get("num_workers", 0),
+        pin_memory=use_gpu        
     )
 
     val_loader = DataLoader(
-        val_set,
-        batch_size=config.get("batch_size", 256),
-        shuffle=False,
+        val_set, batch_size=config.get("batch_size", 256), shuffle=False
     )
 
     model = NNUE(config.get("l1_size", 128)).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=config.get("learning_rate", 1e-3))
+
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=3)
 
     criterion = nn.BCEWithLogitsLoss()
+
+    # NEW AMP API (future-proof)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
     start_epoch = 0
     best_val_loss = float("inf")
 
+    # Resume
     checkpoint_path = config.get("checkpoint_path", "checkpoint.pt")
 
     if os.path.exists(checkpoint_path):
@@ -340,7 +369,7 @@ def main():
     mid_checkpoint_every = config.get("mid_checkpoint_every", 10000)
 
     for epoch in range(start_epoch, epochs):
-
+        logger.info("\nEpoch %d/%d", epoch + 1, epochs)
         model.train()
         train_loss = 0.0
         start_time = time.time()
@@ -369,30 +398,41 @@ def main():
 
             train_loss += loss.item()
 
+            # progress logging
+            # Determine triggers
             log_trigger = log_every > 0 and batch_idx % log_every == 0 and batch_idx > 0
+
             checkpoint_trigger = (
                 mid_checkpoint_every > 0
                 and batch_idx % mid_checkpoint_every == 0
                 and batch_idx > 0
             )
 
+            # Only proceed if either event happens
             if log_trigger or checkpoint_trigger:
 
                 message = ""
 
+                # Build full progress line only if it's a log interval
                 if log_trigger:
                     elapsed = time.time() - start_time
                     rate = batch_idx / elapsed
                     remaining = (len(train_loader) - batch_idx) / rate
+
+                    elapsed_h = int(elapsed // 3600)
+                    elapsed_m = int((elapsed % 3600) // 60)
+                    elapsed_s = int(elapsed % 60)
 
                     message = (
                         f"Epoch {epoch+1} | "
                         f"{batch_idx}/{len(train_loader)} "
                         f"({100*batch_idx/len(train_loader):.1f}%) | "
                         f"{rate:.1f} it/s | "
+                        f"Elapsed {elapsed_h:02d}:{elapsed_m:02d}:{elapsed_s:02d} | "
                         f"ETA {remaining/60:.1f} min"
                     )
 
+                # Run checkpoint independently
                 if checkpoint_trigger:
                     state = {
                         "epoch": epoch,
@@ -407,11 +447,14 @@ def main():
                     os.replace(tmp_path, "checkpoint_mid_epoch.pt")
 
                     if not message:
+                        # If checkpoint fires without log firing,
+                        # build minimal message so formatting stays clean
                         message = f"Epoch {epoch+1} | {batch_idx}/{len(train_loader)}"
 
                     message += " | checkpoint saved"
 
                 logger.info(message)
+        # ---- end batch loop ----
 
         train_loss /= len(train_loader)
 
@@ -421,18 +464,20 @@ def main():
 
         with torch.no_grad():
             for xb_w, xb_b, yb in val_loader:
+
                 xb_w = xb_w.to(device)
                 xb_b = xb_b.to(device)
                 yb = yb.to(device)
 
                 pred = model(xb_w, xb_b)
                 loss = criterion(pred, yb)
+
                 val_loss += loss.item()
 
         val_loss /= len(val_loader)
+
         scheduler.step(val_loss)
 
-        logger.info("\nEpoch %d/%d", epoch + 1, epochs)
         logger.info("Current LR: %s", optimizer.param_groups[0]["lr"])
         logger.info("Train Loss: %.6f", train_loss)
         logger.info("Val Loss:   %.6f", val_loss)
@@ -446,8 +491,11 @@ def main():
             torch.save(model.state_dict(), tmp_path)
             os.replace(tmp_path, best_path)
 
-            export_model(model, "kobra_best.bin", config.get("scale", 128))
-            logger.info("Saved best model and exported kobra_best.bin")
+            export_path = config.get("export_path", "network.bin")
+
+            export_model(model, export_path, config.get("scale", 128))
+            logger.info(f"Saved best model and exported {export_path}")
+            print("Network size:", os.path.getsize(export_path))
 
         state = {
             "epoch": epoch + 1,
@@ -461,7 +509,9 @@ def main():
         torch.save(state, tmp_path)
         os.replace(tmp_path, checkpoint_path)
 
-        export_model(model, f"kobra_best_epoch_{epoch+1}.bin", config.get("scale", 128))
+        export_model(
+            model, f"network_best_epoch_{epoch+1}.bin", config.get("scale", 128)
+        )
 
 
 if __name__ == "__main__":

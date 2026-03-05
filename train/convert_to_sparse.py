@@ -18,8 +18,10 @@
 # reducing disk usage and improving loading speed.
 
 import struct
+import json
+import os
+import random
 from tqdm import tqdm
-
 
 # =========================
 # Constants
@@ -27,21 +29,93 @@ from tqdm import tqdm
 
 # 6 piece types × 64 squares × 2 (us / them)
 INPUT_SIZE = 768
-
 WHITE = 0
 BLACK = 1
 
 # Piece type mapping.
 # Color is handled separately via perspective logic.
 PIECE_TO_INDEX = {
-    'P': 0, 'N': 1, 'B': 2, 'R': 3, 'Q': 4, 'K': 5,
-    'p': 0, 'n': 1, 'b': 2, 'r': 3, 'q': 4, 'k': 5
+    "P": 0,
+    "N": 1,
+    "B": 2,
+    "R": 3,
+    "Q": 4,
+    "K": 5,
+    "p": 0,
+    "n": 1,
+    "b": 2,
+    "r": 3,
+    "q": 4,
+    "k": 5,
 }
 
 
 # =========================
-# Feature Extraction
+# Config loader
 # =========================
+
+
+def load_config(path="config.json"):
+    if not os.path.exists(path):
+        return {}
+
+    with open(path, "r") as f:
+        return json.load(f)
+
+
+# =========================
+# Parsing
+# =========================
+
+
+def parse_epd_line(line):
+
+    line = line.strip()
+
+    # ---------- Selfplay format ----------
+    if "|" in line:
+        fen_part, score_part = line.split("|", 1)
+
+        fen = fen_part.strip()
+
+        try:
+            result = float(score_part.strip())
+        except:
+            return None, None
+
+        result = max(0.0, min(1.0, result))
+        return fen, result
+
+    # ---------- quiet.epd format ----------
+    if '"' in line:
+
+        parts = line.split('"')
+        if len(parts) < 2:
+            return None, None
+
+        result_str = parts[1]
+
+        if result_str == "1-0":
+            result = 1.0
+        elif result_str == "0-1":
+            result = 0.0
+        elif result_str == "1/2-1/2":
+            result = 0.5
+        else:
+            return None, None
+
+        tokens = line.split()
+        fen = " ".join(tokens[:4])
+
+        return fen, result
+
+    return None, None
+
+
+# =========================
+# Feature extraction
+# =========================
+
 
 def extract_indices(fen, perspective):
     """
@@ -64,7 +138,7 @@ def extract_indices(fen, perspective):
 
     for c in board_part:
         # Move to next rank
-        if c == '/':
+        if c == "/":
             rank -= 1
             file = 0
             continue
@@ -104,34 +178,33 @@ def extract_indices(fen, perspective):
 # Conversion Pipeline
 # =========================
 
-def convert(input_path="training.txt",
-            output_path="training_sparse.bin"):
-    """
-    Convert dense text training file into sparse binary dataset.
 
-    Input file format:
-        FEN|result
+def convert(input_path, output_path, skip_invalid=True):
 
-    Example:
-        rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1|0.5
+    valid = 0
+    invalid = 0
 
-    Output file is optimized for:
-        - Minimal disk footprint
-        - Fast mmap-based random access
-        - Efficient reconstruction into dense tensors
-    """
+    seen = set()
+    MAX_HASH = 2000000
 
-    with open(input_path, "r") as fin, \
-         open(output_path, "wb") as fout:
+    with open(input_path, "r") as fin, open(output_path, "wb") as fout:
 
-        for line in tqdm(fin, desc="Converting positions"):
+        lines = list(fin)
 
-            # Skip malformed lines
-            if "|" not in line:
+        for line in tqdm(lines):
+
+            fen, result = parse_epd_line(line)
+
+            if fen is None:
+                invalid += 1
                 continue
 
-            fen, result = line.strip().split("|")
-            result = float(result.strip())
+            key = fen
+            if key in seen:
+                continue
+
+            if len(seen) < MAX_HASH:
+                seen.add(key)
 
             # Extract sparse indices for both perspectives
             white_indices = extract_indices(fen, WHITE)
@@ -141,20 +214,28 @@ def convert(input_path="training.txt",
             # Write binary record
             # ---------------------------------
 
+            record = bytearray()
+
             # Write feature counts (uint8)
-            fout.write(struct.pack("B", len(white_indices)))
-            fout.write(struct.pack("B", len(black_indices)))
+            record += struct.pack("B", len(white_indices))
+            record += struct.pack("B", len(black_indices))
 
             # Write white feature indices (uint16)
             for idx in white_indices:
-                fout.write(struct.pack("<H", idx))
+                record += struct.pack("<H", idx)
 
             # Write black feature indices (uint16)
             for idx in black_indices:
-                fout.write(struct.pack("<H", idx))
+                record += struct.pack("<H", idx)
 
             # Write training target (float32)
-            fout.write(struct.pack("<f", result))
+            record += struct.pack("<f", result)
+
+            fout.write(record)
+
+            valid += 1
+
+        return valid, invalid
 
 
 # =========================
@@ -162,4 +243,16 @@ def convert(input_path="training.txt",
 # =========================
 
 if __name__ == "__main__":
-    convert()
+
+    config = load_config()
+
+    input_path = config.get("training_file", "training.txt")
+    output_path = config.get("sparse_training_file", "training_sparse.bin")
+    skip_invalid = config.get("skip_invalid", True)
+    print("Input:", input_path)
+    print("Output:", output_path)
+
+    valid, invalid = convert(input_path, output_path, skip_invalid)
+
+    print(f"\nValid positions:   {valid}")
+    print(f"Skipped positions: {invalid}")

@@ -1,4 +1,4 @@
-# Minimal 768-256 Piece-Square NNUE
+## Minimal 768-256 Piece-Square NNUE
 
 This folder contains scripts and tools for training a **minimal NNUE chess evaluation network** using sparse training data.
 
@@ -8,7 +8,7 @@ This architecture is well suited for experimentation and typically reaches **~23
 
 ---
 
-# Feature Encoding
+## Feature Encoding
 
 The network uses a **piece-square feature representation**.
 
@@ -35,7 +35,7 @@ This produces a **simple and compact NNUE input layer**.
 
 ---
 
-# Architecture
+## Architecture
 
 ```
 Input: 768
@@ -47,7 +47,7 @@ The hidden layer is **shared between both perspectives**, following the classic 
 
 ---
 
-# Forward Pass
+## Forward Pass
 
 ```
 Linear layer (768 → 256)
@@ -79,7 +79,7 @@ Output:
 
 ---
 
-# Parameter Count
+## Parameter Count
 
 First layer weights
 
@@ -119,7 +119,7 @@ Approximately
 
 ---
 
-# Quantized Network Format
+## Quantized Network Format
 
 The trained network is exported as **int16 weights** for fast inference inside the chess engine.
 
@@ -142,7 +142,7 @@ Expected file size:
 
 ---
 
-# Data Format
+## Data Format
 
 Training data is stored in a **sparse binary format** for efficient loading.
 
@@ -160,7 +160,7 @@ Each position stores only **active feature indices**, avoiding full 768-element 
 
 ---
 
-# Training Pipeline
+## Training Pipeline
 
 Typical workflow:
 
@@ -188,7 +188,7 @@ Scheduler: ReduceLROnPlateau
 
 ---
 
-# Design Goals
+## Design Goals
 
 This network intentionally avoids the complexity of modern NNUE designs.
 
@@ -214,7 +214,7 @@ Minimal engine integration
 
 ---
 
-# Network Summary
+## Network Summary
 
 ```
 Network type: Piece-square NNUE
@@ -226,7 +226,7 @@ Quantized size: ~395 KB
 
 ---
 
-# Visualization Tools
+## Visualization Tools
 
 Optional scripts can visualize learned weights and neuron activations.
 
@@ -247,7 +247,7 @@ pip install matplotlib numpy seaborn
 
 ---
 
-# License
+## License
 
 This project is provided for experimentation and research.
 

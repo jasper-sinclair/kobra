@@ -8,12 +8,9 @@ else
     EXE := kobra_mingw
 endif
 
-# ---- Engine sources (local) ----
-LOCAL_CPP := $(wildcard *.cpp)
-
-# ---- Object files (all local output) ----
-OBJS := $(LOCAL_CPP:.cpp=.o)
-
+# ---- Source files ----
+SRC  := $(wildcard *.cpp)
+OBJS := $(SRC:.cpp=.o)
 DEPS := $(OBJS:.o=.d)
 
 # ---- Compiler ----
@@ -41,6 +38,7 @@ ifeq ($(native),yes)
     CXXFLAGS += -march=native
 endif
 
+# ---- Linker Flags ----
 LDFLAGS := -s
 
 # ============================================
@@ -50,14 +48,15 @@ all: $(EXE)
 $(EXE): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(CXXFLAGS) $(LDFLAGS)
 
-# ---- Compile local cpp files ----
+# ---- Compile cpp ----
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
 # ---- Clean ----
 clean:
 	rm -f *.o *.d $(EXE)
-
+	
+# ---- Clean objects) ----
 clean-obj:
 	rm -f *.o *.d
 	

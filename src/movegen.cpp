@@ -6,7 +6,8 @@ template <bool C> void gen_pawn_moves(
   board& pos,
   move_list& movelist){
   u8 from;
-  u8 to;  constexpr i32 up_left = C == white?northwest:southwest;
+  u8 to;
+  constexpr i32 up_left = C == white?northwest:southwest;
   constexpr i32 up_right = C == white?northeast:southeast;
   constexpr i32 up = C == white?north:south;
   constexpr bool them = ! C;
@@ -21,7 +22,8 @@ template <bool C> void gen_pawn_moves(
   const bitboard up_left_captures = up_left_bb & their_team;
   const bitboard up_right_bb = our_pawns.shift<up_right>();
   const bitboard up_right_captures = up_right_bb & their_team;
-  bitboard atts = single_pawn_push_targets - relative_rank8_bb;  while (atts){
+  bitboard atts = single_pawn_push_targets - relative_rank8_bb;
+  while (atts){
     to = pop_lsb(atts);
     from = to - SCU8(up);
     movelist.add(move::make(from,to));

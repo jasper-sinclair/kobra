@@ -162,7 +162,7 @@ def extract_indices(fen, perspective):
         # Determine whether piece belongs to perspective side
         index_color = 1 if piece_color != perspective else 0
 
-        # Flip board vertically for black perspective
+	   # Flip board vertically for black perspective
         relative_sq = sq if perspective == WHITE else (sq ^ 56)
 
         # Compute final 0–767 feature index
@@ -179,7 +179,7 @@ def extract_indices(fen, perspective):
 # =========================
 
 
-def convert(input_path, output_path, skip_invalid=True):
+def convert(input_path, output_path, skip_invalid=True, sample_limit=0, shuffle_seed=None):
 
     valid = 0
     invalid = 0
@@ -187,9 +187,20 @@ def convert(input_path, output_path, skip_invalid=True):
     seen = set()
     MAX_HASH = 2000000
 
-    with open(input_path, "r") as fin, open(output_path, "wb") as fout:
+    with open(input_path, "r") as fin:
 
         lines = list(fin)
+
+    # Optional shuffle for better dataset mixing
+    if shuffle_seed is not None:
+        random.seed(shuffle_seed)
+        random.shuffle(lines)
+
+    # Optional dataset size limit (useful for debugging large datasets)
+    if sample_limit > 0:
+        lines = lines[:sample_limit]
+
+    with open(output_path, "wb") as fout:
 
         for line in tqdm(lines):
 
@@ -235,7 +246,7 @@ def convert(input_path, output_path, skip_invalid=True):
 
             valid += 1
 
-        return valid, invalid
+    return valid, invalid
 
 
 # =========================
@@ -246,13 +257,23 @@ if __name__ == "__main__":
 
     config = load_config()
 
-    input_path = config.get("training_file", "training.txt")
-    output_path = config.get("sparse_training_file", "training_sparse.bin")
+    input_path = config.get("training_txt", "training.txt")
+    output_path = config.get("training_file", "training_sparse.bin")
     skip_invalid = config.get("skip_invalid", True)
+
+    dataset_sample_limit = config.get("dataset_sample_limit", 0)
+    shuffle_seed = config.get("shuffle_seed", None)
+
     print("Input:", input_path)
     print("Output:", output_path)
 
-    valid, invalid = convert(input_path, output_path, skip_invalid)
+    valid, invalid = convert(
+        input_path,
+        output_path,
+        skip_invalid,
+        dataset_sample_limit,
+        shuffle_seed
+    )
 
     print(f"\nValid positions:   {valid}")
     print(f"Skipped positions: {invalid}")

@@ -2,20 +2,39 @@
   "batch_size": 256,
   "epochs": 20,
   "learning_rate": 0.001,
+  "lr_decay_factor": 0.5,
+  "lr_patience": 3,
+
   "num_workers": 0,
+  "device": "auto",
+
   "scale": 128,
   "l1_size": 256,
-  "export_path": "network.bin",
+
+  "training_txt": "training.txt",
   "training_file": "training_sparse.bin",
-  "sparse_training_file": "training_sparse.bin",
-  
+
+  "dataset_sample_limit": 0,
+  "shuffle_seed": 42,
+
   "validation_split": 0.05,
-  "save_every": 1,
+
   "checkpoint_path": "checkpoint.pt",
   "best_model_path": "best_model.pt",
+  "export_path": "network.bin",
+
   "skip_invalid": true,
   "use_amp": true,
   "seed": 42,
+
+  "label_smoothing": 0.0,
+  "grad_clip": 1.0,
+  "feature_dropout": 0.0,
+
+  "verification_epd": "quiet.epd",
+  "verification_samples": 10,
+
+  "perspective_warning_threshold": 0.2,
 
   "log_every": 1000,
   "mid_checkpoint_every": 5000

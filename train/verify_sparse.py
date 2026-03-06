@@ -34,7 +34,7 @@ PIECE_TO_INDEX = {
     "K": 5,
     "p": 0,
     "n": 1,
-    "b": 2,
+    "b": 0 + 2,
     "r": 3,
     "q": 4,
     "k": 5,
@@ -131,7 +131,7 @@ def build_features(fen, perspective):
 # =========================
 
 
-def build_filtered_dataset(epd_path):
+def build_filtered_dataset(epd_path, sample_limit=0, shuffle_seed=None):
 
     dataset = []
     seen = set()
@@ -152,6 +152,15 @@ def build_filtered_dataset(epd_path):
                 seen.add(fen)
 
             dataset.append((fen, result))
+
+    # Optional shuffle (helps detect ordering bugs)
+    if shuffle_seed is not None:
+        random.seed(shuffle_seed)
+        random.shuffle(dataset)
+
+    # Optional dataset limit
+    if sample_limit > 0:
+        dataset = dataset[:sample_limit]
 
     return dataset
 
@@ -201,6 +210,10 @@ def main():
     sparse_path = config.get("sparse_training_file", "training_sparse.bin")
     epd_path = config.get("verification_epd", "quiet.epd")
 
+    dataset_sample_limit = config.get("dataset_sample_limit", 0)
+    shuffle_seed = config.get("shuffle_seed", None)
+    verification_samples = config.get("verification_samples", 10)
+
     print("Sparse dataset:", sparse_path)
     print("EPD reference:", epd_path)
 
@@ -208,7 +221,11 @@ def main():
 
     print("Binary dataset size:", len(offsets))
 
-    dataset = build_filtered_dataset(epd_path)
+    dataset = build_filtered_dataset(
+        epd_path,
+        dataset_sample_limit,
+        shuffle_seed,
+    )
 
     print("Filtered dataset size:", len(dataset))
 
@@ -219,9 +236,7 @@ def main():
     # Random verification
     # =========================
 
-    samples = 10
-
-    for _ in range(samples):
+    for _ in range(verification_samples):
 
         idx = random.randint(0, min(len(dataset), len(offsets)) - 1)
 

@@ -138,8 +138,6 @@ def build_features(fen, perspective):
 # Sparse Dataset
 # =========================
 
-INPUT_SIZE = 768
-
 
 class SparseDataset(Dataset):
     """
@@ -153,7 +151,7 @@ class SparseDataset(Dataset):
         float32 result
     """
 
-    def __init__(self, path):
+    def __init__(self, path, sample_limit=0):
         self.path = path
         self.offsets = []
 
@@ -178,6 +176,10 @@ class SparseDataset(Dataset):
                 )
 
                 offset += record_size
+
+        # Optional dataset size limit (useful for debugging large datasets)
+        if sample_limit > 0:
+            self.offsets = self.offsets[:sample_limit]
 
         self.file = open(path, "rb")
         self.mm = mmap.mmap(self.file.fileno(), 0, access=mmap.ACCESS_READ)
@@ -257,9 +259,6 @@ class NNUE(nn.Module):
 
 
 def export_model(model, path, scale):
-    """
-    Export weights as int16 scaled values.
-    """
 
     fc1_w = model.fc1.weight.detach().cpu().numpy()
     fc1_b = model.fc1.bias.detach().cpu().numpy()
@@ -310,14 +309,24 @@ def main():
 
     set_seed(config.get("seed", 42))
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Device selection from config
+    device_cfg = config.get("device", "auto")
+    if device_cfg == "auto":
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device(device_cfg)
+
     logger.info("Using device: %s", device)
+
     use_gpu = device.type == "cuda"
 
     # Only enable AMP if CUDA is available
     use_amp = config.get("use_amp", True) and device.type == "cuda"
 
-    dataset = SparseDataset(config.get("training_file", "training_sparse.bin"))
+    dataset = SparseDataset(
+        config.get("training_file", "training_sparse.bin"),
+        config.get("dataset_sample_limit", 0)
+    )
 
     val_split = config.get("validation_split", 0.05)
     val_size = int(len(dataset) * val_split)
@@ -330,18 +339,24 @@ def main():
         batch_size=config.get("batch_size", 256),
         shuffle=True,
         num_workers=config.get("num_workers", 0),
-        pin_memory=use_gpu        
+        pin_memory=use_gpu
     )
 
     val_loader = DataLoader(
-        val_set, batch_size=config.get("batch_size", 256), shuffle=False
+        val_set,
+        batch_size=config.get("batch_size", 256),
+        shuffle=False
     )
 
     model = NNUE(config.get("l1_size", 128)).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=config.get("learning_rate", 1e-3))
 
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=3)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        factor=config.get("lr_decay_factor", 0.5),
+        patience=config.get("lr_patience", 3)
+    )
 
     criterion = nn.BCEWithLogitsLoss()
 
@@ -368,9 +383,14 @@ def main():
     log_every = config.get("log_every", 5000)
     mid_checkpoint_every = config.get("mid_checkpoint_every", 10000)
 
+    label_smoothing = config.get("label_smoothing", 0.0)
+    grad_clip = config.get("grad_clip", 0.0)
+
     for epoch in range(start_epoch, epochs):
+
         logger.info("\nEpoch %d/%d", epoch + 1, epochs)
         model.train()
+
         train_loss = 0.0
         start_time = time.time()
 
@@ -380,20 +400,36 @@ def main():
             xb_b = xb_b.to(device)
             yb = yb.to(device)
 
+            # Optional label smoothing
+            if label_smoothing > 0:
+                yb = yb * (1 - label_smoothing) + label_smoothing * 0.5
+
             optimizer.zero_grad()
 
             if use_amp:
+
                 with torch.amp.autocast("cuda", enabled=True):
                     pred = model(xb_w, xb_b)
                     loss = criterion(pred, yb)
 
                 scaler.scale(loss).backward()
+
+                if grad_clip > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+
                 scaler.step(optimizer)
                 scaler.update()
+
             else:
+
                 pred = model(xb_w, xb_b)
                 loss = criterion(pred, yb)
+
                 loss.backward()
+
+                if grad_clip > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+
                 optimizer.step()
 
             train_loss += loss.item()
@@ -415,6 +451,7 @@ def main():
 
                 # Build full progress line only if it's a log interval
                 if log_trigger:
+
                     elapsed = time.time() - start_time
                     rate = batch_idx / elapsed
                     remaining = (len(train_loader) - batch_idx) / rate
@@ -434,6 +471,7 @@ def main():
 
                 # Run checkpoint independently
                 if checkpoint_trigger:
+
                     state = {
                         "epoch": epoch,
                         "model": model.state_dict(),
@@ -484,17 +522,23 @@ def main():
 
         # Save best model
         if val_loss < best_val_loss:
+
             best_val_loss = val_loss
 
             best_path = config.get("best_model_path", "best_model.pt")
+
             tmp_path = best_path + ".tmp"
+
             torch.save(model.state_dict(), tmp_path)
+
             os.replace(tmp_path, best_path)
 
             export_path = config.get("export_path", "network.bin")
 
             export_model(model, export_path, config.get("scale", 128))
+
             logger.info(f"Saved best model and exported {export_path}")
+
             print("Network size:", os.path.getsize(export_path))
 
         state = {
@@ -510,7 +554,9 @@ def main():
         os.replace(tmp_path, checkpoint_path)
 
         export_model(
-            model, f"network_best_epoch_{epoch+1}.bin", config.get("scale", 128)
+            model,
+            f"network_best_epoch_{epoch+1}.bin",
+            config.get("scale", 128),
         )
 
 

@@ -1,5 +1,5 @@
 # ============================================
-#   Kobra MinGW Static Embedded Build
+#   Kobra MinGW Static Build
 # ============================================
 
 ifeq ($(OS),Windows_NT)
@@ -19,10 +19,10 @@ CXX := g++
 # ---- Build Options ----
 debug    := no
 optimize := yes
-native   := yes
+haswell  := yes
 
 # ---- Compiler Flags ----
-CXXFLAGS := -std=c++20 -static -DEMBED_NNUE
+CXXFLAGS := -std=c++20 -static
 
 ifeq ($(debug),no)
     CXXFLAGS += -DNDEBUG
@@ -31,15 +31,15 @@ else
 endif
 
 ifeq ($(optimize),yes)
-    CXXFLAGS += -O3
+    CXXFLAGS += -O3 -flto=auto
 endif
 
-ifeq ($(native),yes)
-    CXXFLAGS += -march=native
+ifeq ($(haswell),yes)
+    CXXFLAGS += -march=haswell
 endif
 
 # ---- Linker Flags ----
-LDFLAGS := -s
+LDFLAGS := -s -flto
 
 # ============================================
 
@@ -55,11 +55,11 @@ $(EXE): $(OBJS)
 # ---- Clean ----
 clean:
 	rm -f *.o *.d $(EXE)
-	
-# ---- Clean objects) ----
+
+# ---- Clean objects ----
 clean-obj:
 	rm -f *.o *.d
-	
+
 -include $(DEPS)
 
-.PHONY: all clean
+.PHONY: all clean clean-obj

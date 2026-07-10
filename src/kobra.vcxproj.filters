@@ -51,10 +51,7 @@
     <ClCompile Include="selfplay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="decrypt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="key.cpp">
+    <ClCompile Include="net.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -95,13 +92,7 @@
     <ClInclude Include="selfplay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="decrypt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="defs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="key.h">
+    <ClInclude Include="net.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -129,12 +129,11 @@
   <ItemGroup>
     <ClCompile Include="attack.cpp" />
     <ClCompile Include="bitboard.cpp" />
-    <ClCompile Include="decrypt.cpp" />
     <ClCompile Include="eval.cpp" />
-    <ClCompile Include="key.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="movegen.cpp" />
     <ClCompile Include="movesort.cpp" />
+    <ClCompile Include="net.cpp" />
     <ClCompile Include="nnue.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="chrono.cpp" />
@@ -145,13 +144,11 @@
   <ItemGroup>
     <ClInclude Include="attack.h" />
     <ClInclude Include="bitboard.h" />
-    <ClInclude Include="decrypt.h" />
-    <ClInclude Include="defs.h" />
     <ClInclude Include="eval.h" />
-    <ClInclude Include="key.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="movegen.h" />
     <ClInclude Include="movesort.h" />
+    <ClInclude Include="net.h" />
     <ClInclude Include="nnue.h" />
     <ClInclude Include="search.h" />
     <ClInclude Include="chrono.h" />

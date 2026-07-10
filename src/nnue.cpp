@@ -1,9 +1,8 @@
 #include "nnue.h"
 #include <iostream>
 #include "bitboard.h"
-#include "decrypt.h"
-#include "defs.h"
 #include "main.h"
+#include "net.h"
 
 alignas(64) int16_t nnue::ft_biases[k_half_dimensions];
 alignas(64) int16_t nnue::ft_weights[k_half_dimensions * ft_in_dims];
@@ -15,30 +14,10 @@ alignas(64) weight_t nnue::output_weights[32];
 int32_t nnue::output_biases[1];
 
 nnue& nnue::instance() {
-#ifdef EMBED_NNUE
   static nnue engine(
-    g_embedded_nnue_data,
-    g_embedded_nnue_size);
-#else
-  map_t mapping;
-  const fd file=open_file("network.bin");
+    g_default_net,
+    g_default_net_size);
 
-  if (file == FD_ERR) {
-    std::cerr << "Failed to open network.bin\n";
-    std::abort();
-  }
-
-  const void* file_data=map_file(file, &mapping);
-  const size_t size=file_size(file);
-  close_file(file);
-
-  static nnue engine(
-    static_cast<const uint8_t*>(file_data),
-    size);
-
-  if (mapping)
-    unmap_file(file_data, mapping);
-#endif
   return engine;
 }
 
@@ -421,12 +400,10 @@ void nnue::init_weights(
 }
 
 nnue::nnue(const uint8_t* raw, const size_t size) {
-  const auto blob=decrypt(raw, size);
-
-  if (!verify_net(blob.data(), blob.size())) {
+  if (!verify_net(raw, size)) {
     std::cerr << "Invalid NNUE\n";
     std::abort();
   }
-  init_weights(blob.data());
+  init_weights(raw);
   SO << "NNUE loaded\n";
 }

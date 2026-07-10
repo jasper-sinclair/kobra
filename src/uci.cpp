@@ -202,8 +202,12 @@ namespace uci{
           int movetime = 0;
           int depth = 0;
           int nodes = 0;
+          int threads=static_cast<int>(std::thread::hardware_concurrency());
+
           ss >> games;
+
           std::string arg;
+
           while (ss >> arg){
             if (arg == "movetime")
               ss >> movetime;
@@ -211,13 +215,15 @@ namespace uci{
               ss >> depth;
             else if (arg == "nodes")
               ss >> nodes;
+            else if (arg == "threads")
+              ss >> threads;
           }
 
           if (nodes <= 0 && depth <= 0 && movetime <= 0){
             std::cout << "Error: specify nodes, depth, or movetime\n";
             return;
           }
-          run_selfplay(games,movetime,depth,nodes);
+          run_selfplay(games,movetime,depth,nodes,threads);
         }
       },
     };

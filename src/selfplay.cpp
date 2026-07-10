@@ -12,17 +12,17 @@
 #include "movegen.h"
 #include "uci.h"
 
-namespace uci{
-  namespace{
+namespace uci {
+  namespace {
     std::mutex file_mutex;
-    std::atomic games_completed = 0;
-    std::atomic<long long> total_positions = 0;
-    std::atomic<long long> total_plies = 0;
-    std::atomic white_wins = 0;
-    std::atomic black_wins = 0;
-    std::atomic draws = 0;
+    std::atomic games_completed=0;
+    std::atomic<long long> total_positions=0;
+    std::atomic<long long> total_plies=0;
+    std::atomic white_wins=0;
+    std::atomic black_wins=0;
+    std::atomic draws=0;
 
-    struct training_pos{
+    struct training_pos {
       std::string fen;
       bool white_to_move;
       int eval;
@@ -30,10 +30,10 @@ namespace uci{
     };
 
     int piece_count(
-      const board& position){
-      int count = -2;
+      const board& position) {
+      int count=-2;
 
-      for (u8 sq = 0; sq < 64; sq++)
+      for (u8 sq=0; sq < 64; sq++)
         if (position.piece_on(sq) != no_piece)
           count++;
 
@@ -41,25 +41,25 @@ namespace uci{
     }
 
     bool has_legal_moves(
-      board& position){
+      board& position) {
       move_list moves;
-      gen_moves(position,moves);
+      gen_moves(position, moves);
 
-      for (size_t i = 0; i < moves.size(); ++i){
-        if (const u16 m = moves.move(i); position.is_legal(m))
+      for (size_t i=0; i < moves.size(); ++i) {
+        if (const u16 m=moves.move(i); position.is_legal(m))
           return true;
       }
       return false;
     }
 
     float game_result(
-      board& position){
+      board& position) {
       if (position.is_draw())
         return 0.5f;
 
-      if (! has_legal_moves(position)){
-        if (position.is_in_check()){
-          return position.side_to_move == white?0.0f:1.0f;
+      if (!has_legal_moves(position)) {
+        if (position.is_in_check()) {
+          return position.side_to_move == white ? 0.0f : 1.0f;
         }
 
         return 0.5f;
@@ -69,8 +69,8 @@ namespace uci{
     }
 
     float sigmoid_eval(
-      const int eval){
-      constexpr float inv_scale = 1.0f / 400.0f;
+      const int eval) {
+      constexpr float inv_scale=1.0f / 400.0f;
       return 1.0f / (1.0f + std::exp(-static_cast<float>(eval) * inv_scale));
     }
 
@@ -78,109 +78,100 @@ namespace uci{
       int games,
       int movetime,
       int depth,
-      int nodes){
+      int nodes) {
       search engine;
 
-      engine.selfplay_mode = true;
+      engine.selfplay_mode=true;
       engine.set_hash_size(16);
       engine.set_num_threads(1);
 
-      thread_local std::ofstream out("training.txt",std::ios::app);
+      thread_local std::ofstream out("training.txt", std::ios::app);
 
       thread_local std::mt19937 rng(std::random_device{}());
-      std::uniform_int_distribution flip_dist(0,1);
 
-      for (int g = 0; g < games; ++g){
+      for (int g=0; g < games; ++g) {
         engine.clear();
 
         board position(start_fen);
 
-        std::uniform_int_distribution plies_dist(0,5);
-        int random_plies = 6 + plies_dist(rng);
+        std::uniform_int_distribution plies_dist(0, 5);
+        int random_plies=6 + plies_dist(rng);
 
-        for (int i = 0; i < random_plies; i++){
+        for (int i=0; i < random_plies; i++) {
           move_list moves;
-          gen_moves(position,moves);
+          gen_moves(position, moves);
 
           std::vector<u16> legal;
 
-          for (size_t j = 0; j < moves.size(); j++){
-            if (u16 m = moves.move(j); position.is_legal(m))
+          for (size_t j=0; j < moves.size(); j++) {
+            if (u16 m=moves.move(j); position.is_legal(m))
               legal.push_back(m);
           }
 
           if (legal.empty())
             break;
 
-          std::uniform_int_distribution<size_t> dist(0,legal.size() - 1);
+          std::uniform_int_distribution<size_t> dist(0, legal.size() - 1);
           position.apply_move(legal[dist(rng)]);
-          if (! has_legal_moves(position))
+          if (!has_legal_moves(position))
             break;
         }
 
-        int ply = 0;
+        int ply=0;
 
         std::vector<training_pos> game_positions;
 
-        int eval = 0;
+        int eval=0;
 
-        while (true){
+        while (true) {
           if (position.is_draw() && ply > 60)
             break;
 
-          if (! has_legal_moves(position))
+          if (!has_legal_moves(position))
             break;
 
           if (ply > 120)
             break;
 
-          engine.time = {};
+          engine.time={};
 
-          if (nodes > 0){
-            engine.time.use_node_limit = true;
-            engine.time.node_limit = nodes;
-          } else if (depth > 0){
-            engine.time.use_depth_limit = true;
-            engine.time.depth_limit = depth;
-          } else{
-            engine.time.use_move_limit = true;
-            engine.time.move_time_limit = movetime;
+          if (nodes > 0) {
+            engine.time.use_node_limit=true;
+            engine.time.node_limit=nodes;
+          }
+          else if (depth > 0) {
+            engine.time.use_depth_limit=true;
+            engine.time.depth_limit=depth;
+          }
+          else {
+            engine.time.use_move_limit=true;
+            engine.time.move_time_limit=movetime;
             engine.time.start();
           }
 
-          u16 best = engine.best_move(position);
+          u16 best=engine.best_move(position);
 
-          eval = engine.get_last_score();
+          eval=engine.get_last_score();
 
-          if (! best)
+          if (!best)
             break;
-
-          position.apply_move(best);
 
           ply++;
 
-          int pieces = piece_count(position);
-
-          int sample_rate = (pieces <= 6)?1:
-            (pieces <= 10)?2:4;
-
-          [[maybe_unused]] std::uniform_int_distribution sample_dist(0,sample_rate);
-
-          if (ply > 6 && ply < 140){
-            if (rng() % (sample_rate + 1) == 0){
-              if (game_positions.empty() || game_positions.back().ply != ply){
-                game_positions.push_back({
-                  .fen = position.fen(),
-                  .white_to_move = position.side_to_move == white,
-                  .eval = eval,
-                  .ply = ply
-                });
-              }
-            }
+          // sample positions only every 8 plies to reduce correlation
+          if (ply > 16 && ply % 8 == 0) {
+            game_positions.push_back({
+              .fen=position.fen(),
+              .white_to_move=position.side_to_move == white,
+              .eval=eval,
+              .ply=ply
+              });
           }
+
+          position.apply_move(best);
         }
 
-        float result = game_result(position);
+        float result=game_result(position);
 
         if (result > 0.99f)
           ++white_wins;
@@ -189,35 +180,23 @@ namespace uci{
         else
           ++draws;
 
-        float white_result = result;
-
-        if (flip_dist(rng))
-          white_result = 1.0f - white_result;
-
-        float training_result = white_result;
+        float white_result=result;
+        float training_result=white_result;
 
         std::ostringstream buffer;
-        int written_positions = 0;
+        int written_positions=0;
 
-        for (const auto& p : game_positions){
+        for (const auto& p : game_positions) {
           if (p.ply < 16)
             continue;
 
           if (p.ply > ply - 8)
             continue;
 
-          int e = p.white_to_move?p.eval:-p.eval;
+          float label=
+            p.white_to_move ? training_result : 1.0f - training_result;
 
-          float eval_target = sigmoid_eval(e);
-
-          float blended =
-            0.6f * training_result +
-            0.4f * eval_target;
-
-          float label =
-            p.white_to_move?blended:1.0f - blended;
-
-          label = std::clamp(label,0.0f,1.0f);
+          label=std::clamp(label, 0.0f, 1.0f);
 
           buffer << p.fen << " | " << label << "\n";
           written_positions++;
@@ -233,8 +212,8 @@ namespace uci{
         }
 
         ++games_completed;
-        total_positions += written_positions;
-        total_plies += ply;
+        total_positions+=written_positions;
+        total_plies+=ply;
       }
     }
   }
@@ -243,42 +222,45 @@ namespace uci{
     const int games,
     int movetime,
     int depth,
-    int nodes){
-    games_completed = 0;
-    total_positions = 0;
-    total_plies = 0;
+    int nodes,
+    int threads) {
+    games_completed=0;
+    total_positions=0;
+    total_plies=0;
 
-    white_wins = 0;
-    black_wins = 0;
-    draws = 0;
+    white_wins=0;
+    black_wins=0;
+    draws=0;
 
-    const bool old_verbose = verbose;
+    const bool old_verbose=verbose;
 
-    verbose = false;
+    verbose=false;
 
-    int threads =
-      std::min(
-        games,
-        static_cast<int>(std::thread::hardware_concurrency()));
+    if (threads <= 0) {
+      threads=static_cast<int>(std::thread::hardware_concurrency());
+      if (threads <= 0)
+        threads=1;
+    }
 
-    if (threads == 0)
-      threads = 4;
+    threads=std::min(threads, games);
 
     std::cout << "hardware_concurrency = "
       << std::thread::hardware_concurrency()
       << "\n";
 
     std::cout << "threads = " << threads << "\n";
+    if (threads > 0)
+      std::cout << "games per thread ~ " << (games / threads) << "\n";
 
     std::vector<std::thread> workers;
 
-    const int games_per_thread = games / threads;
-    const int remainder = games % threads;
+    const int games_per_thread=games / threads;
+    const int remainder=games % threads;
 
-    for (int i = 0; i < threads; i++){
-      int count =
+    for (int i=0; i < threads; i++) {
+      int count=
         games_per_thread +
-        (i < remainder?1:0);
+        (i < remainder ? 1 : 0);
 
       workers.emplace_back(
         selfplay_worker,
@@ -290,75 +272,96 @@ namespace uci{
 
     using namespace std::chrono_literals;
 
-    const auto start =
+    const auto start=
       std::chrono::steady_clock::now();
 
-    while (games_completed < games){
+    double smoothed_games_per_sec=0.0;
+    int last_done=0;
+    auto last_time=start;
+
+    while (games_completed < games) {
       std::this_thread::sleep_for(1s);
 
-      const int done = games_completed.load();
+      const int done=games_completed.load();
 
-      const long long positions =
+      const long long positions=
         total_positions.load();
 
-      const long long plies =
+      const long long plies=
         total_plies.load();
 
-      auto now =
+      auto now=
         std::chrono::steady_clock::now();
 
-      const double seconds =
+      const double seconds=
         std::chrono::duration<double>(now - start).count();
 
-      const double percent =
+      const double percent=
         100.0 * done / games;
 
-      const double games_per_sec =
-        done / seconds;
+      auto dt=
+        std::chrono::duration<double>(now - last_time).count();
 
-      const double pos_per_sec =
+      double instant_gps=0.0;
+
+      if (dt > 0.0)
+        instant_gps=(done - last_done) / dt;
+
+      if (smoothed_games_per_sec == 0.0)
+        smoothed_games_per_sec=instant_gps;
+      else
+        smoothed_games_per_sec=
+        0.85 * smoothed_games_per_sec +
+        0.15 * instant_gps;
+
+      const double games_per_sec=smoothed_games_per_sec;
+
+      last_done=done;
+      last_time=now;
+
+      const double pos_per_sec=
         static_cast<double>(positions) / seconds;
 
-      const double plies_per_game =
-        done > 0?static_cast<double>(plies) / done:0.0;
+      const double plies_per_game=
+        done > 0 ? static_cast<double>(plies) / done : 0.0;
 
-      const double remaining_games =
+      const double remaining_games=
         games - done;
 
-      const double eta_seconds =
-        games_per_sec > 0?
-        remaining_games / games_per_sec:
-        0.0;
+      double eta_seconds=0.0;
 
-      const int eta_min =
+      if (seconds > 5.0 && games_per_sec > 0.0)
+        eta_seconds=remaining_games / games_per_sec;
+
+      const int eta_min=
         static_cast<int>(eta_seconds / 60);
 
-      const int eta_sec =
+      const int eta_sec=
         static_cast<int>(eta_seconds) % 60;
 
-      const int elapsed_hours =
+      const int elapsed_hours=
         static_cast<int>(seconds / 3600);
 
-      const int elapsed_minutes =
+      const int elapsed_minutes=
         static_cast<int>(seconds) % 3600 / 60;
 
-      const int elapsed_seconds =
+      const int elapsed_seconds=
         static_cast<int>(seconds) % 60;
 
-      const int w = white_wins.load();
-      const int b = black_wins.load();
-      const int d = draws.load();
+      const int w=white_wins.load();
+      const int b=black_wins.load();
+      const int d=draws.load();
 
-      const int total = w + b + d;
+      const int total=w + b + d;
 
-      const double w_pct =
-        total?100.0 * w / total:0.0;
+      const double w_pct=
+        total ? 100.0 * w / total : 0.0;
 
-      const double b_pct =
-        total?100.0 * b / total:0.0;
+      const double b_pct=
+        total ? 100.0 * b / total : 0.0;
 
-      const double draw_pct =
-        total?100.0 * d / total:0.0;
+      const double draw_pct=
+        total ? 100.0 * d / total : 0.0;
 
       std::ostringstream line;
 
@@ -381,10 +384,10 @@ namespace uci{
         << eta_min << "m "
         << eta_sec << "s";
 
-      std::string out = line.str();
+      std::string out=line.str();
 
       if (out.length() < 140)
-        out += std::string(140 - out.length(),' ');
+        out+=std::string(140 - out.length(), ' ');
 
       std::cout << out << std::flush;
     }
@@ -392,10 +395,10 @@ namespace uci{
     for (auto& t : workers)
       t.join();
 
-    const auto end =
+    const auto end=
       std::chrono::steady_clock::now();
 
-    const double total_seconds =
+    const double total_seconds=
       std::chrono::duration<double>(end - start).count();
 
     std::cout << "\nSelfplay finished in "
@@ -403,6 +406,6 @@ namespace uci{
       << static_cast<int>(total_seconds) % 3600 / 60 << "m "
       << static_cast<int>(total_seconds) % 60 << "s\n";
 
-    verbose = old_verbose;
+    verbose=old_verbose;
   }
 }

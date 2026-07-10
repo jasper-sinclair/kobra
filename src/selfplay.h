@@ -4,5 +4,6 @@ namespace uci{
     int games,
     int movetime,
     int depth,
-    int nodes);
+    int nodes,
+    int threads);
 }
